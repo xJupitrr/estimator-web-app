@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 const Card = ({ children, className = "" }) => (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
@@ -267,7 +268,7 @@ export default function SlabOnGrade() {
             totalRebarCost += total;
 
             finalRebarItems.push({
-                name: `Deformed Bar (${size} x ${lengthStr})`,
+                name: `Corrugated Rebar (${size} x ${lengthStr})`,
                 qty: finalQtyPurchase,
                 unit: 'pcs',
                 price: price,
@@ -290,8 +291,8 @@ export default function SlabOnGrade() {
 
         const items = [
             { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: prices.cement, priceKey: 'cement', total: costCement },
-            { name: 'Wash Sand (Concrete Mix)', qty: finalSand, unit: 'cu.m', price: prices.sand, priceKey: 'sand', total: costSand },
-            { name: 'Crushed Gravel (3/4" Mix)', qty: finalGravel, unit: 'cu.m', price: prices.gravel, priceKey: 'gravel', total: costGravel },
+            { name: 'Wash Sand (S1)', qty: finalSand, unit: 'cu.m', price: prices.sand, priceKey: 'sand', total: costSand },
+            { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: prices.gravel, priceKey: 'gravel', total: costGravel },
             { name: 'Gravel Bedding / Sub-base', qty: finalGravelBedding, unit: 'cu.m', price: prices.gravelBeddingPrice, priceKey: 'gravelBeddingPrice', total: costGravelBedding },
             ...finalRebarItems,
             { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: prices.tieWire, priceKey: 'tieWire', total: costTieWire },
@@ -493,10 +494,29 @@ export default function SlabOnGrade() {
                             </div>
                         </div>
 
+                        {/* Export Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button
+                                onClick={() => copyToClipboard(result.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(result.items, 'slab_estimation.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
+                        </div>
+
                         <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-                                    <tr><th className="px-4 py-3">Material Item</th>
+                                    <tr>
+                                        <th className="px-4 py-3">Material Item</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
                                         <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
@@ -525,7 +545,6 @@ export default function SlabOnGrade() {
                                 </tbody>
                             </table>
                         </div>
-
                     </div>
                 </Card>
             )}

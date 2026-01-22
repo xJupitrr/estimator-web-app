@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Paintbrush, Settings, Calculator, PlusCircle, Trash2, AlertCircle } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Paintbrush, Ruler, PaintBucket, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 // --- Components ---
 
@@ -326,8 +327,26 @@ export default function Painting() {
                             </div>
                             <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
                                 <p className="text-xs text-emerald-800 font-bold uppercase tracking-wide mb-1">Estimated Material Cost</p>
-                                <p className="font-bold text-4xl text-emerald-800 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <p className="font-bold text-4xl text-rose-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
+                        </div>
+
+                        {/* Export Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button
+                                onClick={() => copyToClipboard(result.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(result.items, 'painting_estimation.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">

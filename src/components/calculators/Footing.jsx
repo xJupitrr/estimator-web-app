@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle } from 'lucide-react';
+import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 // --- Components ---
 
@@ -584,6 +585,24 @@ export default function Footing() {
                                     {footingResult.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </p>
                             </div>
+                        </div>
+
+                        {/* Export Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button
+                                onClick={() => copyToClipboard(footingResult.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(footingResult.items, 'footing_estimation.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">

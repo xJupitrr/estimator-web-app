@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Grid3X3, Ruler, PoundSterling, AlertCircle } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Grid3X3, Ruler, PoundSterling, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 // --- Components ---
 
@@ -449,6 +450,24 @@ export default function Tiles() {
                                 <p className="text-xs text-violet-800 font-bold uppercase tracking-wide mb-1">Estimated Material Cost</p>
                                 <p className="font-bold text-4xl text-violet-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
+                        </div>
+
+                        {/* Export Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button
+                                onClick={() => copyToClipboard(result.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(result.items, 'tiles_estimation.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">

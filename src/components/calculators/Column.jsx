@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 // --- Components ---
 
@@ -93,10 +94,11 @@ const getInitialColumn = () => ({
     tie_spacing_mm: "", // Empty default
 });
 
-export default function Column() { // Renamed from App to Column
-
-    // --- State ---
-    const [columns, setColumns] = useState([getInitialColumn()]);
+export default function Column({ columns: propColumns, setColumns: propSetColumns }) {
+    // Use props if provided, otherwise use local state (for backward compatibility if used standalone)
+    const [localColumns, setLocalColumns] = useState([getInitialColumn()]);
+    const columns = propColumns || localColumns;
+    const setColumns = propSetColumns || setLocalColumns;
     const [wastePct, setWastePct] = useState(5); // Concrete waste factor (for concrete materials only)
 
     // Material Prices (PHP) - keyed by diameter for rebar
@@ -497,6 +499,24 @@ export default function Column() { // Renamed from App to Column
                                 <p className="text-xs text-emerald-800 font-bold uppercase tracking-wide mb-1">Estimated Cost</p>
                                 <p className="font-bold text-4xl text-emerald-700 tracking-tight">₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
+                        </div>
+
+                        {/* Export Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button
+                                onClick={() => copyToClipboard(result.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(result.items, 'column_estimation.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">

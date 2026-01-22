@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer } from 'lucide-react';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
 import Footing from './components/calculators/Footing';
 import Column from './components/calculators/Column';
 import Beam from './components/calculators/Beam';
 import Tiles from './components/calculators/Tiles';
-import Painting from './components/calculators/Painting'; // Added Painting Component
+import Painting from './components/calculators/Painting';
+import Ceiling from './components/calculators/Ceiling';
+import Formworks from './components/calculators/Formworks';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -14,12 +16,48 @@ const TABS = [
     { id: 'footing', label: 'RC Footing', component: Footing, icon: LayoutTemplate },
     { id: 'column', label: 'RC Column', component: Column, icon: Columns },
     { id: 'beam', label: 'RC Beam', component: Beam, icon: PenTool },
+    { id: 'formworks', label: 'Formworks', component: Formworks, icon: Hammer },
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
-    { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush }, // Added Painting Tab
+    { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
+    { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
 ];
+
+// Helper function to get initial column
+const getInitialColumn = () => ({
+    id: Date.now() + Math.random(),
+    quantity: 1,
+    length_m: "",
+    width_m: "",
+    height_m: "",
+    main_bar_sku: '16_9.0',
+    main_bar_count: "",
+    tie_bar_sku: '10_6.0',
+    tie_spacing_mm: "",
+});
+
+// Helper function to get initial beam
+const getInitialBeam = () => ({
+    id: crypto.randomUUID(),
+    quantity: 1,
+    length_m: "",
+    width_m: "",
+    height_m: "",
+    main_bar_sku: '16_9.0',
+    main_bar_count: "",
+    tie_bar_sku: '10_6.0',
+    tie_spacing_mm: "",
+    cut_support_sku: '12_6.0',
+    cut_support_count: "",
+    cut_midspan_sku: '12_6.0',
+    cut_midspan_count: "",
+});
 
 export default function App() {
     const [activeTabId, setActiveTabId] = useState('slab');
+
+    // Lifted state for Column and Beam tabs (for Formworks to access)
+    const [columns, setColumns] = useState([getInitialColumn()]);
+    const [beams, setBeams] = useState([getInitialBeam()]);
 
 
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
@@ -55,9 +93,21 @@ export default function App() {
                 <main className="flex-1 min-w-0">
                     {TABS.map((tab) => {
                         const Component = tab.component;
+                        // Pass columns/beams state to relevant components
+                        const props = {};
+                        if (tab.id === 'column') {
+                            props.columns = columns;
+                            props.setColumns = setColumns;
+                        } else if (tab.id === 'beam') {
+                            props.beams = beams;
+                            props.setBeams = setBeams;
+                        } else if (tab.id === 'formworks') {
+                            props.columns = columns;
+                            props.beams = beams;
+                        }
                         return (
                             <div key={tab.id} className={activeTabId === tab.id ? 'block' : 'hidden'}>
-                                <Component />
+                                <Component {...props} />
                             </div>
                         );
                     })}

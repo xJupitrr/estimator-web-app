@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle } from 'lucide-react';
+import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 // --- 1. CONSTANTS & CONFIGURATION ---
 
@@ -151,8 +152,12 @@ const TablePriceInput = React.memo(({ value, onChange, placeholder = "0.00" }) =
 
 // --- 4. MAIN COMPONENT ---
 
-export default function Beam() {
-    const [beams, setBeams] = useState([getInitialElement()]);
+export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
+    // Use props if provided, otherwise use local state (for backward compatibility)
+    const [localBeams, setLocalBeams] = useState([getInitialElement()]);
+    const beams = propBeams || localBeams;
+    const setBeams = propSetBeams || setLocalBeams;
+
     const [prices, setPrices] = useState(DEFAULT_PRICES);
     const [showResult, setShowResult] = useState(false);
     const [error, setError] = useState(null);
@@ -498,6 +503,24 @@ export default function Beam() {
                                 <p className="text-xs text-emerald-800 font-bold uppercase tracking-wide mb-1">Estimated Cost</p>
                                 <p className="font-bold text-4xl text-emerald-700 tracking-tight">₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
+                        </div>
+
+                        {/* Export Buttons */}
+                        <div className="flex justify-end gap-2 mb-4">
+                            <button
+                                onClick={() => copyToClipboard(result.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(result.items, 'beam_estimation.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
