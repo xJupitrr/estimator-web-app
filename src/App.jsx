@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack } from 'lucide-react';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
 import Footing from './components/calculators/Footing';
@@ -9,6 +9,7 @@ import Tiles from './components/calculators/Tiles';
 import Painting from './components/calculators/Painting';
 import Ceiling from './components/calculators/Ceiling';
 import Formworks from './components/calculators/Formworks';
+import SuspendedSlab from './components/calculators/SuspendedSlab';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -20,6 +21,7 @@ const TABS = [
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
     { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
+    { id: 'suspended-slab', label: 'Suspended Slab', component: SuspendedSlab, icon: SquareStack },
 ];
 
 // Helper function to get initial column
