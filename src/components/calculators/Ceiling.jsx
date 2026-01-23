@@ -84,6 +84,11 @@ export default function Ceiling() {
         screw_metal: 0.60,
         rivets: 0.40,
         clips: 5.00,       // PVC Clips + Screw set per piece
+        mesh_tape: 150,    // Per Roll (e.g. 75m or 100m)
+        jointing_compound: 850, // Per Pail/Bag (20kg)
+        spandrel_molding: 120, // Per length (3m)
+        pvc_u_molding: 80,     // Per length (3m)
+        pvc_h_clip: 90,        // Per length (3m)
     });
 
     // Panel Configuration (Global for simplicity, or could be per row)
@@ -144,7 +149,14 @@ export default function Ceiling() {
             screw_hardiflex: 0,
             screw_metal: 0,
             rivets: 0,
-            clips: 0
+            clips: 0,
+
+            // Accessories
+            mesh_tape_m: 0,        // Linear meters needed
+            compound_bag: 0,       // Bags/Pails needed
+            spandrel_molding_lm: 0, // Linear meters
+            pvc_u_molding_lm: 0,    // Linear meters
+            pvc_h_clip_lm: 0        // Linear meters
         };
 
         const hasEmptyFields = rooms.some(room => room.length_m === "" || room.width_m === "");
@@ -235,6 +247,42 @@ export default function Ceiling() {
             // Add to totals
             materials[typeKey] += (pieces * qty);
             materials[typeData.fastener] += (fasteners * qty);
+
+            // --- 3. ACCESSORIES CALCULATION ---
+            const area = L * W;
+
+            if (typeKey === 'gypsum' || typeKey === 'hardiflex') {
+                // Mesh Tape & Compound
+                // Estimation: Tape ~1.5m per sqm of board area (joints + corners)
+                materials.mesh_tape_m += (area * 1.5 * qty);
+                // Compound: ~0.5kg - 0.8kg per sqm? Or 1 bag (20kg) covers 40sqm (approx 0.5kg/sqm).
+                // Let's use 1 bag per 40sqm factor.
+                materials.compound_bag += ((area / 40) * qty);
+
+            } else if (typeKey === 'spandrel') {
+                // Molding (J-Molding/End Trim) - Perimeter
+                materials.spandrel_molding_lm += (perimeter * qty);
+
+            } else if (typeKey === 'pvc') {
+                // U-Molding - Perimeter
+                materials.pvc_u_molding_lm += (perimeter * qty);
+
+                // H-Clip (Joiner) - Only if panel length < room length (Needs splicing)
+                // Logic: piecesPerStrip calculated earlier.
+                // Assuming panels run along Length L.
+                const panelL = config.pvc_l;
+                const piecesPerStrip = Math.ceil(L / panelL);
+
+                if (piecesPerStrip > 1) {
+                    // Number of joints per strip = piecesPerStrip - 1
+                    // Total Length of joiners = (Joints * Width of Strip) * Num Strips
+                    // Actually, the joiner runs across the ROOM WIDTH (cutting across all strips), usually 1 continuous line or segmented.
+                    // Total Joiner Length = (Number of joints along L) * Room Width W
+                    const numJointsLong = piecesPerStrip - 1;
+                    const totalJoinerLen = numJointsLong * W;
+                    materials.pvc_h_clip_lm += (totalJoinerLen * qty);
+                }
+            }
         });
 
         // --- Hardware Totals ---
@@ -274,6 +322,28 @@ export default function Ceiling() {
         if (materials.rivets > 0) itemList.push({ name: "Blind Rivets", qty: materials.rivets, unit: 'pcs', priceKey: 'rivets', price: prices.rivets, total: getItemTotal('rivets', materials.rivets) });
         if (materials.clips > 0) itemList.push({ name: "PVC Clips + Screws", qty: materials.clips, unit: 'sets', priceKey: 'clips', price: prices.clips, total: getItemTotal('clips', materials.clips) });
 
+        // 4. Accessories
+        if (materials.mesh_tape_m > 0) {
+            const rolls = Math.ceil(materials.mesh_tape_m / 75); // 75m roll
+            itemList.push({ name: "Mesh Tape (75m Roll)", qty: rolls, unit: 'rolls', priceKey: 'mesh_tape', price: prices.mesh_tape, total: getItemTotal('mesh_tape', rolls) });
+        }
+        if (materials.compound_bag > 0) {
+            const bags = Math.ceil(materials.compound_bag);
+            itemList.push({ name: "Jointing Compound (20kg)", qty: bags, unit: 'pails', priceKey: 'jointing_compound', price: prices.jointing_compound, total: getItemTotal('jointing_compound', bags) });
+        }
+        if (materials.spandrel_molding_lm > 0) {
+            const pcs = Math.ceil(materials.spandrel_molding_lm / 3.0); // 3m length
+            itemList.push({ name: "Spandrel Molding / J-Trim (3m)", qty: pcs, unit: 'pcs', priceKey: 'spandrel_molding', price: prices.spandrel_molding, total: getItemTotal('spandrel_molding', pcs) });
+        }
+        if (materials.pvc_u_molding_lm > 0) {
+            const pcs = Math.ceil(materials.pvc_u_molding_lm / 3.0);
+            itemList.push({ name: "PVC U-Molding (3m)", qty: pcs, unit: 'pcs', priceKey: 'pvc_u_molding', price: prices.pvc_u_molding, total: getItemTotal('pvc_u_molding', pcs) });
+        }
+        if (materials.pvc_h_clip_lm > 0) {
+            const pcs = Math.ceil(materials.pvc_h_clip_lm / 3.0);
+            itemList.push({ name: "PVC H-Clip / Joiner (3m)", qty: pcs, unit: 'pcs', priceKey: 'pvc_h_clip', price: prices.pvc_h_clip, total: getItemTotal('pvc_h_clip', pcs) });
+        }
+
 
         const grandTotal = itemList.reduce((acc, item) => acc + item.total, 0);
 
@@ -308,7 +378,7 @@ export default function Ceiling() {
                         <thead className="text-xs text-slate-700 uppercase bg-slate-100">
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Type</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[300px]">Type</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Qty</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center">Length (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center">Width (m)</th>

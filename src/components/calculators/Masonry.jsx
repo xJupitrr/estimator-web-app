@@ -493,7 +493,7 @@ export default function Masonry() { // Renamed to Masonry
                                         <select
                                             value={wall.chbSize}
                                             onChange={(e) => handleWallChange(wall.id, 'chbSize', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-xs font-bold"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
                                         >
                                             <option value="4">4" (10cm)</option>
                                             <option value="6">6" (15cm)</option>
@@ -504,7 +504,7 @@ export default function Masonry() { // Renamed to Masonry
                                         <select
                                             value={wall.plasterSides}
                                             onChange={(e) => handleWallChange(wall.id, 'plasterSides', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-xs"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
                                         >
                                             <option value="0">None</option>
                                             <option value="1">1 Side</option>
@@ -520,7 +520,7 @@ export default function Masonry() { // Renamed to Masonry
                                                 placeholder="0.60"
                                                 value={wall.vertSpacing}
                                                 onChange={(e) => handleWallChange(wall.id, 'vertSpacing', e.target.value)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold bg-white text-slate-900"
+                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
@@ -531,7 +531,7 @@ export default function Masonry() { // Renamed to Masonry
                                         <select
                                             value={wall.horizRebarSpec}
                                             onChange={(e) => handleWallChange(wall.id, 'horizRebarSpec', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-xs font-medium"
+                                            className="w-full p-1.5 text-left border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
                                         >
                                             {rebarOptions.map(spec => (
                                                 <option key={spec} value={spec}>{spec}</option>
@@ -547,7 +547,7 @@ export default function Masonry() { // Renamed to Masonry
                                                 placeholder="0.60"
                                                 value={wall.horizSpacing}
                                                 onChange={(e) => handleWallChange(wall.id, 'horizSpacing', e.target.value)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold bg-white text-slate-900"
+                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
@@ -558,7 +558,7 @@ export default function Masonry() { // Renamed to Masonry
                                         <select
                                             value={wall.vertRebarSpec}
                                             onChange={(e) => handleWallChange(wall.id, 'vertRebarSpec', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-xs font-medium"
+                                            className="w-full p-1.5 text-left border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
                                         >
                                             {rebarOptions.map(spec => (
                                                 <option key={spec} value={spec}>{spec}</option>

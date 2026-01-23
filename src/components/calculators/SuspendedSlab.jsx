@@ -21,17 +21,16 @@ const TableNumberInput = ({ value, onChange, placeholder, min = "0", step = "any
     />
 );
 
-const TablePriceInput = ({ value, onChange, placeholder = "0.00" }) => (
-    <div className="flex items-center justify-end relative">
-        <span className="absolute left-1 text-gray-400 font-bold text-[10px] pointer-events-none">₱</span>
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
         <input
             type="number"
-            min="0"
-            step="0.01"
-            placeholder={placeholder}
-            value={value === null || value === undefined ? '' : value}
+            value={value === null || value === undefined ? '' : String(value)}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full pl-5 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none text-gray-800 font-medium transition-colors"
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-gray-300 rounded-r-lg bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
         />
     </div>
 );
@@ -56,6 +55,11 @@ const FORMWORK_OPTIONS = [
     { id: 'plywood_1_2', label: '1/2" Marine Plywood', priceKey: 'plywood_1_2' },
 ];
 
+const SUPPORT_TYPES = [
+    { id: 'coco_lumber', label: 'Coco Lumber Frame' },
+    { id: 'gi_pipe', label: 'H-Frame Scaffolding' },
+];
+
 const DEFAULT_PRICES = {
     cement: 245,
     sand: 1300,
@@ -72,10 +76,20 @@ const DEFAULT_PRICES = {
     deck_08: 450,
     deck_10: 550,
     deck_12: 650,
+    h_frame: 1200,
+    cross_brace: 450,
+    u_head: 350,
+    gi_pipe_1_1_2: 850,
+    shackle: 65,
 };
 
 const extractLength = (spec) => parseFloat(spec.split(' x ')[1].replace('m', ''));
 const extractDiameterMeters = (spec) => parseFloat(spec.split('mm')[0]) / 1000;
+
+// NEW: Constants for precise crank calculation
+const CONCRETE_COVER = 0.02; // 20mm
+const CRANK_FACTOR = 0.42;   // Extra length for 45 deg bend (assuming 2 bends per crank)
+const HOOK_MULTIPLIER = 12;  // 12db hook allowance
 
 const getInitialSlab = () => ({
     id: crypto.randomUUID(),
@@ -87,6 +101,8 @@ const getInitialSlab = () => ({
     mainSpacing: 0.15,
     tempBarSpec: "10mm x 6.0m", // For Long Span (One-Way Only)
     tempSpacing: 0.20,
+    floorHeight: "3.0",
+    supportType: 'coco_lumber',
     deckingType: 'none', // 'none' = conventional, or ID
     formworkType: 'phenolic_1_2', // Used if deckingType is 'none'
 });
@@ -225,51 +241,146 @@ export default function SuspendedSlab() {
                 const sheets = totalFormArea / 2.9768;
                 addToMat(formOpt.priceKey, sheets, "sheets", formOpt.label, prices[formOpt.priceKey]);
 
-                // Lumber
-                const bfPerSqm = 7; // Estimate for scaffolding/bracing
-                const totalBF = totalFormArea * bfPerSqm;
-                addToMat('cocoLumber', totalBF, "BF", "Coco Lumber (Scaffolding)", prices.cocoLumber);
+            }
+
+
+
+            // Lumber & Scaffolding Calculation
+            const floorH = parseFloat(s.floorHeight) || 3.0;
+
+            if (s.supportType === 'gi_pipe') {
+                // GI Pipe H-Frame Scaffolding (Independent Towers Estimation)
+                // Frame Size avg: 1.2m wide x 1.7m high
+                // Grid: 1.2m x 1.2m
+                const towersX = Math.ceil(L / 1.2);
+                const towersY = Math.ceil(W / 1.2);
+                const numTowers = towersX * towersY * Q;
+                const layers = Math.ceil(floorH / 1.7);
+
+                // Per Tower: 2 Frames, 2 Cross Braces (pairs) -> 4 pcs, 4 U-Heads (Top), 4 Base Jacks (Bottom - Optional/Same Price as U-Head usually)
+                // Let's assume standard set: 2 Frames + 2 Braces (pair) per layer
+                // U-Heads on top layer only.
+                // Joint Pins between layers. (Ignore for now, cheap)
+
+                const totalFrames = numTowers * 2 * layers; // 2 frames per tower per layer
+                const totalBraces = numTowers * 4 * layers; // 2 pairs (4 pcs) per tower per layer (conservative)
+                const totalUHeads = numTowers * 4; // 4 legs per tower
+
+                // Horizontal Bracing (GI Pipes) - Every 3m height or top/bottom?
+                // Let's assume 1 layer of pipe bracing for stability per grid line
+                const bracingLen = (towersX * 1.2 * (towersY + 1)) + (towersY * 1.2 * (towersX + 1)); // Grid lines
+                const totalPipeBracing = bracingLen * Q;
+                const pipes = Math.ceil(totalPipeBracing / 6.0); // 6m pipes
+                const clamps = pipes * 2; // Approx 2 clamps per pipe connection
+
+                addToMat('h_frame', totalFrames, "pcs", "H-Frame (1.7m x 1.2m)", prices.h_frame);
+                addToMat('cross_brace', totalBraces, "pcs", "Cross Brace", prices.cross_brace);
+                addToMat('u_head', totalUHeads, "pcs", "U-Head Jack", prices.u_head);
+                addToMat('gi_pipe_1_1_2', pipes, "pcs", "G.I. Pipe 1.5\" x 6m (Horizontal Ties)", prices.gi_pipe_1_1_2);
+                addToMat('shackle', clamps, "pcs", "Swivel Clamp / Shackle", prices.shackle);
+
+            } else {
+                // Default: Coco Lumber Shoring
+                // 1. Vertical Posts (2"x3" used as 2x2 functionally or 2x3 structural)
+                // Grid Spacing: 0.60m x 0.60m for safe load bearing of wet concrete
+                const postsX = Math.ceil(L / 0.60) + 1;
+                const postsY = Math.ceil(W / 0.60) + 1;
+                const numPosts = postsX * postsY * Q;
+                // Floor Height in feet for BF calc
+                const floorH_ft = floorH * 3.28084;
+                const totalBF_Posts = numPosts * ((2 * 3 * floorH_ft) / 12);
+
+                // 2. Horizontal Stringers (Primary Supports) - 2"x3"
+                // Spacing: Approx 1.2m
+                const numStringers = Math.ceil(W / 1.2) + 1;
+                const lenStringers_ft = (L * 3.28084);
+                const totalBF_Stringers = (numStringers * Q) * ((2 * 3 * lenStringers_ft) / 12);
+
+                // 3. Horizontal Joists (Secondary Supports) - 2"x2"
+                // Spacing: 0.40m center-to-center (Typical for Plywood, maybe wider for Deck but safe estimate)
+                const numJoists = Math.ceil(L / 0.40) + 1;
+                const lenJoists_ft = (W * 3.28084);
+                const totalBF_Joists = (numJoists * Q) * ((2 * 2 * lenJoists_ft) / 12);
+
+                // 4. Bracing (Diagonal & Horizontal ties) - 2"x2"
+                // Factor: 30% of Vertical Posts volume
+                const totalBF_Bracing = totalBF_Posts * 0.30;
+
+                const totalBF = totalBF_Posts + totalBF_Stringers + totalBF_Joists + totalBF_Bracing;
+
+                addToMat('cocoLumber', totalBF, "BF", "Coco Lumber (Posts, Stringers, Joists)", prices.cocoLumber);
             }
 
             // 3. Rebar
             const mainSpacing = parseFloat(s.mainSpacing) || 0.15;
             const tempSpacing = parseFloat(s.tempSpacing) || 0.20;
 
+            // Prepare Crank Variables
+            const mainBarDia = extractDiameterMeters(s.mainBarSpec);
+            const tempBarDia = extractDiameterMeters(s.tempBarSpec);
+            const effectiveDepth = T - (2 * CONCRETE_COVER);
+
+            // Formula: L + (2 * 0.42 * d) + (2 * 12db Hooks)
+            const crankAddOn = effectiveDepth > 0
+                ? (2 * CRANK_FACTOR * effectiveDepth) + (2 * HOOK_MULTIPLIER * mainBarDia)
+                : 0;
+
+            // Hook Allowances (Ends only)
+            const mainHookAllowance = 2 * HOOK_MULTIPLIER * mainBarDia;
+            const tempHookAllowance = 2 * HOOK_MULTIPLIER * tempBarDia;
+
             if (type === "Two-Way") {
-                // Main bars in BOTH directions
-                const numBarsShort = Math.ceil(longSpan / mainSpacing) + 1; // Bars running along Short span? No, bars along short span cover the Long distance? 
-                // Wait: Bars PARALLEL to Short Span have Length = Short Span. They are distributed along Long Span.
-                // Two way: Bars in both directions are structural. usually same spacing or close. We use 'main' for both for simplicity or UI implies it.
-                // Let's use Main Spec for both directions as user prompt for Two-Way usually implies uniform grid or major structural. 
-                // If they want diff, they can use One-Way logic or we'd need more inputs. For simple estimator:
-                // Use Main Spec for Short Span direction (Main Structural) and Long Span direction.
+                // Two-Way: Main bars in BOTH directions
+                // User Requirement: "Main bar... specification of 2 layers... Top rebar crank length... Bottom rebar straight"
 
-                // Bars running parallel to L (Length = L)
+                // 1. Direction A (Parallel to Length L, distributed along W)
                 const numBarsParaL = Math.ceil(W / mainSpacing) + 1;
-                processRebarRun(L, s.mainBarSpec, numBarsParaL * Q, rebarStock);
 
-                // Bars running parallel to W (Length = W)
+                // Bottom Layer (Straight + Hooks): Length = L + Hooks
+                processRebarRun(L + mainHookAllowance, s.mainBarSpec, numBarsParaL * Q, rebarStock);
+
+                // Top Layer (Cranked): Length = L + CrankAddOn
+                processRebarRun(L + crankAddOn, s.mainBarSpec, numBarsParaL * Q, rebarStock);
+
+                // 2. Direction B (Parallel to Width W, distributed along L)
                 const numBarsParaW = Math.ceil(L / mainSpacing) + 1;
-                processRebarRun(W, s.mainBarSpec, numBarsParaW * Q, rebarStock);
 
-                totalTiePoints += (numBarsParaL * numBarsParaW * Q);
+                // Bottom Layer (Straight + Hooks): Length = W + Hooks
+                processRebarRun(W + mainHookAllowance, s.mainBarSpec, numBarsParaW * Q, rebarStock);
+
+                // Top Layer (Cranked + Hooks): Length = W + CrankAddOn
+                processRebarRun(W + crankAddOn, s.mainBarSpec, numBarsParaW * Q, rebarStock);
+
+                // Tie Points: (Bottom Grid) + (Top Grid)
+                // Bottom Grid Intersections = numBarsParaL * numBarsParaW
+                // Top Grid Intersections = numBarsParaL * numBarsParaW
+                totalTiePoints += (2 * numBarsParaL * numBarsParaW * Q);
 
             } else {
                 // One-Way
-                // Main Reinforcement is parallel to Short Span (Length = Short).
-                // Temperature is parallel to Long Span (Length = Long).
+                // Main Reinforcement is parallel to Short Span
+                // Temp Reinforcement is parallel to Long Span
 
                 // 1. Main Bars (Length = Short Span)
                 // Distributed along Long Span
                 const numMain = Math.ceil(longSpan / mainSpacing) + 1;
-                processRebarRun(shortSpan, s.mainBarSpec, numMain * Q, rebarStock);
+
+                // Bottom Layer (Straight + Hooks): Length = Short Span + Hooks
+                processRebarRun(shortSpan + mainHookAllowance, s.mainBarSpec, numMain * Q, rebarStock);
+
+                // Top Layer (Cranked + Hooks): Length = Short Span + CrankAddOn
+                processRebarRun(shortSpan + crankAddOn, s.mainBarSpec, numMain * Q, rebarStock);
 
                 // 2. Temp Bars (Length = Long Span)
                 // Distributed along Short Span
                 const numTemp = Math.ceil(shortSpan / tempSpacing) + 1;
-                processRebarRun(longSpan, s.tempBarSpec, numTemp * Q, rebarStock);
+                // Add Hooks to Temp Bars
+                processRebarRun(longSpan + tempHookAllowance, s.tempBarSpec, numTemp * Q, rebarStock);
 
-                totalTiePoints += (numMain * numTemp * Q);
+                // Tie Points
+                // Bottom Layer Intersections: Bottom Main * Temp
+                // Top Layer Intersections: Top Main * Temp (Assuming Temp bars serve both or similar count)
+                totalTiePoints += (2 * numMain * numTemp * Q);
             }
         });
 
@@ -325,14 +436,14 @@ export default function SuspendedSlab() {
 
     return (
         <div className="space-y-6">
-            <Card className="border-t-4 border-t-indigo-600 shadow-md">
-                <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-indigo-900 flex items-center gap-2">
+            <Card className="border-t-4 border-t-blue-500 shadow-md">
+                <div className="p-4 bg-blue-50 border-b border-blue-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <h2 className="font-bold text-blue-900 flex items-center gap-2">
                         <SquareStack size={18} /> Suspended Slab Configuration
                     </h2>
                     <button
                         onClick={handleAddSlab}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-md text-xs font-bold hover:bg-indigo-700 transition-colors active:scale-95 shadow-sm"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-md text-xs font-bold hover:bg-blue-700 transition-colors active:scale-95 shadow-sm"
                     >
                         <PlusCircle size={14} /> Add Slab Row
                     </button>
@@ -345,20 +456,21 @@ export default function SuspendedSlab() {
                                 <th className="px-2 py-2 border border-slate-300 text-center w-[40px]" rowSpan="2">#</th>
                                 <th className="px-2 py-2 border border-slate-300 text-center w-[50px]" rowSpan="2">Qty</th>
                                 <th className="px-2 py-2 border border-slate-300 text-center w-[90px]" rowSpan="2">Type</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center bg-indigo-50 text-indigo-900" colSpan="3">Dimensions (m)</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center bg-blue-50 text-blue-900" colSpan="2">Main Rebar</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center bg-sky-50 text-sky-900" colSpan="2">Temp Rebar</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center bg-blue-50 text-blue-900" colSpan="3">Dimensions (m)</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center bg-slate-100 text-slate-700" colSpan="2">Main Rebar</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center bg-slate-50 text-slate-600" colSpan="2">Temperature Rebar</th>
                                 <th className="px-2 py-2 border border-slate-300 text-center w-[180px]" rowSpan="2">Formwork / Decking</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center w-[120px]" rowSpan="2">Scaffolding</th>
                                 <th className="px-2 py-2 border border-slate-300 text-center w-[40px]" rowSpan="2"></th>
                             </tr>
                             <tr>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-indigo-50/50 w-[70px]">L</th>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-indigo-50/50 w-[70px]">W</th>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-indigo-50/50 w-[70px]">Thk</th>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-blue-50/50 w-[110px]">Size</th>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-blue-50/50 w-[60px]">Spc</th>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-sky-50/50 w-[110px]">Size</th>
-                                <th className="px-2 py-1 border border-slate-300 text-center bg-sky-50/50 w-[60px]">Spc</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-blue-50/50 w-[70px]">L</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-blue-50/50 w-[70px]">W</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-blue-50/50 w-[70px]">Thk</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-slate-100/50 w-[110px]">Size</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-slate-100/50 w-[60px]">Spacing</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-slate-50/50 w-[110px]">Size</th>
+                                <th className="px-2 py-1 border border-slate-300 text-center bg-slate-50/50 w-[60px]">Spacing</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -367,10 +479,10 @@ export default function SuspendedSlab() {
                                 const isTwoWay = type === "Two-Way";
                                 return (
                                     <tr key={s.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                        <td className="p-2 border border-slate-300 text-center text-[10px] text-gray-400 font-black">{idx + 1}</td>
+                                        <td className="p-2 border border-slate-300 text-center text-xs text-gray-400 font-black">{idx + 1}</td>
                                         <td className="p-2 border border-slate-300"><TableNumberInput value={s.quantity} onChange={(v) => handleSlabChange(s.id, 'quantity', v)} /></td>
                                         <td className="p-2 border border-slate-300 align-middle">
-                                            <div className={`text-[9px] font-black uppercase text-center px-2 py-1 rounded-full whitespace-nowrap ${isTwoWay ? 'text-purple-700 bg-purple-100 border border-purple-200' : 'text-orange-700 bg-orange-100 border border-orange-200'}`}>
+                                            <div className={`text-[10px] font-black uppercase text-center px-2 py-1 rounded-full whitespace-nowrap ${isTwoWay ? 'text-purple-700 bg-purple-100 border border-purple-200' : 'text-orange-700 bg-orange-100 border border-orange-200'}`}>
                                                 {type}
                                             </div>
                                         </td>
@@ -380,7 +492,7 @@ export default function SuspendedSlab() {
 
                                         {/* Main Rebar */}
                                         <td className="p-2 border border-slate-300 bg-blue-50/20">
-                                            <select value={s.mainBarSpec} onChange={(e) => handleSlabChange(s.id, 'mainBarSpec', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-[10px] font-bold">
+                                            <select value={s.mainBarSpec} onChange={(e) => handleSlabChange(s.id, 'mainBarSpec', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-bold">
                                                 {rebarOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                             </select>
                                         </td>
@@ -392,7 +504,7 @@ export default function SuspendedSlab() {
                                                 value={s.tempBarSpec}
                                                 onChange={(e) => handleSlabChange(s.id, 'tempBarSpec', e.target.value)}
                                                 disabled={isTwoWay}
-                                                className={`w-full p-1 border border-slate-300 rounded text-[10px] font-bold ${isTwoWay ? 'opacity-30 cursor-not-allowed bg-slate-100' : ''}`}
+                                                className={`w-full p-1 border border-slate-300 rounded text-sm font-bold ${isTwoWay ? 'opacity-30 cursor-not-allowed bg-slate-100' : ''}`}
                                             >
                                                 {rebarOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                             </select>
@@ -410,14 +522,27 @@ export default function SuspendedSlab() {
                                         {/* Decking / Formwork */}
                                         <td className="p-2 border border-slate-300">
                                             <div className="flex flex-col gap-2">
-                                                <select value={s.deckingType} onChange={(e) => handleSlabChange(s.id, 'deckingType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-[10px] font-bold text-indigo-800">
+                                                <select value={s.deckingType} onChange={(e) => handleSlabChange(s.id, 'deckingType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-bold text-blue-800">
                                                     {DECKING_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                                                 </select>
                                                 {s.deckingType === 'none' && (
-                                                    <select value={s.formworkType} onChange={(e) => handleSlabChange(s.id, 'formworkType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-[10px] font-medium text-slate-600">
+                                                    <select value={s.formworkType} onChange={(e) => handleSlabChange(s.id, 'formworkType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-medium text-slate-600">
                                                         {FORMWORK_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                                                     </select>
                                                 )}
+                                            </div>
+                                        </td>
+
+                                        {/* Scaffolding */}
+                                        <td className="p-2 border border-slate-300 bg-orange-50/20">
+                                            <div className="flex flex-col gap-1.5">
+                                                <div className="flex items-center gap-1">
+                                                    <span className="text-[10px] font-bold text-slate-400">H:</span>
+                                                    <TableNumberInput value={s.floorHeight} onChange={(v) => handleSlabChange(s.id, 'floorHeight', v)} placeholder="3.0" />
+                                                </div>
+                                                <select value={s.supportType} onChange={(e) => handleSlabChange(s.id, 'supportType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-medium text-slate-600">
+                                                    {SUPPORT_TYPES.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                                </select>
                                             </div>
                                         </td>
 
@@ -434,53 +559,72 @@ export default function SuspendedSlab() {
                 {error && <div className="p-3 bg-red-50 text-red-600 text-xs font-bold text-center border-t border-red-100 flex items-center justify-center gap-2"><AlertCircle size={14} />{error}</div>}
 
                 <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end">
-                    <button onClick={calculate} className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold shadow-lg hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-sm">
-                        <Calculator size={18} /> Run Calculation
+                    <button onClick={calculate} className="w-full md:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-sm">
+                        <Calculator size={18} /> Calculate
                     </button>
                 </div>
             </Card>
 
             {result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-emerald-500">
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-blue-500">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
-                                <h3 className="font-black text-2xl text-slate-800 tracking-tight flex items-center gap-2">Estimation Summary</h3>
-                                <div className="flex gap-4 mt-2">
-                                    <div className="bg-indigo-50 px-3 py-1 rounded text-xs font-bold text-indigo-700 border border-indigo-100 flex items-center gap-1.5">
-                                        <Box size={12} /> Concrete: {result.volume} m³
-                                    </div>
-                                </div>
+                                <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
+                                    Estimation Result
+                                </h3>
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Total Concrete Volume: <strong className="text-gray-700">{result.volume} m³</strong>
+                                </p>
+                                <p className="text-xs text-gray-400 mt-1 italic">
+                                    Based on <strong className="text-gray-600">{slabs.length}</strong> slab configurations.
+                                </p>
                             </div>
-                            <div className="text-right bg-emerald-50 px-6 py-4 rounded-2xl border border-emerald-100">
-                                <p className="text-[10px] text-emerald-800 font-black uppercase tracking-widest mb-1">Total Estimated Cost</p>
-                                <p className="font-black text-4xl text-emerald-700 tracking-tighter">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <div className="text-left md:text-right bg-blue-50 px-5 py-3 rounded-xl border border-blue-100">
+                                <p className="text-xs text-blue-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
+                                <p className="font-bold text-4xl text-blue-700 tracking-tight">
+                                    ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-2 mb-4">
-                            <button onClick={() => copyToClipboard(result.items)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50"><ClipboardCopy size={14} /> Copy</button>
-                            <button onClick={() => downloadCSV(result.items, 'suspended_slab.csv')} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50"><Download size={14} /> CSV</button>
+                            <button
+                                onClick={() => copyToClipboard(result.items)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Copy table to clipboard"
+                            >
+                                <ClipboardCopy size={14} /> Copy
+                            </button>
+                            <button
+                                onClick={() => downloadCSV(result.items, 'suspended_slab.csv')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                title="Download as CSV"
+                            >
+                                <Download size={14} /> CSV
+                            </button>
                         </div>
 
-                        <div className="overflow-hidden rounded-xl border border-slate-200">
-                            <table className="w-full text-sm">
-                                <thead className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-500 uppercase font-black">
+                        <div className="overflow-hidden rounded-lg border border-gray-200 border-slate-200">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th className="px-4 py-3 text-left">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Qty</th>
+                                        <th className="px-4 py-3">Material Item</th>
+                                        <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[150px]">Unit Price</th>
-                                        <th className="px-4 py-3 text-right bg-slate-100/50">Total</th>
+                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
+                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50/50">
-                                            <td className="px-4 py-3 font-bold text-slate-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right font-black text-slate-900">{item.qty.toLocaleString()}</td>
-                                            <td className="px-4 py-3 text-center"><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black text-slate-500 uppercase">{item.unit}</span></td>
-                                            <td className="px-4 py-1.5">
+                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
+                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">{item.qty.toLocaleString()}</td>
+                                            <td className="px-4 py-3 text-center text-gray-600">
+                                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
+                                            </td>
+                                            <td className="px-4 py-2">
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] || item.price}
                                                     onChange={(v) => {
@@ -488,7 +632,7 @@ export default function SuspendedSlab() {
                                                     }}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right font-black text-slate-900 bg-slate-50/30">₱{item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">₱{item.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -496,18 +640,19 @@ export default function SuspendedSlab() {
                         </div>
                         <div className="mt-4 flex items-start gap-2 text-[10px] text-slate-400 italic">
                             <Info size={12} className="mt-0.5" />
-                            <p>Note: Calculations include a 5% waste factor. One-Way vs Two-Way logic is applied automatically based on dimension ratio (≥2.0 is One-Way). Two-Way slabs use Main Bar spacing in both directions.</p>
+                            <p>Note: Calculations include a 5% waste factor. One-Way vs Two-Way logic is applied automatically (Ratio &ge; 2.0 is One-Way). <strong>All bars (Main Top/Bottom, Temp) include 12db Hook Allowances.</strong></p>
                         </div>
                     </div>
                 </Card>
             )}
 
             {!result && (
-                <div className="border-2 border-dashed border-indigo-200 rounded-3xl p-20 flex flex-col items-center justify-center text-indigo-300 bg-indigo-50/30">
-                    <div className="bg-white p-6 rounded-3xl shadow-md mb-6"><SquareStack size={48} className="text-indigo-500" /></div>
-                    <p className="font-black text-xl text-indigo-700 tracking-tight">Suspended Slab Calculator</p>
-                    <p className="max-w-xs text-center text-sm font-medium mt-2 leading-relaxed text-indigo-400">
-                        Smart calculator with <span className="text-purple-600 font-bold bg-purple-100 px-1 rounded">Two-Way</span> and <span className="text-orange-600 font-bold bg-orange-100 px-1 rounded">One-Way</span> detection. Supports Steel Deck and Phenolic Board configurations.
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Calculator size={32} className="text-blue-500" />
+                    </div>
+                    <p className="font-medium text-center max-w-md">
+                        Enter your slab dimensions above, then click <span className="font-bold text-blue-600">'Calculate'</span> to generate the material list.
                     </p>
                 </div>
             )}

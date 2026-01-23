@@ -14,6 +14,7 @@ import SuspendedSlab from './components/calculators/SuspendedSlab';
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
     { id: 'slab', label: 'Slab on Grade', component: SlabOnGrade, icon: Layers },
+    { id: 'suspended-slab', label: 'Suspended Slab', component: SuspendedSlab, icon: SquareStack },
     { id: 'footing', label: 'RC Footing', component: Footing, icon: LayoutTemplate },
     { id: 'column', label: 'RC Column', component: Column, icon: Columns },
     { id: 'beam', label: 'RC Beam', component: Beam, icon: PenTool },
@@ -21,7 +22,6 @@ const TABS = [
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
     { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
-    { id: 'suspended-slab', label: 'Suspended Slab', component: SuspendedSlab, icon: SquareStack },
 ];
 
 // Helper function to get initial column
@@ -68,7 +68,7 @@ export default function App() {
         <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
             {/* Header */}
             <header className="bg-slate-900 text-white py-4 px-6 shadow-lg sticky top-0 z-50">
-                <div className="container mx-auto max-w-7xl flex justify-between items-center">
+                <div className="container mx-auto max-w-full flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="bg-blue-600 p-2 rounded-lg">
                             <Layers size={24} className="text-white" />
@@ -89,7 +89,7 @@ export default function App() {
             </header>
 
             {/* Main Layout */}
-            <div className="flex flex-1 container mx-auto max-w-7xl p-6 gap-6 relative">
+            <div className="flex flex-1 container mx-auto max-w-full p-6 gap-6 relative">
 
                 {/* Main Content Area */}
                 <main className="flex-1 min-w-0">

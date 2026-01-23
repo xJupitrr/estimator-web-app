@@ -22,17 +22,16 @@ const TableNumberInput = ({ value, onChange, placeholder, min = "0", step = "any
     />
 );
 
-const TablePriceInput = ({ value, onChange, placeholder = "0.00" }) => (
-    <div className="flex items-center justify-end relative">
-        <span className="absolute left-1 text-gray-400 font-bold text-[10px] pointer-events-none">₱</span>
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
         <input
             type="number"
-            min="0"
-            step="0.01"
-            placeholder={placeholder}
-            value={value === null || value === undefined ? '' : value}
+            value={value === null || value === undefined ? '' : String(value)}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full pl-5 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors"
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
         />
     </div>
 );
@@ -425,7 +424,7 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                                     <td className="p-2 border border-slate-300 align-middle bg-orange-50/20">
                                         <select
                                             value={col.main_bar_sku} onChange={(e) => handleColumnChange(col.id, 'main_bar_sku', e.target.value)}
-                                            className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[26px]"
+                                            className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5"
                                         >
                                             {availableRebarSKUs.map(sku => (
                                                 <option key={sku.id} value={sku.id}>
@@ -440,7 +439,7 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20">
                                         <select
                                             value={col.tie_bar_sku} onChange={(e) => handleColumnChange(col.id, 'tie_bar_sku', e.target.value)}
-                                            className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[26px]"
+                                            className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5"
                                         >
                                             {availableTieSKUs.map(sku => (
                                                 <option key={sku.id} value={sku.id}>

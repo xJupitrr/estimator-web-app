@@ -420,7 +420,7 @@ export default function SlabOnGrade() {
                                         <select
                                             value={slab.barSize}
                                             onChange={(e) => handleSlabChange(slab.id, 'barSize', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-blue-400 outline-none cursor-pointer text-xs font-bold"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-blue-400 outline-none cursor-pointer text-sm font-medium"
                                         >
                                             {rebarOptions.map(spec => (
                                                 <option key={spec} value={spec}>{spec}</option>
@@ -436,7 +436,7 @@ export default function SlabOnGrade() {
                                                 step="0.05"
                                                 value={slab.spacing}
                                                 onChange={(e) => handleSlabChange(slab.id, 'spacing', e.target.value)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-bold bg-white text-slate-900"
+                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>

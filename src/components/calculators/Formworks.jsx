@@ -22,17 +22,16 @@ const TableNumberInput = ({ value, onChange, placeholder, min = "0", step = "any
     />
 );
 
-const TablePriceInput = ({ value, onChange, placeholder = "0.00" }) => (
-    <div className="flex items-center justify-end relative">
-        <span className="absolute left-1 text-gray-400 font-bold text-[10px] pointer-events-none">₱</span>
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
         <input
             type="number"
-            min="0"
-            step="0.01"
-            placeholder={placeholder}
-            value={value === null || value === undefined ? '' : value}
+            value={value === null || value === undefined ? '' : String(value)}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full pl-5 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors"
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
         />
     </div>
 );
@@ -250,79 +249,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                     </button>
                 </div>
 
-                {/* Integration Bar */}
-                <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col lg:flex-row justify-between gap-6">
-                    <div className="flex flex-wrap items-center gap-6">
-                        <div className="flex items-center gap-4 py-1.5 px-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-                            <label className="flex items-center gap-3 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={includeColumns}
-                                    onChange={(e) => setIncludeColumns(e.target.checked)}
-                                    className="w-5 h-5 rounded border-slate-300 text-yellow-600 focus:ring-yellow-500"
-                                />
-                                <div>
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${includeColumns ? 'text-yellow-700' : 'text-slate-400'}`}>Columns</p>
-                                    <p className="text-[10px] text-slate-400 font-medium leading-none">{columns.length} items</p>
-                                </div>
-                            </label>
-                            <div className="w-px h-8 bg-slate-200"></div>
-                            <label className="flex items-center gap-3 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={includeBeams}
-                                    onChange={(e) => setIncludeBeams(e.target.checked)}
-                                    className="w-5 h-5 rounded border-slate-300 text-yellow-600 focus:ring-yellow-500"
-                                />
-                                <div>
-                                    <p className={`text-[11px] font-bold uppercase tracking-wider ${includeBeams ? 'text-yellow-700' : 'text-slate-400'}`}>Beams</p>
-                                    <p className="text-[10px] text-slate-400 font-medium leading-none">{beams.length} items</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        {(includeColumns || includeBeams) && (
-                            <div className="flex items-center gap-4 bg-yellow-50 px-4 py-1 rounded-lg border border-yellow-100">
-                                <span className="text-[10px] font-black text-yellow-800 uppercase tracking-tighter">Import Specs:</span>
-                                <select
-                                    value={importPlywood}
-                                    onChange={(e) => setImportPlywood(e.target.value)}
-                                    className="bg-transparent text-[10px] font-bold text-yellow-900 focus:outline-none border-b border-yellow-300"
-                                >
-                                    {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                                </select>
-                                <select
-                                    value={importLumber}
-                                    onChange={(e) => setImportLumber(e.target.value)}
-                                    className="bg-transparent text-[10px] font-bold text-yellow-900 focus:outline-none border-b border-yellow-300"
-                                >
-                                    {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-3">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Plywood<br />Waste %</label>
-                            <input
-                                type="number"
-                                value={wastePlywood}
-                                onChange={(e) => setWastePlywood(e.target.value)}
-                                className="w-12 p-1.5 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
-                            />
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Lumber<br />Waste %</label>
-                            <input
-                                type="number"
-                                value={wasteLumber}
-                                onChange={(e) => setWasteLumber(e.target.value)}
-                                className="w-12 p-1.5 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
-                            />
-                        </div>
-                    </div>
-                </div>
+                {/* Integration Bar Moved to Footer */}
 
                 <div className="overflow-x-auto p-4">
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2 px-1">
@@ -357,17 +284,17 @@ export default function Formworks({ columns = [], beams = [] }) {
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={row.width_m} onChange={(v) => handleRowChange(row.id, 'width_m', v)} placeholder="0.30" /></td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={row.height_m} onChange={(v) => handleRowChange(row.id, 'height_m', v)} placeholder="3.00" /></td>
                                     <td className="p-2 border border-slate-300 align-middle bg-amber-50/20">
-                                        <select value={row.plywood_type} onChange={(e) => handleRowChange(row.id, 'plywood_type', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[26px]">
+                                        <select value={row.plywood_type} onChange={(e) => handleRowChange(row.id, 'plywood_type', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5">
                                             {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                                         </select>
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-amber-50/20">
-                                        <select value={row.lumber_size} onChange={(e) => handleRowChange(row.id, 'lumber_size', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[26px]">
+                                        <select value={row.lumber_size} onChange={(e) => handleRowChange(row.id, 'lumber_size', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5">
                                             {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                                         </select>
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} placeholder="e.g. C-1" className="w-full p-1.5 border border-slate-300 rounded text-xs focus:ring-2 focus:ring-yellow-400 outline-none" />
+                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} placeholder="e.g. C-1" className="w-full p-1.5 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-yellow-400 outline-none" />
                                     </td>
                                     <td className="p-1 border border-slate-300 align-middle text-center">
                                         <button onClick={() => handleRemoveRow(row.id)} disabled={rows.length === 1} className={`p-1.5 rounded-full transition-colors ${rows.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}><Trash2 size={14} /></button>
@@ -384,9 +311,83 @@ export default function Formworks({ columns = [], beams = [] }) {
                     </div>
                 )}
 
-                <div className="p-6 bg-slate-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={calculateFormworks} className="w-full md:w-auto px-8 py-3 bg-yellow-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-yellow-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> Calculate Final Estimate
+                <div className="p-6 bg-slate-50 border-t border-gray-200 flex flex-col xl:flex-row justify-between items-center gap-6">
+                    {/* Integrated Controls moved from Top */}
+                    <div className="flex flex-col lg:flex-row items-center gap-6 w-full xl:w-auto">
+                        <div className="flex flex-wrap items-center gap-6 justify-center">
+                            <div className="flex items-center gap-4 py-1.5 px-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                <label className="flex items-center gap-3 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeColumns}
+                                        onChange={(e) => setIncludeColumns(e.target.checked)}
+                                        className="w-5 h-5 rounded border-slate-300 text-yellow-600 focus:ring-yellow-500"
+                                    />
+                                    <div>
+                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${includeColumns ? 'text-yellow-700' : 'text-slate-400'}`}>Columns</p>
+                                        <p className="text-[10px] text-slate-400 font-medium leading-none">{columns.length} items</p>
+                                    </div>
+                                </label>
+                                <div className="w-px h-8 bg-slate-200"></div>
+                                <label className="flex items-center gap-3 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeBeams}
+                                        onChange={(e) => setIncludeBeams(e.target.checked)}
+                                        className="w-5 h-5 rounded border-slate-300 text-yellow-600 focus:ring-yellow-500"
+                                    />
+                                    <div>
+                                        <p className={`text-[11px] font-bold uppercase tracking-wider ${includeBeams ? 'text-yellow-700' : 'text-slate-400'}`}>Beams</p>
+                                        <p className="text-[10px] text-slate-400 font-medium leading-none">{beams.length} items</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            {(includeColumns || includeBeams) && (
+                                <div className="flex items-center gap-4 bg-yellow-50 px-4 py-1 rounded-lg border border-yellow-100">
+                                    <span className="text-[10px] font-black text-yellow-800 uppercase tracking-tighter">Import Specs:</span>
+                                    <select
+                                        value={importPlywood}
+                                        onChange={(e) => setImportPlywood(e.target.value)}
+                                        className="bg-transparent text-[10px] font-bold text-yellow-900 focus:outline-none border-b border-yellow-300"
+                                    >
+                                        {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                    </select>
+                                    <select
+                                        value={importLumber}
+                                        onChange={(e) => setImportLumber(e.target.value)}
+                                        className="bg-transparent text-[10px] font-bold text-yellow-900 focus:outline-none border-b border-yellow-300"
+                                    >
+                                        {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-8">
+                            <div className="flex items-center gap-3">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Plywood<br />Waste %</label>
+                                <input
+                                    type="number"
+                                    value={wastePlywood}
+                                    onChange={(e) => setWastePlywood(e.target.value)}
+                                    className="w-12 p-1.5 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Lumber<br />Waste %</label>
+                                <input
+                                    type="number"
+                                    value={wasteLumber}
+                                    onChange={(e) => setWasteLumber(e.target.value)}
+                                    className="w-12 p-1.5 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onClick={calculateFormworks} className="w-full xl:w-auto px-8 py-3 bg-yellow-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-yellow-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
+                        <Calculator size={18} /> Calculate
                     </button>
                 </div>
             </Card>
