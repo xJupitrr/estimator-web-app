@@ -93,15 +93,17 @@ const getInitialColumn = () => ({
     tie_spacing_mm: "", // Empty default
 });
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 export default function Column({ columns: propColumns, setColumns: propSetColumns }) {
     // Use props if provided, otherwise use local state (for backward compatibility if used standalone)
-    const [localColumns, setLocalColumns] = useState([getInitialColumn()]);
+    const [localColumns, setLocalColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
     const columns = propColumns || localColumns;
     const setColumns = propSetColumns || setLocalColumns;
     const [wastePct, setWastePct] = useState(5); // Concrete waste factor (for concrete materials only)
 
     // Material Prices (PHP) - keyed by diameter for rebar
-    const [prices, setPrices] = useState({
+    const [prices, setPrices] = useLocalStorage('column_prices', {
         cement: 240,       // 40kg bag
         sand: 1200,        // per cu.m
         gravel: 1400,      // per cu.m

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useLocalStorage from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 
@@ -72,21 +73,27 @@ const getInitialRow = (data = {}) => ({
     lumber_size: 'lumber_2x3',
 });
 
+
 export default function Formworks({ columns = [], beams = [] }) {
 
     // --- State ---
-    const [rows, setRows] = useState([getInitialRow()]);
-    const [prices, setPrices] = useState(DEFAULT_PRICES);
+    // Persisted Manual Rows & Prices
+    const [rows, setRows] = useLocalStorage('formworks_rows', [getInitialRow()]);
+    const [prices, setPrices] = useLocalStorage('formworks_prices', DEFAULT_PRICES);
+
+    // UI Transient
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
-    const [wastePlywood, setWastePlywood] = useState(15);
-    const [wasteLumber, setWasteLumber] = useState(10);
+
+    // Persisted Configurations
+    const [wastePlywood, setWastePlywood] = useLocalStorage('formworks_waste_plywood', 15);
+    const [wasteLumber, setWasteLumber] = useLocalStorage('formworks_waste_lumber', 10);
 
     // Automation States
-    const [includeColumns, setIncludeColumns] = useState(false);
-    const [includeBeams, setIncludeBeams] = useState(false);
-    const [importPlywood, setImportPlywood] = useState('phenolic_1_2');
-    const [importLumber, setImportLumber] = useState('lumber_2x3');
+    const [includeColumns, setIncludeColumns] = useLocalStorage('formworks_include_columns', false);
+    const [includeBeams, setIncludeBeams] = useLocalStorage('formworks_include_beams', false);
+    const [importPlywood, setImportPlywood] = useLocalStorage('formworks_import_plywood', 'phenolic_1_2');
+    const [importLumber, setImportLumber] = useLocalStorage('formworks_import_lumber', 'lumber_2x3');
 
     const handleRowChange = (id, field, value) => {
         setRows(prev =>
@@ -413,7 +420,22 @@ export default function Formworks({ columns = [], beams = [] }) {
 
                         <div className="flex justify-end gap-2 mb-4">
                             <button onClick={() => copyToClipboard(result.items)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"><ClipboardCopy size={14} /> Copy</button>
-                            <button onClick={() => downloadCSV(result.items, 'formworks.csv')} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"><Download size={14} /> CSV</button>
+                            <button onClick={() => {
+                                const inputsToExport = rows.map(r => ({
+                                    Quantity: r.quantity,
+                                    L: r.length_m,
+                                    W: r.width_m,
+                                    H: r.height_m,
+                                    Description: r.description,
+                                    Plywood: PLYWOOD_OPTIONS.find(p => p.id === r.plywood_type)?.label,
+                                    Lumber: LUMBER_OPTIONS.find(l => l.id === r.lumber_size)?.label
+                                }));
+                                // Add automation note
+                                if (includeColumns) inputsToExport.push({ Description: `[AUTOMATION] Including ${columns.length} Columns` });
+                                if (includeBeams) inputsToExport.push({ Description: `[AUTOMATION] Including ${beams.length} Beams` });
+
+                                downloadCSV(result.items, 'formworks_estimate.csv', inputsToExport);
+                            }} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"><Download size={14} /> CSV</button>
                         </div>
 
                         <div className="overflow-hidden rounded-lg border border-gray-200">

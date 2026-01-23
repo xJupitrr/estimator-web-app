@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import useLocalStorage from '../../hooks/useLocalStorage';
 import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 
@@ -158,7 +159,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
     const beams = propBeams || localBeams;
     const setBeams = propSetBeams || setLocalBeams;
 
-    const [prices, setPrices] = useState(DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('beam_prices', DEFAULT_PRICES);
     const [showResult, setShowResult] = useState(false);
     const [error, setError] = useState(null);
 
@@ -167,19 +168,19 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
         setBeams(prev => prev.map(col => col.id === id ? { ...col, [field]: value } : col));
         setShowResult(false);
         setError(null);
-    }, []);
+    }, [setBeams]);
 
     const handleAddRow = useCallback(() => {
         setBeams(prev => [...prev, getInitialElement()]);
         setShowResult(false);
         setError(null);
-    }, []);
+    }, [setBeams]);
 
     const handleRemoveRow = useCallback((id) => {
         setBeams(prev => prev.length > 1 ? prev.filter(col => col.id !== id) : prev);
         setShowResult(false);
         setError(null);
-    }, []);
+    }, [setBeams]);
 
     const handleCalculate = () => {
         const hasEmptyFields = beams.some(beam =>

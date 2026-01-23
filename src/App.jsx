@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import useLocalStorage from './hooks/useLocalStorage';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload } from 'lucide-react';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
 import Footing from './components/calculators/Footing';
@@ -8,8 +9,10 @@ import Beam from './components/calculators/Beam';
 import Tiles from './components/calculators/Tiles';
 import Painting from './components/calculators/Painting';
 import Ceiling from './components/calculators/Ceiling';
+import Roofing from './components/calculators/Roofing';
 import Formworks from './components/calculators/Formworks';
 import SuspendedSlab from './components/calculators/SuspendedSlab';
+import { exportProjectToCSV, importProjectFromCSV } from './utils/sessionManager';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -18,13 +21,13 @@ const TABS = [
     { id: 'footing', label: 'RC Footing', component: Footing, icon: LayoutTemplate },
     { id: 'column', label: 'RC Column', component: Column, icon: Columns },
     { id: 'beam', label: 'RC Beam', component: Beam, icon: PenTool },
+    { id: 'roofing', label: 'Roofing', component: Roofing, icon: Tent },
     { id: 'formworks', label: 'Formworks', component: Formworks, icon: Hammer },
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
     { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
 ];
 
-// Helper function to get initial column
 const getInitialColumn = () => ({
     id: Date.now() + Math.random(),
     quantity: 1,
@@ -37,7 +40,6 @@ const getInitialColumn = () => ({
     tie_spacing_mm: "",
 });
 
-// Helper function to get initial beam
 const getInitialBeam = () => ({
     id: crypto.randomUUID(),
     quantity: 1,
@@ -54,13 +56,39 @@ const getInitialBeam = () => ({
     cut_midspan_count: "",
 });
 
+
 export default function App() {
     const [activeTabId, setActiveTabId] = useState('slab');
 
-    // Lifted state for Column and Beam tabs (for Formworks to access)
-    const [columns, setColumns] = useState([getInitialColumn()]);
-    const [beams, setBeams] = useState([getInitialBeam()]);
+    // Persisted via localStorage
+    const [columns, setColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
+    const [beams, setBeams] = useLocalStorage('app_beams', [getInitialBeam()]);
 
+    const fileInputRef = useRef(null);
+
+    const handleSaveSession = () => {
+        const csv = exportProjectToCSV();
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `project_session_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+    };
+
+    const handleLoadSession = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            await importProjectFromCSV(file);
+            alert('Session loaded successfully! The page will now reload.');
+            window.location.reload();
+        } catch (err) {
+            console.error(err);
+            alert('Failed to load session. Check file format.');
+        }
+    };
 
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
 
@@ -80,10 +108,32 @@ export default function App() {
                             </p>
                         </div>
                     </div>
-                    <div className="hidden md:flex items-center gap-4 text-sm text-slate-400">
-                        <span className="flex items-center gap-1"><Info size={14} /> Professional Estimator</span>
-                        <span className="h-4 w-px bg-slate-700"></span>
-                        <span>V1.0</span>
+                    <div className="flex items-center gap-4 text-sm text-slate-400">
+                        {/* Session Controls */}
+                        <div className="flex items-center gap-2 mr-4">
+                            <button
+                                onClick={handleSaveSession}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition-colors text-xs font-bold uppercase tracking-wider"
+                            >
+                                <Save size={14} /> Save Session
+                            </button>
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors text-xs font-bold uppercase tracking-wider"
+                            >
+                                <Upload size={14} /> Load Session
+                            </button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleLoadSession}
+                                accept=".csv"
+                                className="hidden"
+                            />
+                        </div>
+                        <span className="hidden md:flex items-center gap-1"><Info size={14} /> Professional Estimator</span>
+                        <span className="h-4 w-px bg-slate-700 hidden md:block"></span>
+                        <span className="hidden md:block">V1.0</span>
                     </div>
                 </div>
             </header>

@@ -169,9 +169,11 @@ const processRebarRun = (requiredLength, spec, qty, rebarStock) => {
     }
 };
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 export default function SuspendedSlab() {
-    const [slabs, setSlabs] = useState([getInitialSlab()]);
-    const [prices, setPrices] = useState(DEFAULT_PRICES);
+    const [slabs, setSlabs] = useLocalStorage('suspended_slab_rows', [getInitialSlab()]);
+    const [prices, setPrices] = useLocalStorage('suspended_slab_prices', DEFAULT_PRICES);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
 

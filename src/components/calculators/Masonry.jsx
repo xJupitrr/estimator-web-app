@@ -138,13 +138,15 @@ const processSingleRun = (requiredLength, spec, rebarStock) => {
 
 // --- Main App ---
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 export default function Masonry() { // Renamed to Masonry
 
     // --- Wall Configurations State (Array of walls) ---
-    const [walls, setWalls] = useState([getInitialWall()]);
+    const [walls, setWalls] = useLocalStorage('masonry_walls', [getInitialWall()]);
 
     // Material Prices
-    const [wallPrices, setWallPrices] = useState({
+    const [wallPrices, setWallPrices] = useLocalStorage('masonry_prices', {
         chb: 15,
         cement: 240,
         sand: 1200,

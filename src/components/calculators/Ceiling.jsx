@@ -58,13 +58,15 @@ const getInitialRoom = () => ({
     type: 'gypsum' // Default type
 });
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 export default function Ceiling() {
 
     // --- State ---
-    const [rooms, setRooms] = useState([getInitialRoom()]);
+    const [rooms, setRooms] = useLocalStorage('ceiling_rooms', [getInitialRoom()]);
 
     // Consumables & Material Prices
-    const [prices, setPrices] = useState({
+    const [prices, setPrices] = useLocalStorage('ceiling_prices', {
         // Boards/Panels
         gypsum: 450,
         hardiflex: 550,
@@ -92,7 +94,7 @@ export default function Ceiling() {
     });
 
     // Panel Configuration (Global for simplicity, or could be per row)
-    const [config, setConfig] = useState({
+    const [config, setConfig] = useLocalStorage('ceiling_config', {
         spandrel_w: 0.15, // Effective width
         spandrel_l: 6.0,  // Stock length
         pvc_w: 0.20,      // Effective width (Standard PVC often 20cm or 25cm)

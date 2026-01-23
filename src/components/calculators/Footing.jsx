@@ -171,13 +171,15 @@ const processSingleRun = (requiredLength, spec, rebarStock) => {
 
 // --- Main App ---
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 export default function Footing() {
 
     // --- Footing Configurations State (Array of footings) ---
-    const [footings, setFootings] = useState([getInitialFooting()]);
+    const [footings, setFootings] = useLocalStorage('footing_rows', [getInitialFooting()]);
 
     // Default prices for structural materials (in PHP)
-    const [footingPrices, setFootingPrices] = useState({
+    const [footingPrices, setFootingPrices] = useLocalStorage('footing_prices', {
         cement: 240, // Price per bag
         sand: 1200, // Price per cubic meter
         gravel: 1000, // Price per cubic meter

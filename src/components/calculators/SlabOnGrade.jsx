@@ -119,9 +119,11 @@ const processSingleRun = (requiredLength, spec, rebarStock) => {
     }
 }
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 export default function SlabOnGrade() {
-    const [slabs, setSlabs] = useState([getInitialSlab()]);
-    const [prices, setPrices] = useState({
+    const [slabs, setSlabs] = useLocalStorage('slab_rows', [getInitialSlab()]);
+    const [prices, setPrices] = useLocalStorage('slab_prices', {
         cement: 240,
         sand: 1200,
         gravel: 1000,

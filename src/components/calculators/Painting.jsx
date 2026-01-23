@@ -51,15 +51,17 @@ const getInitialWall = () => ({
     sides: "1",   // Number of sides to paint (1 or 2)
 });
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 // --- Main Component ---
 
 export default function Painting() {
 
     // --- State ---
-    const [walls, setWalls] = useState([getInitialWall()]);
+    const [walls, setWalls] = useLocalStorage('painting_rows', [getInitialWall()]);
 
     // Consumable prices (PHP)
-    const [prices, setPrices] = useState({
+    const [prices, setPrices] = useLocalStorage('painting_prices', {
         primer: 650,    // 4L Gallon Flat Latex / Primer
         skimcoat: 450,  // 20kg Bag Skim Coat
         topcoat: 750,   // 4L Gallon Semi-Gloss/Gloss Latex

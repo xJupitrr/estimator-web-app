@@ -66,15 +66,17 @@ const getInitialArea = () => ({
     tile_price_per_piece: "", // Price per piece (PHP)
 });
 
+import useLocalStorage from '../../hooks/useLocalStorage';
+
 // --- Main Component ---
 
 export default function Tiles() {
 
     // --- State ---
-    const [areas, setAreas] = useState([getInitialArea()]);
+    const [areas, setAreas] = useLocalStorage('tiles_rows', [getInitialArea()]);
 
     // Consumable prices (PHP) - Tile prices are now stored per area row
-    const [prices, setPrices] = useState({
+    const [prices, setPrices] = useLocalStorage('tiles_prices', {
         adhesive: 280, // 25kg bag
         grout: 65, // per kg
     });
