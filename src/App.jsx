@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload, DoorOpen } from 'lucide-react';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
 import Footing from './components/calculators/Footing';
@@ -12,6 +12,8 @@ import Ceiling from './components/calculators/Ceiling';
 import Roofing from './components/calculators/Roofing';
 import Formworks from './components/calculators/Formworks';
 import SuspendedSlab from './components/calculators/SuspendedSlab';
+import DoorsWindows from './components/calculators/DoorsWindows';
+import LintelBeam from './components/calculators/LintelBeam';
 import { exportProjectToCSV, importProjectFromCSV } from './utils/sessionManager';
 
 const TABS = [
@@ -26,6 +28,8 @@ const TABS = [
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
     { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
+    { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
+    { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
 ];
 
 const getInitialColumn = () => ({

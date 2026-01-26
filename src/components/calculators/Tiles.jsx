@@ -61,9 +61,10 @@ const getInitialArea = () => ({
     x_len: "", // Room Length (m)
     y_len: "", // Room Width (m)
     tileMaterial: "Ceramic (Glossy)",
-    tile_width_cm: "", // Tile Width (cm)
-    tile_height_cm: "", // Tile Length/Height (cm)
+    tile_width_m: "", // Tile Width (m)
+    tile_height_m: "", // Tile Length/Height (m)
     tile_price_per_piece: "", // Price per piece (PHP)
+    description: "", // Added description field
 });
 
 import useLocalStorage from '../../hooks/useLocalStorage';
@@ -130,8 +131,8 @@ export default function Tiles() {
         const hasEmptyFields = areas.some(area =>
             area.x_len === "" ||
             area.y_len === "" ||
-            area.tile_width_cm === "" ||
-            area.tile_height_cm === "" ||
+            area.tile_width_m === "" ||
+            area.tile_height_m === "" ||
             area.tile_price_per_piece === ""
         );
 
@@ -148,11 +149,11 @@ export default function Tiles() {
             const y_len = parseFloat(area.y_len) || 0; // Room Width (m)
             const quantity = parseInt(area.quantity) || 1;
 
-            const tile_width_cm = parseFloat(area.tile_width_cm) || 0;
-            const tile_height_cm = parseFloat(area.tile_height_cm) || 0;
+            const tile_width_m = parseFloat(area.tile_width_m) || 0;
+            const tile_height_m = parseFloat(area.tile_height_m) || 0;
             const tile_price_per_piece = parseFloat(area.tile_price_per_piece) || 0;
 
-            if (x_len <= 0 || y_len <= 0 || tile_width_cm <= 0 || tile_height_cm <= 0) return;
+            if (x_len <= 0 || y_len <= 0 || tile_width_m <= 0 || tile_height_m <= 0) return;
 
             const singleArea = x_len * y_len;
             const totalRowArea = singleArea * quantity;
@@ -161,9 +162,9 @@ export default function Tiles() {
 
             totalAreaM2 += totalRowArea;
 
-            // --- Tile Count Calculation ---
-            const tile_w_m = tile_width_cm / 100;
-            const tile_h_m = tile_height_cm / 100;
+            // --- Tile Count Calculation (Base Pieces) ---
+            const tile_w_m = tile_width_m;
+            const tile_h_m = tile_height_m;
 
             // Orientation 1: Tile W along Room L, Tile H along Room W
             const cols1 = Math.ceil(x_len / tile_w_m);
@@ -176,47 +177,28 @@ export default function Tiles() {
             const total2 = cols2 * rows2;
 
             // Use the orientation that results in fewer tiles (Efficiency)
-            const baseTileCount = Math.min(total1, total2);
+            const baseTileCountPerRoom = Math.min(total1, total2);
+            const totalBaseTilesForRow = baseTileCountPerRoom * quantity;
 
-            // Add 10% waste factor
-            const tilesWithWaste = Math.ceil(baseTileCount * 1.10);
+            // Use a combined key of material, size, and price for grouping
+            const fullKey = `${area.tileMaterial} - ${tile_width_m}x${tile_height_m} m @ ₱${tile_price_per_piece.toFixed(2)}`;
 
-            // Total for this row
-            const totalTilesForRow = tilesWithWaste * quantity;
-
-            const uniqueKey = `${area.tileMaterial} - ${tile_width_cm}x${tile_height_cm} cm`;
-
-            // Aggregate requirements
-            if (tileRequirements.has(uniqueKey)) {
-                // Check if prices are the same (if not, we shouldn't aggregate, but for simplicity we assume same custom size means same price)
-                // Since the price is now tied to the row, we should group by size AND price.
-                const fullKey = `${uniqueKey} @ ₱${tile_price_per_piece.toFixed(2)}`;
-                if (tileRequirements.has(fullKey)) {
-                    tileRequirements.set(fullKey, {
-                        ...tileRequirements.get(fullKey),
-                        qty: tileRequirements.get(fullKey).qty + totalTilesForRow
-                    });
-                } else {
-                    tileRequirements.set(fullKey, {
-                        qty: totalTilesForRow,
-                        price: tile_price_per_piece,
-                        unit: 'pcs',
-                        priceKey: 'dynamic' // Placeholder key
-                    });
-                }
-            } else {
-                const fullKey = `${uniqueKey} @ ₱${tile_price_per_piece.toFixed(2)}`;
+            // Aggregate base requirements
+            if (tileRequirements.has(fullKey)) {
                 tileRequirements.set(fullKey, {
-                    qty: totalTilesForRow,
+                    ...tileRequirements.get(fullKey),
+                    baseQty: tileRequirements.get(fullKey).baseQty + totalBaseTilesForRow
+                });
+            } else {
+                tileRequirements.set(fullKey, {
+                    baseQty: totalBaseTilesForRow,
                     price: tile_price_per_piece,
                     unit: 'pcs',
-                    priceKey: 'dynamic' // Placeholder key
+                    priceKey: 'dynamic'
                 });
             }
 
-
             // --- Consumables ---
-
             const isFloatingFloor = area.tileMaterial.includes("SPC") || area.tileMaterial.includes("Vinyl");
 
             if (!isFloatingFloor) {
@@ -240,16 +222,17 @@ export default function Tiles() {
         let totalCost = 0;
         const items = [];
 
-        // Add Tile Items
+        // Add Tile Items with 10% Waste Factor applied to totals
         tileRequirements.forEach((data, name) => {
+            const qtyWithWaste = Math.ceil(data.baseQty * 1.10);
             const unitPrice = data.price;
-            const lineTotal = data.qty * unitPrice;
+            const lineTotal = qtyWithWaste * unitPrice;
             totalCost += lineTotal;
             items.push({
                 name: `Tiles: ${name}`,
-                qty: data.qty,
+                qty: qtyWithWaste,
                 unit: 'pcs',
-                priceKey: 'dynamic', // Not editable in the results, as it comes from the input table
+                priceKey: 'dynamic',
                 price: unitPrice,
                 total: lineTotal
             });
@@ -318,7 +301,7 @@ export default function Tiles() {
                 </div>
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
+                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[900px]">
                         <thead className="text-xs text-slate-700 uppercase bg-slate-100">
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
@@ -326,9 +309,10 @@ export default function Tiles() {
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Room L (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Room W (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px] bg-violet-100 text-violet-900">Tile Material</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px] bg-violet-100 text-violet-900">Tile W (cm)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px] bg-violet-100 text-violet-900">Tile L (cm)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px] bg-violet-100 text-violet-900">Tile W (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px] bg-violet-100 text-violet-900">Tile L (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px] bg-amber-100 text-amber-900">Price/pc (₱)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[150px]">Description</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
                             </tr>
                         </thead>
@@ -376,25 +360,25 @@ export default function Tiles() {
                                             ))}
                                         </select>
                                     </td>
-                                    {/* Tile Width (cm) */}
+                                    {/* Tile Width (m) */}
                                     <td className="p-2 border border-slate-300 align-middle bg-violet-50">
                                         <TableNumberInput
-                                            value={area.tile_width_cm}
-                                            onChange={(value) => handleAreaChange(area.id, 'tile_width_cm', value)}
-                                            placeholder="60"
-                                            min="1"
-                                            step="1"
+                                            value={area.tile_width_m}
+                                            onChange={(value) => handleAreaChange(area.id, 'tile_width_m', value)}
+                                            placeholder="0.60"
+                                            min="0.01"
+                                            step="0.01"
                                             className="border-violet-200"
                                         />
                                     </td>
-                                    {/* Tile Length (cm) */}
+                                    {/* Tile Length (m) */}
                                     <td className="p-2 border border-slate-300 align-middle bg-violet-50">
                                         <TableNumberInput
-                                            value={area.tile_height_cm}
-                                            onChange={(value) => handleAreaChange(area.id, 'tile_height_cm', value)}
-                                            placeholder="60"
-                                            min="1"
-                                            step="1"
+                                            value={area.tile_height_m}
+                                            onChange={(value) => handleAreaChange(area.id, 'tile_height_m', value)}
+                                            placeholder="0.60"
+                                            min="0.01"
+                                            step="0.01"
                                             className="border-violet-200"
                                         />
                                     </td>
@@ -404,6 +388,16 @@ export default function Tiles() {
                                             value={area.tile_price_per_piece}
                                             onChange={(value) => handleAreaChange(area.id, 'tile_price_per_piece', value)}
                                             placeholder="185.00"
+                                        />
+                                    </td>
+                                    {/* Description */}
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <input
+                                            type="text"
+                                            value={area.description || ""}
+                                            onChange={(e) => handleAreaChange(area.id, 'description', e.target.value)}
+                                            placeholder="e.g. Living Room"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-violet-400 outline-none text-slate-800"
                                         />
                                     </td>
                                     {/* Delete */}

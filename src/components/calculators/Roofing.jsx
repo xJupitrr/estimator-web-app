@@ -230,7 +230,7 @@ export default function Roofing() {
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[70px]">Qty</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[180px] bg-rose-50 text-rose-900">Type</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[220px] bg-rose-50 text-rose-900">Type</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-rose-50 text-rose-900">Length (m)<br /><span className="text-[9px] opacity-70 normal-case">(Slope)</span></th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-rose-50 text-rose-900">Width (m)<br /><span className="text-[9px] opacity-70 normal-case">(Total Cover)</span></th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center">Description</th>
@@ -248,7 +248,7 @@ export default function Roofing() {
                                         <select
                                             value={row.type}
                                             onChange={(e) => handleRowChange(row.id, 'type', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-bold text-slate-700"
+                                            className="w-full p-1.5 text-left border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-bold text-slate-700"
                                         >
                                             {ROOFING_TYPES.map(opt => (
                                                 <option key={opt.id} value={opt.id}>

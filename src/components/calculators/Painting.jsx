@@ -49,6 +49,7 @@ const getInitialWall = () => ({
     length_m: "", // Wall Length (m)
     height_m: "", // Wall Height (m)
     sides: "1",   // Number of sides to paint (1 or 2)
+    area_sqm: "", // Manual Area Input (sqm)
 });
 
 import useLocalStorage from '../../hooks/useLocalStorage';
@@ -107,15 +108,15 @@ export default function Painting() {
 
         let totalAreaM2 = 0;
 
-        // Validation Check
-        const hasEmptyFields = walls.some(wall =>
-            wall.length_m === "" ||
-            wall.height_m === "" ||
-            wall.sides === ""
-        );
+        // Validation Check - Modified to allow EITHER Dimensions OR Manual Area
+        const hasValidInput = walls.every(wall => {
+            const hasManualArea = wall.area_sqm !== "" && parseFloat(wall.area_sqm) > 0;
+            const hasDimensions = wall.length_m !== "" && wall.height_m !== "" && wall.sides !== "";
+            return hasManualArea || hasDimensions;
+        });
 
-        if (hasEmptyFields) {
-            setError("Please fill in all required fields (Length, Height, Sides) before calculating.");
+        if (!hasValidInput) {
+            setError("Please provide either L x H dimensions or a manual Area (sqm) for all surfaces.");
             setResult(null);
             return;
         }
@@ -123,17 +124,22 @@ export default function Painting() {
 
         // Aggregate Area
         walls.forEach(wall => {
-            const length = parseFloat(wall.length_m) || 0;
-            const height = parseFloat(wall.height_m) || 0;
-            const sides = parseFloat(wall.sides) || 1;
             const quantity = parseInt(wall.quantity) || 1;
+            let rowArea = 0;
 
-            if (length <= 0 || height <= 0) return;
+            const manualArea = parseFloat(wall.area_sqm);
+            if (!isNaN(manualArea) && manualArea > 0) {
+                // Priority 1: Manual Area
+                rowArea = manualArea;
+            } else {
+                // Priority 2: Dimensions
+                const length = parseFloat(wall.length_m) || 0;
+                const height = parseFloat(wall.height_m) || 0;
+                const sides = parseFloat(wall.sides) || 1;
+                rowArea = length * height * sides;
+            }
 
-            const singleWallArea = length * height * sides;
-            const totalRowArea = singleWallArea * quantity;
-
-            totalAreaM2 += totalRowArea;
+            totalAreaM2 += rowArea * quantity;
         });
 
         if (totalAreaM2 <= 0) {
@@ -231,15 +237,19 @@ export default function Painting() {
                 </div>
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[600px]">
+                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[800px]">
                         <thead className="text-xs text-slate-700 uppercase bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[70px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Length (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Height (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px] bg-emerald-100 text-emerald-900">Sides</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]" rowSpan="2">#</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[70px]" rowSpan="2">Qty</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-emerald-50/50" colSpan="3">Dimensions (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-emerald-100 text-emerald-900 w-[120px]" rowSpan="2">OR Area (sqm)</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]" rowSpan="2"></th>
+                            </tr>
+                            <tr>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Length</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Height</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Sides</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -264,6 +274,8 @@ export default function Painting() {
                                             value={wall.length_m}
                                             onChange={(value) => handleWallChange(wall.id, 'length_m', value)}
                                             placeholder="3.00"
+                                            disabled={wall.area_sqm !== ""}
+                                            className={wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}
                                         />
                                     </td>
                                     {/* Height (m) */}
@@ -272,18 +284,30 @@ export default function Painting() {
                                             value={wall.height_m}
                                             onChange={(value) => handleWallChange(wall.id, 'height_m', value)}
                                             placeholder="2.70"
+                                            disabled={wall.area_sqm !== ""}
+                                            className={wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}
                                         />
                                     </td>
                                     {/* Sides */}
-                                    <td className="p-2 border border-slate-300 align-middle bg-emerald-50">
+                                    <td className="p-2 border border-slate-300 align-middle">
                                         <select
                                             value={wall.sides}
                                             onChange={(e) => handleWallChange(wall.id, 'sides', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-emerald-200 rounded bg-white focus:ring-2 focus:ring-emerald-400 outline-none cursor-pointer text-xs font-bold text-slate-800"
+                                            disabled={wall.area_sqm !== ""}
+                                            className={`w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 outline-none cursor-pointer text-xs font-bold text-slate-800 ${wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}`}
                                         >
                                             <option value="1">1 Side</option>
                                             <option value="2">2 Sides</option>
                                         </select>
+                                    </td>
+                                    {/* Manual Area */}
+                                    <td className="p-2 border border-slate-300 align-middle bg-emerald-50/30">
+                                        <TableNumberInput
+                                            value={wall.area_sqm}
+                                            onChange={(value) => handleWallChange(wall.id, 'area_sqm', value)}
+                                            placeholder="Auto"
+                                            className="font-bold text-emerald-700 border-emerald-200"
+                                        />
                                     </td>
                                     {/* Delete */}
                                     <td className="p-2 border border-slate-300 align-middle text-center">

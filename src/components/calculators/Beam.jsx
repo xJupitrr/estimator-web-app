@@ -358,15 +358,6 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
 
         addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
 
-        // Formwork
-        const totalPlywood = (totalAreaFormwork / PLYWOOD_AREA_SQM) * PLYWOOD_WASTE;
-        const totalLumber = calculateLumberVolumeBF(beams);
-        const totalNails = totalAreaFormwork * 0.15 * LUMBER_NAIL_WASTE;
-
-        addItem("Phenolic Board (1/2\", 4x8 Sheet)", Math.ceil(totalPlywood), "sheets", "phenolic_1_2", 2000);
-        addItem("Lumber (2\"x3\" Frame/Props)", Math.ceil(totalLumber), "BF", "lumber_2x3", 45);
-        addItem("Common Nails (Assorted)", Math.ceil(totalNails), "kg", "nails_kg", 70);
-
         return { volume: totalVolConcrete.toFixed(2), areaFormwork: totalAreaFormwork.toFixed(2), items, grandTotal: subTotal };
 
     }, [beams, prices, showResult]);
@@ -552,10 +543,13 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                         <div className="flex justify-between items-center mt-3">
                             <p className="text-xs text-gray-400 italic">
                                 <Package size={12} className="inline mr-1" />
-                                Standard Concrete Class A (1:2:4) • **5% Waste Factor** applied to Cement/Sand/Gravel. Nails use industry area factor + 10% Waste. Phenolic Board uses Area Factor + 15% Waste. **Lumber calculated using Direct Counting Method** (Studs: 0.6m spacing, Props: 1.0m spacing) + **10% Waste Factor**.
+                                Standard Concrete Class A (1:2:4) • **5% Waste Factor** applied to Cement/Sand/Gravel.
                                 <br />
                                 <Scissors size={12} className="inline mr-1" />
                                 **Rebar quantities rounded up to the nearest piece (whole number). Longitudinal and Cut Bars include 2 x 40D anchorage/development length unless splicing is required.**
+                                <br />
+                                <Info size={12} className="inline mr-1" />
+                                **Formwork materials (Plywood, Lumber, Nails) are excluded** - these are calculated separately in the Formworks Tab.
                             </p>
                         </div>
                     </div>
