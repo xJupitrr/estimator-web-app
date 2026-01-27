@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Settings, Calculator, Box, AlertCircle, ClipboardCopy, Download, Info, DoorOpen } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- CONSTANTS ---
 
@@ -70,14 +71,11 @@ const TablePriceInput = ({ value, onChange }) => (
     </div>
 );
 
-const NumberInput = ({ value, onChange, placeholder, min = "0.05", step = "0.01", className = "" }) => (
-    <input
-        type="number"
-        value={value === null || value === undefined ? '' : String(value)}
-        onChange={(e) => onChange(e.target.value)}
+const NumberInput = ({ value, onChange, placeholder, className = "" }) => (
+    <MathInput
+        value={value}
+        onChange={onChange}
         placeholder={placeholder}
-        min={min}
-        step={step}
         className={`w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none font-medium bg-white ${className}`}
     />
 );

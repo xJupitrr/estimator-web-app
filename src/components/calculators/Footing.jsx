@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- Components ---
 
@@ -453,23 +454,20 @@ export default function Footing() {
                                     </td>
                                     {/* Quantity */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <input
-                                            type="number"
-                                            min="1"
+                                        <MathInput
                                             placeholder="1"
                                             value={footing.quantity}
-                                            onChange={(e) => handleFootingChange(footing.id, 'quantity', e.target.value)}
+                                            onChange={(val) => handleFootingChange(footing.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-400 outline-none font-bold bg-white text-slate-900"
                                         />
                                     </td>
                                     {/* Length (X) */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="1.50"
                                                 value={footing.x_len}
-                                                onChange={(e) => handleFootingChange(footing.id, 'x_len', e.target.value)}
+                                                onChange={(val) => handleFootingChange(footing.id, 'x_len', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -478,11 +476,10 @@ export default function Footing() {
                                     {/* Width (Y) */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="1.50"
                                                 value={footing.y_len}
-                                                onChange={(e) => handleFootingChange(footing.id, 'y_len', e.target.value)}
+                                                onChange={(val) => handleFootingChange(footing.id, 'y_len', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -491,11 +488,10 @@ export default function Footing() {
                                     {/* Depth (Z) */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="0.30"
                                                 value={footing.z_depth}
-                                                onChange={(e) => handleFootingChange(footing.id, 'z_depth', e.target.value)}
+                                                onChange={(val) => handleFootingChange(footing.id, 'z_depth', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -516,21 +512,19 @@ export default function Footing() {
 
                                     {/* Rebar X Count */}
                                     <td className="p-2 border border-slate-300 align-middle bg-green-50">
-                                        <input
-                                            type="number"
+                                        <MathInput
                                             placeholder="5"
                                             value={footing.rebar_x_count}
-                                            onChange={(e) => handleFootingChange(footing.id, 'rebar_x_count', e.target.value)}
+                                            onChange={(val) => handleFootingChange(footing.id, 'rebar_x_count', val)}
                                             className="w-full p-1.5 text-center border border-green-300 rounded text-sm focus:ring-2 focus:ring-green-500 outline-none font-bold bg-white text-slate-900"
                                         />
                                     </td>
                                     {/* Rebar Y Count */}
                                     <td className="p-2 border border-slate-300 align-middle bg-green-50">
-                                        <input
-                                            type="number"
+                                        <MathInput
                                             placeholder="5"
                                             value={footing.rebar_y_count}
-                                            onChange={(e) => handleFootingChange(footing.id, 'rebar_y_count', e.target.value)}
+                                            onChange={(val) => handleFootingChange(footing.id, 'rebar_y_count', val)}
                                             className="w-full p-1.5 text-center border border-green-300 rounded text-sm focus:ring-2 focus:ring-green-500 outline-none font-bold bg-white text-slate-900"
                                         />
                                     </td>

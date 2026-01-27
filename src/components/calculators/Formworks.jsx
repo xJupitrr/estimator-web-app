@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- Components ---
 
@@ -11,14 +12,11 @@ const Card = ({ children, className = "" }) => (
     </div>
 );
 
-const TableNumberInput = ({ value, onChange, placeholder, min = "0", step = "any", className = "" }) => (
-    <input
-        type="number"
-        min={min}
-        step={step}
+const TableNumberInput = ({ value, onChange, placeholder, className = "" }) => (
+    <MathInput
         placeholder={placeholder}
-        value={value === null || value === undefined ? '' : value}
-        onChange={(e) => onChange(e.target.value)}
+        value={value}
+        onChange={onChange}
         className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 outline-none font-medium bg-white text-slate-900 ${className}`}
     />
 );
@@ -374,19 +372,17 @@ export default function Formworks({ columns = [], beams = [] }) {
                         <div className="flex items-center gap-8">
                             <div className="flex items-center gap-3">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Plywood<br />Waste %</label>
-                                <input
-                                    type="number"
+                                <MathInput
                                     value={wastePlywood}
-                                    onChange={(e) => setWastePlywood(e.target.value)}
+                                    onChange={setWastePlywood}
                                     className="w-12 p-1.5 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
                                 />
                             </div>
                             <div className="flex items-center gap-3">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none">Lumber<br />Waste %</label>
-                                <input
-                                    type="number"
+                                <MathInput
                                     value={wasteLumber}
-                                    onChange={(e) => setWasteLumber(e.target.value)}
+                                    onChange={setWasteLumber}
                                     className="w-12 p-1.5 text-center text-sm font-bold bg-white border border-slate-300 rounded focus:ring-2 focus:ring-yellow-400 outline-none"
                                 />
                             </div>

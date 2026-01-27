@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, CheckCircle2, XCircle } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- Components ---
 const Card = ({ children, className = "" }) => (
@@ -9,14 +10,11 @@ const Card = ({ children, className = "" }) => (
     </div>
 );
 
-const TableNumberInput = ({ value, onChange, placeholder, min = "0", step = "any", className = "" }) => (
-    <input
-        type="number"
-        min={min}
-        step={step}
+const TableNumberInput = ({ value, onChange, placeholder, className = "" }) => (
+    <MathInput
         placeholder={placeholder}
-        value={value === null || value === undefined ? '' : value}
-        onChange={(e) => onChange(e.target.value)}
+        value={value}
+        onChange={onChange}
         className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-medium bg-white text-slate-900 ${className}`}
     />
 );

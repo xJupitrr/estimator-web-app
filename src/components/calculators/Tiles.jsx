@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Grid3X3, Ruler, PoundSterling, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- Components ---
 
@@ -11,14 +12,11 @@ const Card = ({ children, className = "" }) => (
 );
 
 // Helper component for generic number inputs
-const TableNumberInput = ({ value, onChange, placeholder, min = "0.01", step = "0.01", className = "" }) => (
-    <input
-        type="number"
-        min={min}
-        step={step}
+const TableNumberInput = ({ value, onChange, placeholder, className = "" }) => (
+    <MathInput
         placeholder={placeholder}
-        value={value === null || value === undefined ? '' : String(value)}
-        onChange={(e) => onChange(e.target.value)}
+        value={value}
+        onChange={onChange}
         className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-violet-400 outline-none font-medium bg-white text-slate-900 ${className}`}
     />
 );

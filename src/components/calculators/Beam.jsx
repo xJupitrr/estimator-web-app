@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- 1. CONSTANTS & CONFIGURATION ---
 
@@ -124,14 +125,11 @@ const Card = React.memo(({ children, className = "" }) => (
     </div>
 ));
 
-const TableNumberInput = React.memo(({ value, onChange, placeholder, min = "0", step = "any", className = "" }) => (
-    <input
-        type="number"
-        min={min}
-        step={step}
+const TableNumberInput = React.memo(({ value, onChange, placeholder, className = "" }) => (
+    <MathInput
         placeholder={placeholder}
-        value={value === null || value === undefined ? '' : value}
-        onChange={(e) => onChange(e.target.value)}
+        value={value}
+        onChange={onChange}
         className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-teal-400 outline-none font-medium bg-white text-slate-900 ${className}`}
     />
 ));

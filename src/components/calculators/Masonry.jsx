@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 // --- Components ---
 
@@ -456,22 +457,20 @@ export default function Masonry() { // Renamed to Masonry
                                     </td>
                                     {/* Quantity */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <input
-                                            type="number"
+                                        <MathInput
                                             placeholder="1"
                                             value={wall.quantity}
-                                            onChange={(e) => handleWallChange(wall.id, 'quantity', e.target.value)}
+                                            onChange={(val) => handleWallChange(wall.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold bg-white text-slate-900"
                                         />
                                     </td>
                                     {/* Length */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="3.00"
                                                 value={wall.length}
-                                                onChange={(e) => handleWallChange(wall.id, 'length', e.target.value)}
+                                                onChange={(val) => handleWallChange(wall.id, 'length', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -480,11 +479,10 @@ export default function Masonry() { // Renamed to Masonry
                                     {/* Height */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="2.70"
                                                 value={wall.height}
-                                                onChange={(e) => handleWallChange(wall.id, 'height', e.target.value)}
+                                                onChange={(val) => handleWallChange(wall.id, 'height', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -517,11 +515,10 @@ export default function Masonry() { // Renamed to Masonry
                                     {/* V. Rebar Spacing */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="0.60"
                                                 value={wall.vertSpacing}
-                                                onChange={(e) => handleWallChange(wall.id, 'vertSpacing', e.target.value)}
+                                                onChange={(val) => handleWallChange(wall.id, 'vertSpacing', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -544,11 +541,10 @@ export default function Masonry() { // Renamed to Masonry
                                     {/* H. Rebar Spacing */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="0.60"
                                                 value={wall.horizSpacing}
-                                                onChange={(e) => handleWallChange(wall.id, 'horizSpacing', e.target.value)}
+                                                onChange={(val) => handleWallChange(wall.id, 'horizSpacing', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>

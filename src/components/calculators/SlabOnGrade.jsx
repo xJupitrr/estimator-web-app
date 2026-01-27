@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import MathInput from '../common/MathInput';
 
 const Card = ({ children, className = "" }) => (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
@@ -355,22 +356,20 @@ export default function SlabOnGrade() {
                                     <td className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold">{index + 1}</td>
 
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <input
-                                            type="number"
+                                        <MathInput
                                             placeholder="1"
                                             value={slab.quantity}
-                                            onChange={(e) => handleSlabChange(slab.id, 'quantity', e.target.value)}
+                                            onChange={(val) => handleSlabChange(slab.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-bold bg-white text-slate-900"
                                         />
                                     </td>
 
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="4.00"
                                                 value={slab.length}
-                                                onChange={(e) => handleSlabChange(slab.id, 'length', e.target.value)}
+                                                onChange={(val) => handleSlabChange(slab.id, 'length', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -379,11 +378,10 @@ export default function SlabOnGrade() {
 
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="3.00"
                                                 value={slab.width}
-                                                onChange={(e) => handleSlabChange(slab.id, 'width', e.target.value)}
+                                                onChange={(val) => handleSlabChange(slab.id, 'width', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -392,12 +390,10 @@ export default function SlabOnGrade() {
 
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="0.10"
-                                                step="0.01"
                                                 value={slab.thickness}
-                                                onChange={(e) => handleSlabChange(slab.id, 'thickness', e.target.value)}
+                                                onChange={(val) => handleSlabChange(slab.id, 'thickness', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -406,12 +402,10 @@ export default function SlabOnGrade() {
 
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="0.10"
-                                                step="0.01"
                                                 value={slab.gravelBeddingThickness}
-                                                onChange={(e) => handleSlabChange(slab.id, 'gravelBeddingThickness', e.target.value)}
+                                                onChange={(val) => handleSlabChange(slab.id, 'gravelBeddingThickness', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
@@ -432,12 +426,10 @@ export default function SlabOnGrade() {
 
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <div className="relative">
-                                            <input
-                                                type="number"
+                                            <MathInput
                                                 placeholder="0.40"
-                                                step="0.05"
                                                 value={slab.spacing}
-                                                onChange={(e) => handleSlabChange(slab.id, 'spacing', e.target.value)}
+                                                onChange={(val) => handleSlabChange(slab.id, 'spacing', val)}
                                                 className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
