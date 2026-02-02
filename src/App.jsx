@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload, DoorOpen } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home } from 'lucide-react';
+import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
 import Footing from './components/calculators/Footing';
@@ -64,7 +65,14 @@ const getInitialBeam = () => ({
 
 export default function App() {
     const { undo, redo } = useHistory();
-    const [activeTabId, setActiveTabId] = useState('slab');
+    const [activeTabId, setActiveTabId] = useState(() => {
+        const saved = localStorage.getItem('last_active_tab');
+        if (saved) {
+            localStorage.removeItem('last_active_tab');
+            return saved;
+        }
+        return 'home';
+    });
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -110,7 +118,10 @@ export default function App() {
 
         try {
             await importProjectFromCSV(file);
-            alert('Session loaded successfully! The page will now reload.');
+            // Save the first calculator tab ID to redirect after reload
+            if (TABS.length > 0) {
+                localStorage.setItem('last_active_tab', TABS[0].id);
+            }
             window.location.reload();
         } catch (err) {
             console.error(err);
@@ -118,110 +129,158 @@ export default function App() {
         }
     };
 
+    const triggerLoadSession = () => {
+        fileInputRef.current?.click();
+    };
+
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
-            {/* Header */}
-            <header className="bg-slate-900 text-white py-4 px-6 shadow-lg sticky top-0 z-50">
-                <div className="container mx-auto max-w-full flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-blue-600 p-2 rounded-lg">
-                            <Layers size={24} className="text-white" />
+            {/* Header - Hidden on Home */}
+            {/* Header - Industrial / Architectural Style (Light) */}
+            {activeTabId !== 'home' && (
+                <header className="sticky top-0 z-50 bg-white border-b border-zinc-200 text-zinc-900 font-sans shadow-sm">
+                    <div className="container mx-auto max-w-full px-0 flex h-16 divide-x divide-zinc-200">
+
+                        {/* Zone 1: Brand Anchor */}
+                        <div className="flex-shrink-0 flex items-center px-6 hover:bg-zinc-50 transition-colors cursor-pointer group" onClick={() => setActiveTabId('home')}>
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 border border-blue-200 bg-blue-50 rounded-sm group-hover:bg-blue-600 group-hover:border-blue-500 transition-all duration-300">
+                                    <Home size={18} className="text-blue-600 group-hover:text-white" strokeWidth={1.5} />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-normal tracking-wide leading-none uppercase text-zinc-900" style={{ fontFamily: "'Anton', sans-serif" }}>
+                                        Limelight
+                                    </h1>
+                                    <p className="text-[9px] text-zinc-400 font-mono tracking-widest uppercase mt-0.5">
+                                        System V1.0
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-xl font-bold tracking-tight leading-none">Limelight Design</h1>
-                            <p className="text-blue-400 text-[10px] font-bold tracking-widest uppercase">
-                                Construction Cost Estimator
-                            </p>
+
+                        {/* Zone 2: Context / Info */}
+                        <div className="flex-grow hidden md:flex items-center px-6 justify-between bg-zinc-50/50">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest border border-zinc-200 px-2 py-0.5 rounded-sm">Active Module</span>
+                                <span className="text-sm font-bold tracking-tight text-zinc-800">{TABS.find(t => t.id === activeTabId)?.label || 'Dashboard'}</span>
+                            </div>
+
+                            <div className="flex items-center gap-6">
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Project Phase</span>
+                                    <span className="text-xs font-bold text-blue-600">Estimation</span>
+                                </div>
+                                <div className="h-8 w-px bg-zinc-200"></div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Date</span>
+                                    <span className="text-xs text-zinc-600 font-mono">{new Date().toLocaleDateString()}</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-400">
-                        {/* Session Controls */}
-                        <div className="flex items-center gap-2 mr-4">
+
+                        {/* Zone 3: Utilities */}
+                        <div className="flex-shrink-0 flex items-center px-6 gap-3 bg-white">
                             <button
                                 onClick={handleSaveSession}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-500 transition-colors text-xs font-bold uppercase tracking-wider"
+                                className="flex items-center gap-2 h-9 px-4 border border-emerald-200 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold uppercase tracking-wider transition-all rounded-sm group shadow-sm"
                             >
-                                <Save size={14} /> Save Session
+                                <Save size={14} className="group-hover:scale-110 transition-transform" /> SAVE
                             </button>
                             <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors text-xs font-bold uppercase tracking-wider"
+                                onClick={triggerLoadSession}
+                                className="flex items-center gap-2 h-9 px-4 border border-zinc-200 bg-white hover:bg-zinc-800 hover:border-zinc-800 hover:text-white text-zinc-600 text-xs font-bold uppercase tracking-wider transition-all rounded-sm shadow-sm"
                             >
-                                <Upload size={14} /> Load Session
+                                <Upload size={14} /> LOAD
                             </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleLoadSession}
-                                accept=".csv"
-                                className="hidden"
-                            />
                         </div>
-                        <span className="hidden md:flex items-center gap-1"><Info size={14} /> Professional Estimator</span>
-                        <span className="h-4 w-px bg-slate-700 hidden md:block"></span>
-                        <span className="hidden md:block">V1.0</span>
+
                     </div>
-                </div>
-            </header>
+                    {/* Technical decorative line */}
+                    <div className="h-[2px] w-full bg-blue-600"></div>
+                </header>
+            )}
+
+            {/* Hidden Input for File Upload - Always present for both header and landing page access */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleLoadSession}
+                accept=".csv"
+                className="hidden"
+            />
 
             {/* Main Layout */}
-            <div className="flex flex-1 container mx-auto max-w-full p-6 gap-6 relative">
+            <div className={`flex flex-1 container mx-auto max-w-full ${activeTabId === 'home' ? 'p-0' : 'p-6 gap-6'} relative`}>
 
                 {/* Main Content Area */}
                 <main className="flex-1 min-w-0">
-                    {TABS.map((tab) => {
-                        const Component = tab.component;
-                        // Pass columns/beams state to relevant components
-                        const props = {};
-                        if (tab.id === 'column') {
-                            props.columns = columns;
-                            props.setColumns = setColumns;
-                        } else if (tab.id === 'beam') {
-                            props.beams = beams;
-                            props.setBeams = setBeams;
-                        } else if (tab.id === 'formworks') {
-                            props.columns = columns;
-                            props.beams = beams;
-                        }
-                        return (
-                            <div key={tab.id} className={activeTabId === tab.id ? 'block' : 'hidden'}>
-                                <Component {...props} />
-                            </div>
-                        );
-                    })}
+                    {activeTabId === 'home' ? (
+                        <LandingPage
+                            tabs={TABS}
+                            onNavigate={setActiveTabId}
+                            onLoadSession={triggerLoadSession}
+                        />
+                    ) : (
+                        TABS.map((tab) => {
+                            const Component = tab.component;
+                            // Pass columns/beams state to relevant components
+                            const props = {};
+                            if (tab.id === 'column') {
+                                props.columns = columns;
+                                props.setColumns = setColumns;
+                            } else if (tab.id === 'beam') {
+                                props.beams = beams;
+                                props.setBeams = setBeams;
+                            } else if (tab.id === 'formworks') {
+                                props.columns = columns;
+                                props.beams = beams;
+                            }
+                            return (
+                                <div key={tab.id} className={activeTabId === tab.id ? 'block' : 'hidden'}>
+                                    <Component {...props} />
+                                </div>
+                            );
+                        })
+                    )}
                 </main>
 
-                {/* Right Sidebar Tabs */}
-                <aside className="w-64 flex-shrink-0 hidden md:block">
-                    <div className="sticky top-24 space-y-2">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">Components</h3>
-                        {TABS.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = activeTabId === tab.id;
-                            return (
+                {/* Right Sidebar Tabs - Only show when NOT on home */}
+                {activeTabId !== 'home' && (
+                    <aside className="w-64 flex-shrink-0 hidden md:block">
+                        <div className="sticky top-24 space-y-2">
+                            <div className="flex items-center justify-between px-2 mb-4">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Components</h3>
                                 <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTabId(tab.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 border ${isActive
-                                        ? 'bg-white border-blue-500 text-blue-700 shadow-md translate-x-1'
-                                        : 'bg-transparent border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:shadow-sm'
-                                        }`}
+                                    onClick={() => setActiveTabId('home')}
+                                    className="text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-wider flex items-center gap-1"
                                 >
-                                    <div className={`p-1.5 rounded-md ${isActive ? 'bg-blue-100' : 'bg-slate-100'}`}>
-                                        <Icon size={18} className={isActive ? 'text-blue-600' : 'text-slate-500'} />
-                                    </div>
-                                    {tab.label}
+                                    <Home size={12} /> Home
                                 </button>
-                            )
-                        })}
-                    </div>
-                </aside>
-
-                {/* Mobile Tab Navigation (Bottom Fixed for small screens, optional but good practice) */}
-                {/* For now, sticking to the user request 'right side', assuming desktop context, but a mobile fallback is nice. 
-            I'll just leave the right sidebar for now as requested. */}
+                            </div>
+                            {TABS.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTabId === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTabId(tab.id)}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 border ${isActive
+                                            ? 'bg-white border-blue-500 text-blue-700 shadow-md translate-x-1'
+                                            : 'bg-transparent border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:shadow-sm'
+                                            }`}
+                                    >
+                                        <div className={`p-1.5 rounded-md ${isActive ? 'bg-blue-100' : 'bg-slate-100'}`}>
+                                            <Icon size={18} className={isActive ? 'text-blue-600' : 'text-slate-500'} />
+                                        </div>
+                                        {tab.label}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </aside>
+                )}
             </div>
         </div>
     );
