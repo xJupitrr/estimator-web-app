@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
 import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload, DoorOpen } from 'lucide-react';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
@@ -62,7 +63,30 @@ const getInitialBeam = () => ({
 
 
 export default function App() {
+    const { undo, redo } = useHistory();
     const [activeTabId, setActiveTabId] = useState('slab');
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                        redo();
+                    } else {
+                        undo();
+                    }
+                } else if (e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undo, redo]);
+
 
     // Persisted via localStorage
     const [columns, setColumns] = useLocalStorage('app_columns', [getInitialColumn()]);

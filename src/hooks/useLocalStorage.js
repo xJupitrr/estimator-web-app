@@ -1,14 +1,16 @@
-
 import { useState, useEffect, useCallback } from 'react';
+import { useHistory } from '../contexts/HistoryContext';
 
 /**
- * Hook to persist state in localStorage.
+ * Hook to persist state in localStorage with Undo/Redo support.
  * 
  * @param {string} key - The localStorage key.
  * @param {*} initialValue - The initial value to use if no value is stored.
  * @returns {[*, Function]} - The state and the setState function.
  */
 export default function useLocalStorage(key, initialValue) {
+    const { captureChange, subscribe } = useHistory();
+
     // Get from local storage then parse stored json or return initialValue
     const [storedValue, setStoredValue] = useState(() => {
         if (typeof window === 'undefined') {
@@ -28,26 +30,35 @@ export default function useLocalStorage(key, initialValue) {
     // ... persists the new value to localStorage.
     const setValue = useCallback((value) => {
         try {
-            setStoredValue((prev) => {
-                // Allow value to be a function so we have same API as useState
-                const valueToStore = value instanceof Function ? value(prev) : value;
+            // Need the latest state to capture history correctly.
+            // Since this callback depends on storedValue, it will update when storedValue updates.
+            const valueToStore = value instanceof Function ? value(storedValue) : value;
 
-                // Save to local storage
-                if (typeof window !== 'undefined') {
-                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
-                }
-                return valueToStore;
-            });
+            // Capture change for Undo/Redo
+            captureChange(key, storedValue, valueToStore);
+
+            setStoredValue(valueToStore);
+
+            // Save to local storage
+            if (typeof window !== 'undefined') {
+                window.localStorage.setItem(key, JSON.stringify(valueToStore));
+            }
         } catch (error) {
             console.error(`Error setting localStorage key "${key}":`, error);
         }
-    }, [key]);
+    }, [key, storedValue, captureChange]);
 
+    // Subscribe to external updates (Undo/Redo)
     useEffect(() => {
-        // Hydrate from storage on mount/key change in case of external changes (optional, usually not needed for single tab)
-        // But mainly to ensured syncing if key changes.
-        // For now, basic implementation is sufficient.
-    }, [key]);
+        // subscribe returns an unsubscribe function
+        const unsubscribe = subscribe(key, (newValue) => {
+            // When undo/redo happens, we get the new value to display.
+            // We update internal state, but do NOT capture this change or write to localStorage
+            // (HistoryContext handles the localStorage write for atomic consistency)
+            setStoredValue(newValue);
+        });
+        return unsubscribe;
+    }, [key, subscribe]);
 
     return [storedValue, setValue];
 }
