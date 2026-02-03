@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- Components ---
 
@@ -51,17 +52,17 @@ const extractDiameterMeters = (spec) => {
 
 // Initial Wall Configuration Template
 const getInitialWall = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     length: "",
     height: "",
     quantity: 1,
-    chbSize: "4",
-    plasterSides: "2",
+    chbSize: "",
+    plasterSides: "",
     // Note: Spacing variables reflect the direction *along which* the spacing is measured.
     horizSpacing: "", // Spacing along the length (controls vertical bars)
     vertSpacing: "", // Spacing along the height (controls horizontal bars)
-    horizRebarSpec: rebarOptions[0], // 10mm x 6.0m
-    vertRebarSpec: rebarOptions[5], // 12mm x 6.0m
+    horizRebarSpec: "", // 10mm x 6.0m
+    vertRebarSpec: "", // 12mm x 6.0m
 });
 
 
@@ -225,11 +226,12 @@ export default function Masonry() { // Renamed to Masonry
 
         // Validation Check
         const hasEmptyFields = walls.some(wall =>
-            wall.length === "" || wall.height === "" || wall.vertSpacing === "" || wall.horizSpacing === ""
+            wall.length === "" || wall.height === "" || wall.vertSpacing === "" || wall.horizSpacing === "" ||
+            wall.chbSize === "" || wall.plasterSides === "" || wall.horizRebarSpec === "" || wall.vertRebarSpec === ""
         );
 
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Length, Height, Spacing) before calculating.");
+            setError("Please fill in all fields (Dimensions, Spacing, and Material Specs) before calculating.");
             setWallResult(null);
             setHasEstimated(false);
             return;
@@ -400,6 +402,16 @@ export default function Masonry() { // Renamed to Masonry
         setHasEstimated(true);
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (wallResult) {
+            localStorage.setItem('masonry_total', wallResult.total);
+        } else {
+            localStorage.removeItem('masonry_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [wallResult]);
+
     const handlePriceChange = (key, newValue) => {
         setWallPrices(prev => ({
             ...prev,
@@ -490,26 +502,30 @@ export default function Masonry() { // Renamed to Masonry
                                     </td>
                                     {/* CMU Size */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={wall.chbSize}
-                                            onChange={(e) => handleWallChange(wall.id, 'chbSize', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
-                                        >
-                                            <option value="4">4" (10cm)</option>
-                                            <option value="6">6" (15cm)</option>
-                                        </select>
+                                            onChange={(val) => handleWallChange(wall.id, 'chbSize', val)}
+                                            options={[
+                                                { id: "4", display: '4" (10cm)' },
+                                                { id: "6", display: '6" (15cm)' }
+                                            ]}
+                                            placeholder="Select Size..."
+                                            focusColor="orange"
+                                        />
                                     </td>
                                     {/* Plaster Sides */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={wall.plasterSides}
-                                            onChange={(e) => handleWallChange(wall.id, 'plasterSides', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
-                                        >
-                                            <option value="0">None</option>
-                                            <option value="1">1 Side</option>
-                                            <option value="2">2 Sides</option>
-                                        </select>
+                                            onChange={(val) => handleWallChange(wall.id, 'plasterSides', val)}
+                                            options={[
+                                                { id: "0", display: 'None' },
+                                                { id: "1", display: '1 Side' },
+                                                { id: "2", display: '2 Sides' }
+                                            ]}
+                                            placeholder="Select Plaster..."
+                                            focusColor="orange"
+                                        />
                                     </td>
 
                                     {/* V. Rebar Spacing */}
@@ -527,15 +543,13 @@ export default function Masonry() { // Renamed to Masonry
 
                                     {/* Horizontal Rebar Spec */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={wall.horizRebarSpec}
-                                            onChange={(e) => handleWallChange(wall.id, 'horizRebarSpec', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
-                                        >
-                                            {rebarOptions.map(spec => (
-                                                <option key={spec} value={spec}>{spec}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleWallChange(wall.id, 'horizRebarSpec', val)}
+                                            options={rebarOptions}
+                                            placeholder="Select Spec..."
+                                            focusColor="orange"
+                                        />
                                     </td>
 
                                     {/* H. Rebar Spacing */}
@@ -553,15 +567,13 @@ export default function Masonry() { // Renamed to Masonry
 
                                     {/* Vertical Rebar Spec */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={wall.vertRebarSpec}
-                                            onChange={(e) => handleWallChange(wall.id, 'vertRebarSpec', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-gray-300 rounded bg-white focus:ring-2 focus:ring-orange-400 outline-none cursor-pointer text-sm font-medium"
-                                        >
-                                            {rebarOptions.map(spec => (
-                                                <option key={spec} value={spec}>{spec}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleWallChange(wall.id, 'vertRebarSpec', val)}
+                                            options={rebarOptions}
+                                            placeholder="Select Spec..."
+                                            focusColor="orange"
+                                        />
                                     </td>
                                     {/* Delete Button */}
                                     <td className="p-2 border border-slate-300 align-middle text-center">

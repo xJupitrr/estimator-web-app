@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Settings, Calculator, Box, AlertCircle, ClipboardCopy, Download, Info, DoorOpen } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- CONSTANTS ---
 
@@ -23,9 +24,9 @@ const DEFAULT_PRICES = {
 const DEFAULT_SPECS = {
     lintelDepth: 0.15, // 150mm standard depth (wall thickness)
     lintelHeight: 0.20, // 200mm standard height
-    mainBarSku: '12_6.0',
+    mainBarSku: '',
     mainBarCount: 2,
-    tieSku: '10_6.0',
+    tieSku: '',
     tieSpacing: 150, // mm
 };
 
@@ -80,17 +81,7 @@ const NumberInput = ({ value, onChange, placeholder, className = "" }) => (
     />
 );
 
-const SelectInput = ({ value, onChange, options, className = "" }) => (
-    <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none font-medium bg-white cursor-pointer ${className}`}
-    >
-        {options.map(opt => (
-            <option key={opt.id} value={opt.id}>{opt.display}</option>
-        ))}
-    </select>
-);
+
 
 // --- MAIN COMPONENT ---
 
@@ -99,21 +90,14 @@ export default function LintelBeam() {
     const [specs, setSpecs] = useLocalStorage('lintel_specs', DEFAULT_SPECS);
     const [showResult, setShowResult] = useState(false);
 
-    // Read door/window openings from localStorage
-    const doorsWindowsItems = useMemo(() => {
-        try {
-            const stored = localStorage.getItem('doorswindows_rows');
-            return stored ? JSON.parse(stored) : [];
-        } catch {
-            return [];
-        }
-    }, []);
+    // Read door/window openings using useLocalStorage to respect the "Reset on Refresh" behavior
+    const [doorsWindowsItems] = useLocalStorage('doorswindows_rows', []);
 
     // Transform to lintel beams
     const lintelBeams = useMemo(() => {
         const depth = parseFloat(specs.lintelDepth) || 0.15;
         return doorsWindowsItems
-            .filter(item => item.width_m && item.height_m)
+            .filter(item => item && item.width_m && item.height_m)
             .map(item => ({
                 id: item.id,
                 openingType: item.itemType || 'Opening',
@@ -129,7 +113,16 @@ export default function LintelBeam() {
             }));
     }, [doorsWindowsItems, specs]);
 
+    // Reset results when input data changes
+    useEffect(() => {
+        setShowResult(false);
+    }, [doorsWindowsItems]);
+
     const handleCalculate = () => {
+        if (!specs.mainBarSku || !specs.tieSku) {
+            alert("Please select rebar specifications for both main bars and ties.");
+            return;
+        }
         setShowResult(true);
     };
 
@@ -254,6 +247,16 @@ export default function LintelBeam() {
 
     }, [lintelBeams, prices, specs.lintelDepth, specs.lintelHeight, showResult]);
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('lintel_beam_total', result.grandTotal);
+        } else {
+            localStorage.removeItem('lintel_beam_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     return (
         <div className="space-y-6">
             <Card className="border-t-4 border-t-purple-600 shadow-md">
@@ -302,6 +305,8 @@ export default function LintelBeam() {
                                         value={specs.mainBarSku}
                                         onChange={(v) => handleSpecChange('mainBarSku', v)}
                                         options={AVAILABLE_REBAR_SKUS}
+                                        placeholder="Select Main Bar..."
+                                        focusColor="purple"
                                         className="text-center"
                                     />
                                 </td>
@@ -320,6 +325,8 @@ export default function LintelBeam() {
                                         value={specs.tieSku}
                                         onChange={(v) => handleSpecChange('tieSku', v)}
                                         options={AVAILABLE_TIE_SKUS}
+                                        placeholder="Select Tie..."
+                                        focusColor="purple"
                                         className="text-center"
                                     />
                                 </td>

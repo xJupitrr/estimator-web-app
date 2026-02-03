@@ -75,7 +75,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
                         <span className="text-[10px] uppercase tracking-[0.2em] text-blue-600 font-mono font-bold">System Online</span>
                     </div>
 
-                    <h1 className="text-7xl sm:text-9xl md:text-[10rem] font-normal text-zinc-900 mb-2 tracking-tighter leading-none select-none uppercase whitespace-nowrap overflow-hidden" style={{ fontFamily: "'Anton', sans-serif" }}>
+                    <h1 className="text-7xl sm:text-9xl md:text-[10rem] font-normal text-zinc-900 mb-2 tracking-[0.05em] leading-none select-none uppercase whitespace-nowrap overflow-hidden" style={{ fontFamily: "'Anton', sans-serif" }}>
                         Limelight
                     </h1>
                     <div className="flex items-center justify-center gap-4 text-zinc-300">

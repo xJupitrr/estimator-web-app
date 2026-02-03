@@ -65,12 +65,12 @@ const extractDiameterMeters = (spec) => {
 
 // Initial Footing Configuration Template
 const getInitialFooting = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     x_len: "", // Length (X) in meters
     y_len: "", // Width (Y) in meters
     z_depth: "", // Depth (Z) in meters
-    rebarSpec: "16mm x 6.0m", // Default
+    rebarSpec: "",
     // Explicit bar counts are used for calculation
     rebar_x_count: "",
     rebar_y_count: "",
@@ -401,6 +401,16 @@ export default function Footing() {
             total: totalOverallCost
         });
     };
+
+    // Global Cost Sync
+    useEffect(() => {
+        if (footingResult) {
+            localStorage.setItem('footing_total', footingResult.total);
+        } else {
+            localStorage.removeItem('footing_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [footingResult]);
 
     // Auto-recalculate when prices change IF results are already being shown
     useEffect(() => {

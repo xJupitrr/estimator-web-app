@@ -28,7 +28,7 @@ export default function InputForm({ onAddItem }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         onAddItem({
-            id: crypto.randomUUID(),
+            id: Date.now() + Math.random(),
             ...formData,
             timestamp: Date.now(),
         });

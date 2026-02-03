@@ -67,8 +67,8 @@ const getInitialRow = (data = {}) => ({
     width_m: data.width_m || "",
     height_m: data.height_m || "",
     description: data.description || "",
-    plywood_type: 'phenolic_1_2',
-    lumber_size: 'lumber_2x3',
+    plywood_type: data.plywood_type || '',
+    lumber_size: data.lumber_size || '',
 });
 
 
@@ -237,6 +237,16 @@ export default function Formworks({ columns = [], beams = [] }) {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('formworks_total', result.grandTotal);
+        } else {
+            localStorage.removeItem('formworks_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     return (
         <div className="space-y-6">
 
@@ -289,13 +299,15 @@ export default function Formworks({ columns = [], beams = [] }) {
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={row.width_m} onChange={(v) => handleRowChange(row.id, 'width_m', v)} placeholder="0.30" /></td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={row.height_m} onChange={(v) => handleRowChange(row.id, 'height_m', v)} placeholder="3.00" /></td>
                                     <td className="p-2 border border-slate-300 align-middle bg-amber-50/20">
-                                        <select value={row.plywood_type} onChange={(e) => handleRowChange(row.id, 'plywood_type', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5">
-                                            {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                        <select value={row.plywood_type} onChange={(e) => handleRowChange(row.id, 'plywood_type', e.target.value)} className={`w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm transition-all h-auto py-1.5 ${!row.plywood_type ? 'text-zinc-400 font-normal italic' : 'font-medium text-zinc-900'}`}>
+                                            <option value="" disabled hidden>Select Plywood...</option>
+                                            {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id} className="text-zinc-900 font-medium not-italic">{opt.label}</option>)}
                                         </select>
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-amber-50/20">
-                                        <select value={row.lumber_size} onChange={(e) => handleRowChange(row.id, 'lumber_size', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5">
-                                            {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                        <select value={row.lumber_size} onChange={(e) => handleRowChange(row.id, 'lumber_size', e.target.value)} className={`w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm transition-all h-auto py-1.5 ${!row.lumber_size ? 'text-zinc-400 font-normal italic' : 'font-medium text-zinc-900'}`}>
+                                            <option value="" disabled hidden>Select Lumber...</option>
+                                            {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id} className="text-zinc-900 font-medium not-italic">{opt.label}</option>)}
                                         </select>
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">

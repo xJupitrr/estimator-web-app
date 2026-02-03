@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Grid3X3, Ruler, PoundSterling, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- Components ---
 
@@ -54,11 +55,11 @@ const tileMaterials = [
 
 // Initial Area Configuration Template
 const getInitialArea = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     x_len: "", // Room Length (m)
     y_len: "", // Room Width (m)
-    tileMaterial: "Ceramic (Glossy)",
+    tileMaterial: "", // Empty for placeholder
     tile_width_m: "", // Tile Width (m)
     tile_height_m: "", // Tile Length/Height (m)
     tile_price_per_piece: "", // Price per piece (PHP)
@@ -134,8 +135,8 @@ export default function Tiles() {
             area.tile_price_per_piece === ""
         );
 
-        if (hasEmptyFields) {
-            setError("Please fill in all required fields (Room Dimensions, Tile Dimensions, Price) before calculating.");
+        if (hasEmptyFields || areas.some(a => a.tileMaterial === "")) {
+            setError("Please fill in all required fields (Room Dimensions, Tile Material, Tile Dimensions, Price) before calculating.");
             setResult(null);
             return;
         }
@@ -271,6 +272,16 @@ export default function Tiles() {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('tiles_total', result.total);
+        } else {
+            localStorage.removeItem('tiles_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     // Auto-recalculate on price change (for consumables only)
     useEffect(() => {
         if (result) {
@@ -348,15 +359,14 @@ export default function Tiles() {
                                     </td>
                                     {/* Tile Material */}
                                     <td className="p-2 border border-slate-300 align-middle bg-violet-50">
-                                        <select
+                                        <SelectInput
                                             value={area.tileMaterial}
-                                            onChange={(e) => handleAreaChange(area.id, 'tileMaterial', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-violet-200 rounded bg-white focus:ring-2 focus:ring-violet-400 outline-none cursor-pointer text-xs font-medium text-slate-800"
-                                        >
-                                            {tileMaterials.map(mat => (
-                                                <option key={mat} value={mat}>{mat}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleAreaChange(area.id, 'tileMaterial', val)}
+                                            options={tileMaterials}
+                                            placeholder="Select Material..."
+                                            focusColor="violet"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     {/* Tile Width (m) */}
                                     <td className="p-2 border border-slate-300 align-middle bg-violet-50">

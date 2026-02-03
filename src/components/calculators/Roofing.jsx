@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, ClipboardCopy, Download, AlertCircle, Tent } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- Components ---
 
@@ -61,7 +62,7 @@ ROOFING_TYPES.forEach(t => {
 const getInitialRow = (data = {}) => ({
     id: Date.now() + Math.random(),
     quantity: data.quantity || 1,
-    type: 'rib_type',
+    type: '', // Empty for placeholder
     length_m: data.length_m || "", // Slope / Long Span Length
     width_m: data.width_m || "", // Width to be covered
     description: data.description || "",
@@ -145,7 +146,12 @@ export default function Roofing() {
         });
 
         if (!isValid) {
-            setError("Please enter valid dimensions (Qty, Length, Width) for at least one row.");
+            const hasEmptyType = rows.some(row => row.type === "" && (parseFloat(row.length_m) > 0 || parseFloat(row.width_m) > 0));
+            if (hasEmptyType) {
+                setError("Please select a Roof Type for all rows with dimensions.");
+            } else {
+                setError("Please enter valid dimensions (Qty, Length, Width) for at least one row.");
+            }
             setResult(null);
             return;
         }
@@ -202,6 +208,16 @@ export default function Roofing() {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('roofing_total', result.grandTotal);
+        } else {
+            localStorage.removeItem('roofing_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     return (
         <div className="space-y-6">
 
@@ -243,17 +259,14 @@ export default function Roofing() {
                                         <TableNumberInput value={row.quantity} onChange={(v) => handleRowChange(row.id, 'quantity', v)} min="1" step="1" className="font-bold" />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={row.type}
-                                            onChange={(e) => handleRowChange(row.id, 'type', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-bold text-slate-700"
-                                        >
-                                            {ROOFING_TYPES.map(opt => (
-                                                <option key={opt.id} value={opt.id}>
-                                                    {opt.label} ({opt.eff_width}m)
-                                                </option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleRowChange(row.id, 'type', val)}
+                                            options={ROOFING_TYPES.map(opt => ({ id: opt.id, display: `${opt.label} (${opt.eff_width}m)` }))}
+                                            placeholder="Select Type..."
+                                            focusColor="rose"
+                                            className="font-bold text-slate-700"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={row.length_m} onChange={(v) => handleRowChange(row.id, 'length_m', v)} placeholder="eg. 5.0" /></td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={row.width_m} onChange={(v) => handleRowChange(row.id, 'width_m', v)} placeholder="eg. 12.0" /></td>
