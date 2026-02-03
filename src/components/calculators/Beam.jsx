@@ -259,7 +259,11 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
 
             if (L_elem > mainSkuDetails.length) {
                 // Spliced
-                const barsPerRun = Math.ceil(L_elem / mainSkuDetails.length);
+                const spliceLength = L_ANCHOR_DEV_FACTOR * mainDiaM;
+                const effectiveLengthPerAdditionalBar = mainSkuDetails.length - spliceLength;
+                const barsPerRun = effectiveLengthPerAdditionalBar > 0
+                    ? Math.ceil((L_elem - mainSkuDetails.length) / effectiveLengthPerAdditionalBar) + 1
+                    : Math.ceil(L_elem / mainSkuDetails.length);
                 addSplicedBarReq(col.main_bar_sku, barsPerRun * totalMainPieces);
             } else {
                 // Not Spliced (Add 2x Development Length)
@@ -292,7 +296,12 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 const totalPieces = cutSupportCount * qty * 2; // 2 supports
 
                 if (reqLen > supportDetails.length) {
-                    addSplicedBarReq(col.cut_support_sku, Math.ceil(reqLen / supportDetails.length) * totalPieces);
+                    const spliceLength = L_ANCHOR_DEV_FACTOR * (supportDetails.diameter / 1000);
+                    const effectiveLengthPerAdditionalBar = supportDetails.length - spliceLength;
+                    const barsPerRun = effectiveLengthPerAdditionalBar > 0
+                        ? Math.ceil((reqLen - supportDetails.length) / effectiveLengthPerAdditionalBar) + 1
+                        : Math.ceil(reqLen / supportDetails.length);
+                    addSplicedBarReq(col.cut_support_sku, barsPerRun * totalPieces);
                 } else {
                     addShortCutReq(col.cut_support_sku, reqLen, totalPieces);
                 }
@@ -307,7 +316,12 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 const totalPieces = cutMidspanCount * qty;
 
                 if (reqLen > midDetails.length) {
-                    addSplicedBarReq(col.cut_midspan_sku, Math.ceil(reqLen / midDetails.length) * totalPieces);
+                    const spliceLength = L_ANCHOR_DEV_FACTOR * (midDetails.diameter / 1000);
+                    const effectiveLengthPerAdditionalBar = midDetails.length - spliceLength;
+                    const barsPerRun = effectiveLengthPerAdditionalBar > 0
+                        ? Math.ceil((reqLen - midDetails.length) / effectiveLengthPerAdditionalBar) + 1
+                        : Math.ceil(reqLen / midDetails.length);
+                    addSplicedBarReq(col.cut_midspan_sku, barsPerRun * totalPieces);
                 } else {
                     addShortCutReq(col.cut_midspan_sku, reqLen, totalPieces);
                 }
@@ -347,8 +361,18 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
 
             shortCuts.forEach(({ cutLength, count }) => {
                 const yieldPerBar = Math.floor(commercialLength / cutLength);
-                if (yieldPerBar > 0) totalBars += Math.ceil(count / yieldPerBar);
-                else totalBars += count;
+                if (yieldPerBar > 0) {
+                    totalBars += Math.ceil(count / yieldPerBar);
+                } else {
+                    const spliceLength = L_ANCHOR_DEV_FACTOR * (diameter / 1000);
+                    const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
+                    if (effectiveLengthPerAdditionalBar > 0) {
+                        const piecesPerRun = Math.ceil((cutLength - commercialLength) / effectiveLengthPerAdditionalBar) + 1;
+                        totalBars += (piecesPerRun * count);
+                    } else {
+                        totalBars += Math.ceil(cutLength / commercialLength) * count;
+                    }
+                }
             });
 
             if (totalBars > 0) addItem(`Corrugated Rebar (${diameter}mm x ${commercialLength}m)`, totalBars, "pcs", priceKey, 200);

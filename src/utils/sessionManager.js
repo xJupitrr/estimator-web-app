@@ -15,7 +15,8 @@ const LIST_SECTIONS = {
     'SUSPENDED SLAB DATA': 'suspended_slab_rows',
     'TILES DATA': 'tiles_rows',
     'PAINTING DATA': 'painting_rows',
-    'CEILING DATA': 'ceiling_rooms'
+    'CEILING DATA': 'ceiling_rooms',
+    'DOORS & WINDOWS DATA': 'doorswindows_rows'
 };
 
 // Mapping of Single Value/Object Keys to a generic Settings Section
@@ -38,8 +39,44 @@ const SETTINGS_KEYS = [
     'ceiling_prices',
     'ceiling_config',
     'beam_prices',
-    'column_prices'
+    'column_prices',
+    'lintel_prices',
+    'lintel_specs'
 ];
+
+/**
+ * Robustly parses a single CSV line, handling quoted fields and escaped quotes.
+ */
+const parseCSVLine = (str) => {
+    const arr = [];
+    let quote = false;
+    let col = "";
+    for (let i = 0; i < str.length; i++) {
+        const char = str[i];
+        const next = str[i + 1];
+
+        if (char === '"') {
+            if (quote && next === '"') {
+                // Escaped quote: ""
+                col += '"';
+                i++; // Skip next quote
+            } else {
+                // Toggle quote state
+                quote = !quote;
+            }
+            continue;
+        }
+
+        if (char === ',' && !quote) {
+            arr.push(col);
+            col = "";
+            continue;
+        }
+        col += char;
+    }
+    arr.push(col);
+    return arr;
+};
 
 /**
  * Converts an array of flat objects to CSV string part.
@@ -68,51 +105,6 @@ const csvToArray = (csvText) => {
     const lines = csvText.trim().split('\n').map(l => l.trim()).filter(l => l);
     if (lines.length < 2) return [];
 
-    // Parse header
-    // This simple parser assumes standard CSV (comma separated, quote escaped)
-    // For robustness with user-edited files, we need better parsing, but basic split is okay for this scope
-    // if no commas in values. The export handles escaping, import should too.
-    // Let's use a regex for splitting CSV line correctly.
-    const parseLine = (line) => {
-        const pattern = /(".*?"|[^",\s]+)(?=\s*,|\s*$)/g;
-        // Simple fallback: split by comma if no quotes involved usually
-        // But let's stick to simple split for MVP unless we add a standard library
-        return line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || line.split(',');
-        // Actually, let's just use string split if we trust the format or write a micro-parser.
-    };
-
-    // Micro-parser for CSV line - Correctly handles escaped quotes ("") and delimiters
-    const parseCSVLine = (str) => {
-        const arr = [];
-        let quote = false;
-        let col = "";
-        for (let i = 0; i < str.length; i++) {
-            const char = str[i];
-            const next = str[i + 1];
-
-            if (char === '"') {
-                if (quote && next === '"') {
-                    // Escaped quote: ""
-                    col += '"';
-                    i++; // Skip next quote
-                } else {
-                    // Toggle quote state
-                    quote = !quote;
-                }
-                continue;
-            }
-
-            if (char === ',' && !quote) {
-                arr.push(col);
-                col = "";
-                continue;
-            }
-            col += char;
-        }
-        arr.push(col);
-        return arr;
-    };
-
     const headers = parseCSVLine(lines[0]);
     const result = [];
 
@@ -130,25 +122,6 @@ const csvToArray = (csvText) => {
     return result;
 };
 
-// Internal utility for parsing settings line specifically
-const parseSettingsLine = (line) => {
-    const arr = [];
-    let quote = false;
-    let col = "";
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        const next = line[i + 1];
-        if (char === '"') {
-            if (quote && next === '"') { col += '"'; i++; }
-            else { quote = !quote; }
-            continue;
-        }
-        if (char === ',' && !quote) { arr.push(col); col = ""; continue; }
-        col += char;
-    }
-    arr.push(col);
-    return arr;
-};
 
 
 export const exportProjectToCSV = () => {
@@ -203,7 +176,7 @@ export const importProjectFromCSV = async (file) => {
             lines.shift(); // Remove header (Key,ValueType,Value)
             lines.forEach(line => {
                 if (!line.trim()) return;
-                const parts = parseSettingsLine(line);
+                const parts = parseCSVLine(line);
                 if (parts.length >= 3) {
                     const key = parts[0];
                     const value = parts[2];

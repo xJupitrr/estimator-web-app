@@ -331,10 +331,18 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                     const barsNeededForCut = Math.ceil(count / piecesPerBar);
                     totalCommercialBars += barsNeededForCut;
                 } else {
-                    // If cutLength > commercialLength, we need one commercial bar per piece
-                    // This means the cut length is impossible with the selected commercial length and requires splicing.
-                    // We use 'count' as the minimum purchase quantity, assuming the purchasing team will figure out the splices/ordering.
-                    totalCommercialBars += count;
+                    // If cutLength > commercialLength, we need multiple commercial bars spliced together
+                    const spliceLength = 40 * (diameter / 1000); // 40d splice length in meters
+                    const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
+
+                    if (effectiveLengthPerAdditionalBar > 0) {
+                        const additionalPiecesNeeded = Math.ceil((cutLength - commercialLength) / effectiveLengthPerAdditionalBar);
+                        const piecesPerRun = 1 + additionalPiecesNeeded;
+                        totalCommercialBars += (piecesPerRun * count);
+                    } else {
+                        // Fallback: If splice length >= bar length (extreme case), just use simple division
+                        totalCommercialBars += Math.ceil(cutLength / commercialLength) * count;
+                    }
                 }
             });
 

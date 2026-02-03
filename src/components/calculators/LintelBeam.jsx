@@ -189,12 +189,12 @@ export default function LintelBeam() {
 
             // 3. Ties/Stirrups
             const tieSkuDetails = getSkuDetails(lintel.tieSku);
-            const W_tie = W - (2 * concreteCover);
+            const H_tie = H - (2 * concreteCover);
             const D_tie = D - (2 * concreteCover);
             const hookLength = Math.max(12 * (tieSkuDetails.diameter / 1000), 0.075);
-            const tieCutLength = (2 * (W_tie + D_tie)) + (2 * hookLength);
+            const tieCutLength = (2 * (H_tie + D_tie)) + (2 * hookLength);
 
-            if (W_tie > 0 && D_tie > 0) {
+            if (H_tie > 0 && D_tie > 0) {
                 const spacingM = lintel.tieSpacing / 1000;
                 const tiesPerBeam = Math.ceil(L / spacingM) + 1;
                 addRebarReq(lintel.tieSku, tieCutLength, tiesPerBeam * qty);
@@ -231,7 +231,18 @@ export default function LintelBeam() {
             let totalBars = 0;
             cuts.forEach(({ cutLength, count }) => {
                 const yieldPerBar = Math.floor(commercialLength / cutLength);
-                totalBars += yieldPerBar > 0 ? Math.ceil(count / yieldPerBar) : count;
+                if (yieldPerBar > 0) {
+                    totalBars += Math.ceil(count / yieldPerBar);
+                } else {
+                    const spliceLength = 40 * (diameter / 1000); // 40d splice length in meters
+                    const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
+                    if (effectiveLengthPerAdditionalBar > 0) {
+                        const piecesPerRun = Math.ceil((cutLength - commercialLength) / effectiveLengthPerAdditionalBar) + 1;
+                        totalBars += (piecesPerRun * count);
+                    } else {
+                        totalBars += Math.ceil(cutLength / commercialLength) * count;
+                    }
+                }
             });
 
             if (totalBars > 0) addItem(`Corrugated Rebar (${diameter}mm x ${commercialLength}m)`, totalBars, "pcs", priceKey, 200);

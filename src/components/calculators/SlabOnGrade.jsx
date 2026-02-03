@@ -235,7 +235,7 @@ export default function SlabOnGrade() {
             return;
         }
 
-        const V_dry_concrete = totalConcreteVolume * 1.5;
+        const V_dry_concrete = totalConcreteVolume * 1.54;
         const V_cement = V_dry_concrete * (1 / 7);
         const V_sand = V_dry_concrete * (2 / 7);
         const V_gravel = V_dry_concrete * (4 / 7);
@@ -272,7 +272,7 @@ export default function SlabOnGrade() {
 
             finalRebarItems.push({
                 name: `Corrugated Rebar (${size} x ${lengthStr})`,
-                qty: finalQtyPurchase,
+                qty: Math.ceil(finalQtyPurchase * 1.05), // Added 5% waste buffer
                 unit: 'pcs',
                 price: price,
                 priceKey: priceKey,
@@ -281,9 +281,8 @@ export default function SlabOnGrade() {
         });
 
         const TIE_WIRE_PER_INTERSECTION = 0.3;
-        const TIE_WIRE_ROLL_KG = 50;
-        const TIE_WIRE_LM_PER_ROLL = 600;
-        const KG_PER_LM = TIE_WIRE_ROLL_KG / TIE_WIRE_LM_PER_ROLL;
+        const METERS_PER_KG = 53; // Standard #16 GI Wire
+        const KG_PER_LM = 1 / METERS_PER_KG;
 
         const totalLMTieWire = totalTiePoints * TIE_WIRE_PER_INTERSECTION;
         const totalKGRequired = totalLMTieWire * KG_PER_LM;

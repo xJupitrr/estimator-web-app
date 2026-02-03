@@ -66,13 +66,16 @@ const getInitialBeam = () => ({
 export default function App() {
     const { undo, redo } = useHistory();
     const [activeTabId, setActiveTabId] = useState(() => {
+        return localStorage.getItem('last_active_tab') || 'home';
+    });
+
+    useEffect(() => {
+        // Clear the redirect flag after it's been consumed by state initialization
         const saved = localStorage.getItem('last_active_tab');
         if (saved) {
             localStorage.removeItem('last_active_tab');
-            return saved;
         }
-        return 'home';
-    });
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -118,10 +121,8 @@ export default function App() {
 
         try {
             await importProjectFromCSV(file);
-            // Save the first calculator tab ID to redirect after reload
-            if (TABS.length > 0) {
-                localStorage.setItem('last_active_tab', TABS[0].id);
-            }
+            // After loading, redirect to the first calculator tab if current on home/landing
+            localStorage.setItem('last_active_tab', TABS[0].id);
             window.location.reload();
         } catch (err) {
             console.error(err);
