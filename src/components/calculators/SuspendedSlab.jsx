@@ -414,14 +414,15 @@ export default function SuspendedSlab() {
             const pKey = `rebar${size}mm`;
             items.push({
                 name: `Corrugated Rebar (${spec})`,
-                qty: val.purchased,
+                qty: Math.ceil(val.purchased * 1.05), // Added 5% waste buffer
                 unit: "pcs",
                 price: prices[pKey] || 0,
                 priceKey: pKey
             });
         });
 
-        const tieWireKg = Math.ceil((totalTiePoints * 0.3 * (50 / 600)) * waste);
+        const METERS_PER_KG = 53; // Standard #16 GI Wire
+        const tieWireKg = Math.ceil((totalTiePoints * 0.3 * (1 / METERS_PER_KG)) * waste);
         items.push({ name: "G.I. Tie Wire (#16)", qty: tieWireKg, unit: "kg", price: prices.tieWire, priceKey: "tieWire" });
 
         const itemsWithTotal = items.map(it => ({ ...it, total: it.qty * it.price }));

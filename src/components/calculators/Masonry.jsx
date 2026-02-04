@@ -345,7 +345,7 @@ export default function Masonry() { // Renamed to Masonry
 
         rebarStock.forEach((stock, spec) => {
             const [size, lengthStr] = spec.split(' x ');
-            const finalQtyPurchase = stock.purchased;
+            const finalQtyPurchase = Math.ceil(stock.purchased * 1.05); // Added 5% waste buffer
             const is10mm = parseFloat(size.replace('mm', '')) === 10;
 
             const price = is10mm ? wallPrices.rebar10mmPrice : wallPrices.rebar12mmPrice;
@@ -365,9 +365,8 @@ export default function Masonry() { // Renamed to Masonry
         });
 
         const TIE_WIRE_PER_INTERSECTION = 0.4;
-        const TIE_WIRE_ROLL_KG = 50;
-        const TIE_WIRE_LM_PER_ROLL = 600;
-        const KG_PER_LM = TIE_WIRE_ROLL_KG / TIE_WIRE_LM_PER_ROLL;
+        const METERS_PER_KG = 53; // Standard #16 GI Wire
+        const KG_PER_LM = 1 / METERS_PER_KG;
         const totalLMTieWire = totalTiePoints * TIE_WIRE_PER_INTERSECTION;
         const totalKGRequired = totalLMTieWire * KG_PER_LM;
         const finalKGPurchase = Math.ceil(totalKGRequired * 1.05); // 5% allowance
