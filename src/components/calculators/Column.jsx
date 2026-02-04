@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- Components ---
 
@@ -85,9 +86,9 @@ const getInitialColumn = () => ({
     length_m: "",      // Empty default
     width_m: "",       // Empty default
     height_m: "",      // Empty default
-    main_bar_sku: '16_9.0',     // Main Bar SKU (Diameter_Length)
+    main_bar_sku: '',     // Main Bar SKU (Diameter_Length)
     main_bar_count: "",   // Empty default
-    tie_bar_sku: '10_6.0',      // Lateral Tie SKU (Diameter_Length)
+    tie_bar_sku: '',      // Lateral Tie SKU (Diameter_Length)
     tie_spacing_mm: "", // Empty default
 });
 
@@ -171,11 +172,13 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
             col.width_m === "" ||
             col.height_m === "" ||
             col.main_bar_count === "" ||
-            col.tie_spacing_mm === ""
+            col.tie_spacing_mm === "" ||
+            col.main_bar_sku === "" ||
+            col.tie_bar_sku === ""
         );
 
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Length, Width, Height, Rebar Count, Spacing) before calculating.");
+            setError("Please fill in all required fields (Dimensions, Rebar Count, Spacing, and Specs) before calculating.");
             setResult(null);
             return;
         }
@@ -360,6 +363,16 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('column_total', result.grandTotal);
+        } else {
+            localStorage.removeItem('column_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     useEffect(() => {
         // Recalculate if prices change and a result is already displayed
         if (result) {
@@ -430,31 +443,25 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
 
                                     {/* Main Bars */}
                                     <td className="p-2 border border-slate-300 align-middle bg-orange-50/20">
-                                        <select
-                                            value={col.main_bar_sku} onChange={(e) => handleColumnChange(col.id, 'main_bar_sku', e.target.value)}
-                                            className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5"
-                                        >
-                                            {availableRebarSKUs.map(sku => (
-                                                <option key={sku.id} value={sku.id}>
-                                                    {sku.display}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <SelectInput
+                                            value={col.main_bar_sku}
+                                            onChange={(val) => handleColumnChange(col.id, 'main_bar_sku', val)}
+                                            options={availableRebarSKUs}
+                                            placeholder="Select SKU..."
+                                            focusColor="indigo"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-orange-50/20"><TableNumberInput value={col.main_bar_count} onChange={(v) => handleColumnChange(col.id, 'main_bar_count', v)} placeholder="4" step="1" /></td>
 
                                     {/* Ties */}
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20">
-                                        <select
-                                            value={col.tie_bar_sku} onChange={(e) => handleColumnChange(col.id, 'tie_bar_sku', e.target.value)}
-                                            className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-sm font-medium h-auto py-1.5"
-                                        >
-                                            {availableTieSKUs.map(sku => (
-                                                <option key={sku.id} value={sku.id}>
-                                                    {sku.display}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <SelectInput
+                                            value={col.tie_bar_sku}
+                                            onChange={(val) => handleColumnChange(col.id, 'tie_bar_sku', val)}
+                                            options={availableTieSKUs}
+                                            placeholder="Select SKU..."
+                                            focusColor="indigo"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20"><TableNumberInput value={col.tie_spacing_mm} onChange={(v) => handleColumnChange(col.id, 'tie_spacing_mm', v)} placeholder="200" step="10" /></td>
 

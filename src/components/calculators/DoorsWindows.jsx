@@ -3,6 +3,7 @@ import { Settings, Calculator, PlusCircle, Trash2, DoorOpen, AlertCircle, Clipbo
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage from '../../hooks/useLocalStorage';
+import SelectInput from '../common/SelectInput';
 
 // --- Components ---
 
@@ -96,13 +97,13 @@ const leafMaterials = [
 ];
 
 const getInitialItem = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
-    itemType: "Sliding Window",
+    itemType: "",
     width_m: "",
     height_m: "",
-    frameMaterial: "Aluminum (Powder Coated)",
-    leafMaterial: "Clear Glass (6mm)",
+    frameMaterial: "",
+    leafMaterial: "",
     customFramePrice: "",
     customLeafPrice: "",
     customHardwarePrice: "",
@@ -261,9 +262,12 @@ export default function DoorsWindows() {
         let grandTotal = 0;
         const materializedItems = [];
 
-        const hasEmptyFields = items.some(item => item.width_m === "" || item.height_m === "");
+        const hasEmptyFields = items.some(item =>
+            item.width_m === "" || item.height_m === "" ||
+            item.itemType === "" || item.frameMaterial === "" || item.leafMaterial === ""
+        );
         if (hasEmptyFields) {
-            setError("Please fill in all required dimension fields (Width, Height) before calculating.");
+            setError("Please fill in all required fields (Type, Dimensions, and Materials) before calculating.");
             setResult(null);
             return;
         }
@@ -389,6 +393,16 @@ export default function DoorsWindows() {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('doors_windows_total', result.grandTotal);
+        } else {
+            localStorage.removeItem('doors_windows_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     return (
         <div className="space-y-6">
 
@@ -439,15 +453,14 @@ export default function DoorsWindows() {
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-amber-50">
-                                        <select
+                                        <SelectInput
                                             value={item.itemType}
-                                            onChange={(e) => handleItemChange(item.id, 'itemType', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-amber-200 rounded bg-white focus:ring-2 focus:ring-amber-400 outline-none cursor-pointer text-xs font-medium text-slate-800"
-                                        >
-                                            {itemTypes.map(type => (
-                                                <option key={type} value={type}>{type}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleItemChange(item.id, 'itemType', val)}
+                                            options={itemTypes}
+                                            placeholder="Select Type..."
+                                            focusColor="amber"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <TableNumberInput
@@ -464,30 +477,24 @@ export default function DoorsWindows() {
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-amber-50">
-                                        <select
+                                        <SelectInput
                                             value={item.frameMaterial}
-                                            onChange={(e) => handleItemChange(item.id, 'frameMaterial', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-amber-200 rounded bg-white focus:ring-2 focus:ring-amber-400 outline-none cursor-pointer text-xs font-medium text-slate-800"
-                                        >
-                                            {frameMaterials.map(mat => (
-                                                <option key={mat.name} value={mat.name}>
-                                                    {mat.name} (₱{mat.pricePerLM.toLocaleString()}/LM)
-                                                </option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleItemChange(item.id, 'frameMaterial', val)}
+                                            options={frameMaterials.map(mat => ({ id: mat.name, display: `${mat.name} (₱${mat.pricePerLM.toLocaleString()}/LM)` }))}
+                                            placeholder="Select Frame..."
+                                            focusColor="amber"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-sky-50">
-                                        <select
+                                        <SelectInput
                                             value={item.leafMaterial}
-                                            onChange={(e) => handleItemChange(item.id, 'leafMaterial', e.target.value)}
-                                            className="w-full p-1.5 text-left border border-sky-200 rounded bg-white focus:ring-2 focus:ring-sky-400 outline-none cursor-pointer text-xs font-medium text-slate-800"
-                                        >
-                                            {leafMaterials.map(mat => (
-                                                <option key={mat.name} value={mat.name}>
-                                                    {mat.name} (₱{mat.pricePerSqm.toLocaleString()}/sqm)
-                                                </option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleItemChange(item.id, 'leafMaterial', val)}
+                                            options={leafMaterials.map(mat => ({ id: mat.name, display: `${mat.name} (₱${mat.pricePerSqm.toLocaleString()}/sqm)` }))}
+                                            placeholder="Select Leaf..."
+                                            focusColor="amber"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <input

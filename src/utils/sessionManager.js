@@ -41,7 +41,9 @@ const SETTINGS_KEYS = [
     'beam_prices',
     'column_prices',
     'lintel_prices',
-    'lintel_specs'
+    'lintel_specs',
+    'project_name',
+    'last_save_info'
 ];
 
 /**

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Paintbrush, Ruler, PaintBucket, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- Components ---
 
@@ -42,11 +43,11 @@ const TablePriceInput = ({ value, onChange, placeholder = "0.00" }) => (
 
 // Initial Wall Configuration Template (Painting)
 const getInitialWall = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     length_m: "", // Wall Length (m)
     height_m: "", // Wall Height (m)
-    sides: "1",   // Number of sides to paint (1 or 2)
+    sides: "",   // Empty for placeholder
     area_sqm: "", // Manual Area Input (sqm)
 });
 
@@ -114,7 +115,7 @@ export default function Painting() {
         });
 
         if (!hasValidInput) {
-            setError("Please provide either L x H dimensions or a manual Area (sqm) for all surfaces.");
+            setError("Please provide either L x H dimensions (including number of sides) or a manual Area (sqm) for all surfaces.");
             setResult(null);
             return;
         }
@@ -207,6 +208,16 @@ export default function Painting() {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('painting_total', result.total);
+        } else {
+            localStorage.removeItem('painting_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     // Auto-recalculate on price change if result exists
     useEffect(() => {
         if (result) {
@@ -288,15 +299,18 @@ export default function Painting() {
                                     </td>
                                     {/* Sides */}
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={wall.sides}
-                                            onChange={(e) => handleWallChange(wall.id, 'sides', e.target.value)}
+                                            onChange={(val) => handleWallChange(wall.id, 'sides', val)}
+                                            options={[
+                                                { id: "1", display: "1 Side" },
+                                                { id: "2", display: "2 Sides" }
+                                            ]}
+                                            placeholder="Select..."
+                                            focusColor="emerald"
                                             disabled={wall.area_sqm !== ""}
-                                            className={`w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 outline-none cursor-pointer text-xs font-bold text-slate-800 ${wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}`}
-                                        >
-                                            <option value="1">1 Side</option>
-                                            <option value="2">2 Sides</option>
-                                        </select>
+                                            className={`${wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}`}
+                                        />
                                     </td>
                                     {/* Manual Area */}
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/30">

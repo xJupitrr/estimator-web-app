@@ -8,57 +8,72 @@ import { useHistory } from '../contexts/HistoryContext';
  * @param {*} initialValue - The initial value to use if no value is stored.
  * @returns {[*, Function]} - The state and the setState function.
  */
+// Session cache to maintain state during tab switching (internal navigation)
+// This cache is reset automatically on browser refresh.
+const sessionCache = {};
+
 export default function useLocalStorage(key, initialValue) {
     const { captureChange, subscribe } = useHistory();
 
-    // Get from local storage then parse stored json or return initialValue
+    // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
     const [storedValue, setStoredValue] = useState(() => {
-        if (typeof window === 'undefined') {
-            return initialValue;
+        if (sessionCache[key] !== undefined) {
+            return sessionCache[key];
         }
-
-        try {
-            const item = window.localStorage.getItem(key);
-            return item ? JSON.parse(item) : initialValue;
-        } catch (error) {
-            console.error(`Error reading localStorage key "${key}":`, error);
-            return initialValue;
-        }
+        return initialValue;
     });
 
+    const loadFromLocalStorage = useCallback(() => {
+        try {
+            const item = window.localStorage.getItem(key);
+            if (item) {
+                const parsed = JSON.parse(item);
+                setStoredValue(parsed);
+                sessionCache[key] = parsed;
+            }
+        } catch (error) {
+            console.error(`Error loading from localStorage key "${key}":`, error);
+        }
+    }, [key]);
+
     // Return a wrapped version of useState's setter function that ...
-    // ... persists the new value to localStorage.
+    // ... persists the new value to sessionCache (session-only, clears on refresh).
     const setValue = useCallback((value) => {
         try {
-            // Need the latest state to capture history correctly.
-            // Since this callback depends on storedValue, it will update when storedValue updates.
             const valueToStore = value instanceof Function ? value(storedValue) : value;
 
             // Capture change for Undo/Redo
             captureChange(key, storedValue, valueToStore);
 
             setStoredValue(valueToStore);
+            sessionCache[key] = valueToStore;
 
-            // Save to local storage
-            if (typeof window !== 'undefined') {
-                window.localStorage.setItem(key, JSON.stringify(valueToStore));
-            }
+            // NOTE: We do NOT write to localStorage here anymore.
+            // This ensures data clears on browser refresh.
+            // The Save/Load Session features handle localStorage directly.
         } catch (error) {
             console.error(`Error setting localStorage key "${key}":`, error);
         }
     }, [key, storedValue, captureChange]);
 
-    // Subscribe to external updates (Undo/Redo)
+    // 1. Subscribe to external updates (Undo/Redo)
     useEffect(() => {
-        // subscribe returns an unsubscribe function
         const unsubscribe = subscribe(key, (newValue) => {
-            // When undo/redo happens, we get the new value to display.
-            // We update internal state, but do NOT capture this change or write to localStorage
-            // (HistoryContext handles the localStorage write for atomic consistency)
             setStoredValue(newValue);
+            sessionCache[key] = newValue;
         });
         return unsubscribe;
     }, [key, subscribe]);
+
+    // 2. Listen for "project-session-loaded" event to force-load from localStorage
+    useEffect(() => {
+        const handleSessionLoad = () => {
+            loadFromLocalStorage();
+        };
+
+        window.addEventListener('project-session-loaded', handleSessionLoad);
+        return () => window.removeEventListener('project-session-loaded', handleSessionLoad);
+    }, [loadFromLocalStorage]);
 
     return [storedValue, setValue];
 }

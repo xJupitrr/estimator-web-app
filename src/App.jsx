@@ -40,31 +40,31 @@ const getInitialColumn = () => ({
     length_m: "",
     width_m: "",
     height_m: "",
-    main_bar_sku: '16_9.0',
+    main_bar_sku: '',
     main_bar_count: "",
-    tie_bar_sku: '10_6.0',
+    tie_bar_sku: '',
     tie_spacing_mm: "",
 });
 
 const getInitialBeam = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     length_m: "",
     width_m: "",
     height_m: "",
-    main_bar_sku: '16_9.0',
+    main_bar_sku: '',
     main_bar_count: "",
-    tie_bar_sku: '10_6.0',
+    tie_bar_sku: '',
     tie_spacing_mm: "",
-    cut_support_sku: '12_6.0',
+    cut_support_sku: '',
     cut_support_count: "",
-    cut_midspan_sku: '12_6.0',
+    cut_midspan_sku: '',
     cut_midspan_count: "",
 });
 
 
 export default function App() {
-    const { undo, redo } = useHistory();
+    const { undo, redo, clearHistory } = useHistory();
     const [activeTabId, setActiveTabId] = useState(() => {
         return localStorage.getItem('last_active_tab') || 'home';
     });
@@ -102,16 +102,62 @@ export default function App() {
     // Persisted via localStorage
     const [columns, setColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
     const [beams, setBeams] = useLocalStorage('app_beams', [getInitialBeam()]);
+    const [projectName, setProjectName] = useLocalStorage('project_name', 'Untitled Project');
+    const [lastSaveInfo, setLastSaveInfo] = useLocalStorage('last_save_info', { date: '', count: 0 });
+
+    const [projectTotal, setProjectTotal] = useState(0);
+
+    // Sync total cost from all modules
+    useEffect(() => {
+        const calculateTotal = () => {
+            const costKeys = [
+                'masonry_total', 'slab_total', 'suspended_slab_total', 'footing_total',
+                'column_total', 'beam_total', 'roofing_total', 'formworks_total',
+                'tiles_total', 'painting_total', 'ceiling_total', 'doors_windows_total',
+                'lintel_beam_total'
+            ];
+            let total = 0;
+            costKeys.forEach(key => {
+                const val = localStorage.getItem(key);
+                if (val) total += parseFloat(val) || 0;
+            });
+            setProjectTotal(total);
+        };
+
+        // Initial calculation
+        calculateTotal();
+
+        // Listen for internal storage changes (custom events from components)
+        const handleRefresh = () => calculateTotal();
+        window.addEventListener('project-total-update', handleRefresh);
+        window.addEventListener('project-session-loaded', handleRefresh);
+
+        return () => {
+            window.removeEventListener('project-total-update', handleRefresh);
+            window.removeEventListener('project-session-loaded', handleRefresh);
+        };
+    }, []);
 
     const fileInputRef = useRef(null);
 
     const handleSaveSession = () => {
+        const today = new Date().toISOString().slice(0, 10);
+        let currentVersion = 1;
+
+        if (lastSaveInfo.date === today) {
+            currentVersion = lastSaveInfo.count + 1;
+        }
+
+        setLastSaveInfo({ date: today, count: currentVersion });
+
+        const fileName = `${projectName.replace(/[^a-z0-9]/gi, '_')}_${today.replace(/-/g, '')}_v${currentVersion}.csv`;
+
         const csv = exportProjectToCSV();
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `project_session_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = fileName;
         link.click();
     };
 
@@ -121,9 +167,17 @@ export default function App() {
 
         try {
             await importProjectFromCSV(file);
-            // After loading, redirect to the first calculator tab if current on home/landing
-            localStorage.setItem('last_active_tab', TABS[0].id);
-            window.location.reload();
+
+            // 1. Clear Undo/Redo history as we're starting a "new" imported session
+            clearHistory();
+
+            // 2. Switch to the first calculator tab
+            setActiveTabId(TABS[0].id);
+
+            // 3. Notify all listeners to refresh their local state from localStorage
+            window.dispatchEvent(new CustomEvent('project-session-loaded'));
+
+            // Note: window.location.reload() removed to maintain "Reset on Refresh" behavior
         } catch (err) {
             console.error(err);
             alert('Failed to load session. Check file format.');
@@ -162,10 +216,25 @@ export default function App() {
                         </div>
 
                         {/* Zone 2: Context / Info */}
-                        <div className="flex-grow hidden md:flex items-center px-6 justify-between bg-zinc-50/50">
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest border border-zinc-200 px-2 py-0.5 rounded-sm">Active Module</span>
-                                <span className="text-sm font-bold tracking-tight text-zinc-800">{TABS.find(t => t.id === activeTabId)?.label || 'Dashboard'}</span>
+                        <div className="flex-grow hidden lg:flex items-center px-6 justify-between bg-zinc-50/50">
+                            <div className="flex items-center gap-6">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Project Name</span>
+                                    <input
+                                        type="text"
+                                        value={projectName}
+                                        onChange={(e) => setProjectName(e.target.value)}
+                                        placeholder="Enter Project Name..."
+                                        className="bg-transparent border-none text-sm font-bold text-zinc-800 focus:ring-0 focus:outline-none placeholder:text-zinc-300 w-48 hover:bg-zinc-100/50 rounded-sm px-1 -mx-1 border-b border-dashed border-transparent focus:border-blue-400 transition-all"
+                                    />
+                                </div>
+                                <div className="h-8 w-px bg-zinc-200"></div>
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Project Cost</span>
+                                    <span className="text-sm font-bold tracking-tight text-emerald-600">
+                                        ₱{projectTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-6">
@@ -224,26 +293,42 @@ export default function App() {
                             onLoadSession={triggerLoadSession}
                         />
                     ) : (
-                        TABS.map((tab) => {
-                            const Component = tab.component;
-                            // Pass columns/beams state to relevant components
+                        (() => {
+                            const activeTab = TABS.find(t => t.id === activeTabId);
+                            if (!activeTab || !activeTab.component) {
+                                return (
+                                    <div className="flex-grow flex items-center justify-center p-8 text-center">
+                                        <div className="max-w-md space-y-4">
+                                            <div className="p-4 bg-zinc-100 rounded-sm border border-zinc-200">
+                                                <Home className="mx-auto text-zinc-400 mb-2" size={48} />
+                                                <h3 className="text-lg font-bold text-zinc-900 uppercase">Module Unavailable</h3>
+                                                <p className="text-xs text-zinc-500 font-mono">ID: {activeTabId || 'UNKNOWN'}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setActiveTabId('home')}
+                                                className="px-6 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-blue-700 transition-colors"
+                                            >
+                                                Return to Command Center
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            }
+
+                            const Component = activeTab.component;
                             const props = {};
-                            if (tab.id === 'column') {
+                            if (activeTab.id === 'column') {
                                 props.columns = columns;
                                 props.setColumns = setColumns;
-                            } else if (tab.id === 'beam') {
+                            } else if (activeTab.id === 'beam') {
                                 props.beams = beams;
                                 props.setBeams = setBeams;
-                            } else if (tab.id === 'formworks') {
+                            } else if (activeTab.id === 'formworks') {
                                 props.columns = columns;
                                 props.beams = beams;
                             }
-                            return (
-                                <div key={tab.id} className={activeTabId === tab.id ? 'block' : 'hidden'}>
-                                    <Component {...props} />
-                                </div>
-                            );
-                        })
+                            return <Component {...props} />;
+                        })()
                     )}
                 </main>
 
@@ -251,15 +336,7 @@ export default function App() {
                 {activeTabId !== 'home' && (
                     <aside className="w-64 flex-shrink-0 hidden md:block">
                         <div className="sticky top-24 space-y-2">
-                            <div className="flex items-center justify-between px-2 mb-4">
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Components</h3>
-                                <button
-                                    onClick={() => setActiveTabId('home')}
-                                    className="text-xs font-bold text-blue-500 hover:text-blue-700 uppercase tracking-wider flex items-center gap-1"
-                                >
-                                    <Home size={12} /> Home
-                                </button>
-                            </div>
+
                             {TABS.map((tab) => {
                                 const Icon = tab.icon;
                                 const isActive = activeTabId === tab.id;

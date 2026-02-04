@@ -49,11 +49,11 @@ const TablePriceInput = ({ value, onChange, placeholder = "0.00" }) => (
 // --- Helper Functions & Data ---
 
 const getInitialRoom = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     length_m: "",
     width_m: "",
-    type: 'gypsum' // Default type
+    type: ''
 });
 
 import useLocalStorage from '../../hooks/useLocalStorage';
@@ -353,6 +353,16 @@ export default function Ceiling() {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('ceiling_total', result.total);
+        } else {
+            localStorage.removeItem('ceiling_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     useEffect(() => {
         if (result) calculateMaterials();
     }, [prices, config]);
@@ -393,10 +403,11 @@ export default function Ceiling() {
                                         <select
                                             value={room.type}
                                             onChange={(e) => handleRoomChange(room.id, 'type', e.target.value)}
-                                            className="w-full p-2 text-sm border border-gray-300 rounded font-medium bg-white focus:ring-2 focus:ring-cyan-400 outline-none text-slate-800"
+                                            className={`w-full p-2 text-sm border border-gray-300 rounded bg-white focus:ring-2 focus:ring-cyan-400 outline-none transition-all ${!room.type ? 'text-zinc-400 font-normal italic' : 'font-medium text-slate-800'}`}
                                         >
+                                            <option value="" disabled hidden>Select Material...</option>
                                             {Object.entries(MATERIAL_TYPES).map(([key, data]) => (
-                                                <option key={key} value={key}>{data.label}</option>
+                                                <option key={key} value={key} className="text-slate-800 font-medium not-italic">{data.label}</option>
                                             ))}
                                         </select>
                                     </td>

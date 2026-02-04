@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 // --- 1. CONSTANTS & CONFIGURATION ---
 
@@ -64,18 +65,18 @@ const getSkuDetails = (skuId) => {
 };
 
 const getInitialElement = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     length_m: "",      // Width (B)
     width_m: "",       // Depth (H)
     height_m: "",      // Length (L)
-    main_bar_sku: '16_9.0',
+    main_bar_sku: '',
     main_bar_count: "",
-    tie_bar_sku: '10_6.0',
+    tie_bar_sku: '',
     tie_spacing_mm: "",
-    cut_support_sku: '12_6.0',
+    cut_support_sku: '',
     cut_support_count: "",
-    cut_midspan_sku: '12_6.0',
+    cut_midspan_sku: '',
     cut_midspan_count: "",
 });
 
@@ -186,11 +187,15 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
             beam.width_m === "" ||
             beam.height_m === "" ||
             beam.main_bar_count === "" ||
-            beam.tie_spacing_mm === ""
+            beam.tie_spacing_mm === "" ||
+            beam.main_bar_sku === "" ||
+            beam.tie_bar_sku === "" ||
+            (beam.cut_support_count !== "" && beam.cut_support_sku === "") ||
+            (beam.cut_midspan_count !== "" && beam.cut_midspan_sku === "")
         );
 
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Width, Depth, Length, Rebar Count, Spacing) before calculating.");
+            setError("Please fill in all required fields (Dimensions, Rebar Count, Spacing, and Specs) before calculating.");
             setShowResult(false);
             return;
         }
@@ -360,16 +365,16 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
             let totalBars = splicedBarsPieces;
 
             shortCuts.forEach(({ cutLength, count }) => {
-                const yieldPerBar = Math.floor(commercialLength / cutLength);
+                const yieldPerBar = (commercialLength > 0 && cutLength > 0) ? Math.floor(commercialLength / cutLength) : 0;
                 if (yieldPerBar > 0) {
                     totalBars += Math.ceil(count / yieldPerBar);
                 } else {
                     const spliceLength = L_ANCHOR_DEV_FACTOR * (diameter / 1000);
                     const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
-                    if (effectiveLengthPerAdditionalBar > 0) {
+                    if (effectiveLengthPerAdditionalBar > 0 && commercialLength > 0) {
                         const piecesPerRun = Math.ceil((cutLength - commercialLength) / effectiveLengthPerAdditionalBar) + 1;
                         totalBars += (piecesPerRun * count);
-                    } else {
+                    } else if (commercialLength > 0) {
                         totalBars += Math.ceil(cutLength / commercialLength) * count;
                     }
                 }
@@ -383,6 +388,16 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
         return { volume: totalVolConcrete.toFixed(2), areaFormwork: totalAreaFormwork.toFixed(2), items, grandTotal: subTotal };
 
     }, [beams, prices, showResult]);
+
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('beam_total', result.grandTotal);
+        } else {
+            localStorage.removeItem('beam_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
 
     return (
         <div className="space-y-6">
@@ -435,27 +450,43 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.width_m} onChange={(v) => handleBeamChange(col.id, 'width_m', v)} placeholder="0.50" /></td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.height_m} onChange={(v) => handleBeamChange(col.id, 'height_m', v)} placeholder="6.00" /></td>
                                     <td className="p-2 border border-slate-300 align-middle bg-orange-50/20">
-                                        <select value={col.main_bar_sku} onChange={(e) => handleBeamChange(col.id, 'main_bar_sku', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[34px]">
-                                            {AVAILABLE_REBAR_SKUS.map(sku => <option key={sku.id} value={sku.id}>{sku.display}</option>)}
-                                        </select>
+                                        <SelectInput
+                                            value={col.main_bar_sku}
+                                            onChange={(val) => handleBeamChange(col.id, 'main_bar_sku', val)}
+                                            options={AVAILABLE_REBAR_SKUS}
+                                            placeholder="Select SKU..."
+                                            focusColor="teal"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-orange-50/20"><TableNumberInput value={col.main_bar_count} onChange={(v) => handleBeamChange(col.id, 'main_bar_count', v)} placeholder="4" step="1" /></td>
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20">
-                                        <select value={col.tie_bar_sku} onChange={(e) => handleBeamChange(col.id, 'tie_bar_sku', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[34px]">
-                                            {AVAILABLE_TIE_SKUS.map(sku => <option key={sku.id} value={sku.id}>{sku.display}</option>)}
-                                        </select>
+                                        <SelectInput
+                                            value={col.tie_bar_sku}
+                                            onChange={(val) => handleBeamChange(col.id, 'tie_bar_sku', val)}
+                                            options={AVAILABLE_TIE_SKUS}
+                                            placeholder="Select SKU..."
+                                            focusColor="teal"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20"><TableNumberInput value={col.tie_spacing_mm} onChange={(v) => handleBeamChange(col.id, 'tie_spacing_mm', v)} placeholder="150" step="10" /></td>
                                     <td className="p-2 border border-slate-300 align-middle bg-fuchsia-50/20">
-                                        <select value={col.cut_support_sku} onChange={(e) => handleBeamChange(col.id, 'cut_support_sku', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[34px]">
-                                            {AVAILABLE_REBAR_SKUS.map(sku => <option key={sku.id} value={sku.id}>{sku.display}</option>)}
-                                        </select>
+                                        <SelectInput
+                                            value={col.cut_support_sku}
+                                            onChange={(val) => handleBeamChange(col.id, 'cut_support_sku', val)}
+                                            options={AVAILABLE_REBAR_SKUS}
+                                            placeholder="Select SKU..."
+                                            focusColor="teal"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-fuchsia-50/20"><TableNumberInput value={col.cut_support_count} onChange={(v) => handleBeamChange(col.id, 'cut_support_count', v)} placeholder="2" step="1" /></td>
                                     <td className="p-2 border border-slate-300 align-middle bg-fuchsia-50/20">
-                                        <select value={col.cut_midspan_sku} onChange={(e) => handleBeamChange(col.id, 'cut_midspan_sku', e.target.value)} className="w-full p-1 text-center border border-slate-300 rounded bg-white outline-none cursor-pointer text-xs font-medium h-[34px]">
-                                            {AVAILABLE_REBAR_SKUS.map(sku => <option key={sku.id} value={sku.id}>{sku.display}</option>)}
-                                        </select>
+                                        <SelectInput
+                                            value={col.cut_midspan_sku}
+                                            onChange={(val) => handleBeamChange(col.id, 'cut_midspan_sku', val)}
+                                            options={AVAILABLE_REBAR_SKUS}
+                                            placeholder="Select SKU..."
+                                            focusColor="teal"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle bg-fuchsia-50/20"><TableNumberInput value={col.cut_midspan_count} onChange={(v) => handleBeamChange(col.id, 'cut_midspan_count', v)} placeholder="2" step="1" /></td>
                                     <td className="p-1 border border-slate-300 align-middle text-center">

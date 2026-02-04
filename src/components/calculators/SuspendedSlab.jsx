@@ -90,19 +90,19 @@ const CRANK_FACTOR = 0.42;   // Extra length for 45 deg bend (assuming 2 bends p
 const HOOK_MULTIPLIER = 12;  // 12db hook allowance
 
 const getInitialSlab = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     quantity: 1,
     length: "",
     width: "",
-    thickness: "0.125",
-    mainBarSpec: "12mm x 9.0m", // For Two-Way or Short Span (One-Way)
-    mainSpacing: 0.15,
-    tempBarSpec: "10mm x 6.0m", // For Long Span (One-Way Only)
-    tempSpacing: 0.20,
-    floorHeight: "3.0",
-    supportType: 'coco_lumber',
-    deckingType: 'none', // 'none' = conventional, or ID
-    formworkType: 'phenolic_1_2', // Used if deckingType is 'none'
+    thickness: "",
+    mainBarSpec: "",
+    mainSpacing: "",
+    tempBarSpec: "",
+    tempSpacing: "",
+    floorHeight: "",
+    supportType: '',
+    deckingType: '',
+    formworkType: '',
 });
 
 // --- Calculation Logic ---
@@ -155,13 +155,18 @@ const processRebarRun = (requiredLength, spec, qty, rebarStock) => {
             } else {
                 // Long run with splices
                 const effectiveLength = barLength - spliceLength;
-                const extraPieces = Math.ceil((currentNeeded - barLength) / effectiveLength);
-                const totalPieces = 1 + extraPieces;
-                stock.purchased += totalPieces;
-                const totalReqWithSplices = currentNeeded + (extraPieces * spliceLength);
-                const totalSupplied = totalPieces * barLength;
-                const waste = totalSupplied - totalReqWithSplices;
-                if (waste > MIN_OFFCUT) stock.offcuts.push(waste);
+                if (effectiveLength > 0) {
+                    const extraPieces = Math.ceil((currentNeeded - barLength) / effectiveLength);
+                    const totalPieces = 1 + extraPieces;
+                    stock.purchased += totalPieces;
+                    const totalReqWithSplices = currentNeeded + (extraPieces * spliceLength);
+                    const totalSupplied = totalPieces * barLength;
+                    const waste = totalSupplied - totalReqWithSplices;
+                    if (waste > MIN_OFFCUT) stock.offcuts.push(waste);
+                } else if (barLength > 0) {
+                    const totalPieces = Math.ceil(currentNeeded / barLength);
+                    stock.purchased += totalPieces;
+                }
             }
         }
     }
@@ -435,6 +440,16 @@ export default function SuspendedSlab() {
         });
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('suspended_slab_total', result.total);
+        } else {
+            localStorage.removeItem('suspended_slab_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     return (
         <div className="space-y-6">
             <Card className="border-t-4 border-t-blue-500 shadow-md">
@@ -493,8 +508,9 @@ export default function SuspendedSlab() {
 
                                         {/* Main Rebar */}
                                         <td className="p-2 border border-slate-300 bg-blue-50/20">
-                                            <select value={s.mainBarSpec} onChange={(e) => handleSlabChange(s.id, 'mainBarSpec', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-bold">
-                                                {rebarOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            <select value={s.mainBarSpec} onChange={(e) => handleSlabChange(s.id, 'mainBarSpec', e.target.value)} className={`w-full p-1 border border-slate-300 rounded text-sm outline-none transition-all ${!s.mainBarSpec ? 'text-zinc-400 font-normal italic' : 'font-bold text-zinc-900'}`}>
+                                                <option value="" disabled hidden>Select Spec...</option>
+                                                {rebarOptions.map(opt => <option key={opt} value={opt} className="text-zinc-900 font-bold not-italic">{opt}</option>)}
                                             </select>
                                         </td>
                                         <td className="p-2 border border-slate-300 bg-blue-50/20"><TableNumberInput value={s.mainSpacing} onChange={(v) => handleSlabChange(s.id, 'mainSpacing', v)} /></td>
@@ -505,9 +521,10 @@ export default function SuspendedSlab() {
                                                 value={s.tempBarSpec}
                                                 onChange={(e) => handleSlabChange(s.id, 'tempBarSpec', e.target.value)}
                                                 disabled={isTwoWay}
-                                                className={`w-full p-1 border border-slate-300 rounded text-sm font-bold ${isTwoWay ? 'opacity-30 cursor-not-allowed bg-slate-100' : ''}`}
+                                                className={`w-full p-1 border border-slate-300 rounded text-sm outline-none transition-all ${isTwoWay ? 'opacity-30 cursor-not-allowed bg-slate-100' : ''} ${!s.tempBarSpec && !isTwoWay ? 'text-zinc-400 font-normal italic' : 'font-bold text-zinc-900'}`}
                                             >
-                                                {rebarOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                <option value="" disabled hidden>Select Spec...</option>
+                                                {rebarOptions.map(opt => <option key={opt} value={opt} className="text-zinc-900 font-bold not-italic">{opt}</option>)}
                                             </select>
                                         </td>
                                         <td className="p-2 border border-slate-300 bg-sky-50/20">
@@ -523,12 +540,14 @@ export default function SuspendedSlab() {
                                         {/* Decking / Formwork */}
                                         <td className="p-2 border border-slate-300">
                                             <div className="flex flex-col gap-2">
-                                                <select value={s.deckingType} onChange={(e) => handleSlabChange(s.id, 'deckingType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-bold text-blue-800">
-                                                    {DECKING_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                                <select value={s.deckingType} onChange={(e) => handleSlabChange(s.id, 'deckingType', e.target.value)} className={`w-full p-1 border border-slate-300 rounded text-sm outline-none transition-all ${!s.deckingType ? 'text-zinc-400 font-normal italic' : 'font-bold text-blue-800'}`}>
+                                                    <option value="" disabled hidden>Select Decking...</option>
+                                                    {DECKING_OPTIONS.map(opt => <option key={opt.id} value={opt.id} className="text-blue-800 font-bold not-italic">{opt.label}</option>)}
                                                 </select>
                                                 {s.deckingType === 'none' && (
-                                                    <select value={s.formworkType} onChange={(e) => handleSlabChange(s.id, 'formworkType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-medium text-slate-600">
-                                                        {FORMWORK_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                                    <select value={s.formworkType} onChange={(e) => handleSlabChange(s.id, 'formworkType', e.target.value)} className={`w-full p-1 border border-slate-300 rounded text-sm outline-none transition-all ${!s.formworkType ? 'text-zinc-400 font-normal italic' : 'font-medium text-slate-600'}`}>
+                                                        <option value="" disabled hidden>Select Formwork...</option>
+                                                        {FORMWORK_OPTIONS.map(opt => <option key={opt.id} value={opt.id} className="text-slate-600 font-medium not-italic">{opt.label}</option>)}
                                                     </select>
                                                 )}
                                             </div>
@@ -541,8 +560,9 @@ export default function SuspendedSlab() {
                                                     <span className="text-[10px] font-bold text-slate-400">H:</span>
                                                     <TableNumberInput value={s.floorHeight} onChange={(v) => handleSlabChange(s.id, 'floorHeight', v)} placeholder="3.0" />
                                                 </div>
-                                                <select value={s.supportType} onChange={(e) => handleSlabChange(s.id, 'supportType', e.target.value)} className="w-full p-1 border border-slate-300 rounded text-sm font-medium text-slate-600">
-                                                    {SUPPORT_TYPES.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                                                <select value={s.supportType} onChange={(e) => handleSlabChange(s.id, 'supportType', e.target.value)} className={`w-full p-1 border border-slate-300 rounded text-sm outline-none transition-all ${!s.supportType ? 'text-zinc-400 font-normal italic' : 'font-medium text-slate-600'}`}>
+                                                    <option value="" disabled hidden>Select Support...</option>
+                                                    {SUPPORT_TYPES.map(opt => <option key={opt.id} value={opt.id} className="text-slate-600 font-medium not-italic">{opt.label}</option>)}
                                                 </select>
                                             </div>
                                         </td>

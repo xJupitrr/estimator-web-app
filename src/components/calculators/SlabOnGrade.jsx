@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
 
 const Card = ({ children, className = "" }) => (
     <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
@@ -44,14 +45,14 @@ const extractDiameterMeters = (spec) => {
 }
 
 const getInitialSlab = () => ({
-    id: crypto.randomUUID(),
+    id: Date.now() + Math.random(),
     length: "",
     width: "",
     thickness: "",
     gravelBeddingThickness: "",
     quantity: 1,
-    barSize: "10mm x 6.0m", // Default to full spec
-    spacing: 0.40,
+    barSize: "",
+    spacing: "",
 });
 
 const processSingleRun = (requiredLength, spec, rebarStock) => {
@@ -180,11 +181,11 @@ export default function SlabOnGrade() {
 
         // Validation Check
         const hasEmptyFields = slabs.some(slab =>
-            slab.length === "" || slab.width === "" || slab.thickness === "" || slab.gravelBeddingThickness === ""
+            slab.length === "" || slab.width === "" || slab.thickness === "" || slab.gravelBeddingThickness === "" || slab.barSize === ""
         );
 
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Length, Width, Thickness, Bedding) before calculating.");
+            setError("Please fill in all required fields (Dimensions, Bedding, and Bar Size) before calculating.");
             setResult(null);
             setHasEstimated(false);
             return;
@@ -309,6 +310,16 @@ export default function SlabOnGrade() {
         setHasEstimated(true);
     };
 
+    // Global Cost Sync
+    useEffect(() => {
+        if (result) {
+            localStorage.setItem('slab_total', result.total);
+        } else {
+            localStorage.removeItem('slab_total');
+        }
+        window.dispatchEvent(new CustomEvent('project-total-update'));
+    }, [result]);
+
     const handlePriceChange = (key, newValue) => {
         setPrices(prev => ({
             ...prev,
@@ -412,15 +423,13 @@ export default function SlabOnGrade() {
                                     </td>
 
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <select
+                                        <SelectInput
                                             value={slab.barSize}
-                                            onChange={(e) => handleSlabChange(slab.id, 'barSize', e.target.value)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded bg-white focus:ring-2 focus:ring-blue-400 outline-none cursor-pointer text-sm font-medium"
-                                        >
-                                            {rebarOptions.map(spec => (
-                                                <option key={spec} value={spec}>{spec}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleSlabChange(slab.id, 'barSize', val)}
+                                            options={rebarOptions}
+                                            placeholder="Select Spec..."
+                                            focusColor="blue"
+                                        />
                                     </td>
 
                                     <td className="p-2 border border-slate-300 align-middle">
