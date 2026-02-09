@@ -319,7 +319,7 @@ export default function DoorsWindows() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
                                     <tr>
-                                        <th className="px-4 py-3">Material Item</th>
+                                        <th className="px-4 py-3 w-[35%]">Material Item</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
                                         <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>

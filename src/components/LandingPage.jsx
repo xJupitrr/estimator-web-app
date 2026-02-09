@@ -17,7 +17,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             description: "Foundations & Frame",
             color: "blue",
             icon: LayoutGrid,
-            tools: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'lintel-beam', 'roofing']
+            tools: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'lintel-beam', 'steel-truss', 'roofing']
         },
         {
             title: "Finishes",
@@ -128,7 +128,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                         {categories.map((category) => {
                             const Icon = category.icon;
                             const isActive = activeCategory === category.id;

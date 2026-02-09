@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
 import { initGlobalCalculator } from './utils/globalCalculator';
 import Footing from './components/calculators/Footing';
+import SteelTruss from './components/calculators/SteelTruss';
 import Column from './components/calculators/Column';
 import Beam from './components/calculators/Beam';
 import Tiles from './components/calculators/Tiles';
@@ -39,7 +40,7 @@ const TABS = [
     { id: 'electrical', label: 'Electrical Works', component: Electrical, icon: Zap },
     { id: 'plumbing', label: 'Plumbing Works', component: Plumbing, icon: Droplets },
     { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
-
+    { id: 'steel-truss', label: 'Steel Truss', component: SteelTruss, icon: Construction },
     { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
 ];
 
@@ -113,7 +114,7 @@ export default function App() {
                 'masonry_total', 'slab_total', 'suspended_slab_total', 'footing_total',
                 'column_total', 'beam_total', 'roofing_total', 'formworks_total',
                 'tiles_total', 'painting_total', 'ceiling_total', 'electrical_total',
-                'plumbing_total', 'doors_windows_total', 'lintel_beam_total'
+                'plumbing_total', 'doors_windows_total', 'lintel_beam_total', 'steel_truss_total'
 
             ];
             let total = 0;

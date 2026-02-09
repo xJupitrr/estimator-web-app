@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import { calculateFormworks, DEFAULT_PRICES, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
@@ -83,6 +83,65 @@ export default function Formworks({ columns = [], beams = [] }) {
 
     return (
         <div className="space-y-6">
+            {/* AUTOMATED IMPORT BARD */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 border-l-4 border-l-purple-600 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <h2 className="font-bold text-purple-900 flex items-center gap-2 text-sm whitespace-nowrap">
+                        <LayoutTemplate size={18} /> Automated Import
+                    </h2>
+
+                    <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors border border-transparent hover:border-gray-200">
+                            <input
+                                type="checkbox"
+                                checked={includeColumns}
+                                onChange={(e) => setIncludeColumns(e.target.checked)}
+                                className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Include Columns <span className="text-xs text-gray-400 font-normal">({columns.length})</span></span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors border border-transparent hover:border-gray-200">
+                            <input
+                                type="checkbox"
+                                checked={includeBeams}
+                                onChange={(e) => setIncludeBeams(e.target.checked)}
+                                className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Include Beams <span className="text-xs text-gray-400 font-normal">({beams.length})</span></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-[10px] uppercase font-bold text-gray-400">Plywood</span>
+                        </div>
+                        <select
+                            value={importPlywood}
+                            onChange={(e) => setImportPlywood(e.target.value)}
+                            className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full pl-16 p-2 font-medium hover:bg-white transition-colors cursor-pointer"
+                        >
+                            {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
+
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-[10px] uppercase font-bold text-gray-400">Lumber</span>
+                        </div>
+                        <select
+                            value={importLumber}
+                            onChange={(e) => setImportLumber(e.target.value)}
+                            className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full pl-14 p-2 font-medium hover:bg-white transition-colors cursor-pointer"
+                        >
+                            {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-slate-700">
                 <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-slate-900 flex items-center gap-2">
@@ -102,7 +161,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center">Description</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">L (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">W (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">H (m)</th>
@@ -186,7 +245,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-gray-500 uppercase bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-3">Material Item</th>
+                                        <th className="px-4 py-3 w-[35%]">Material Item</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
                                         <th className="px-4 py-3 text-right">Unit Price</th>

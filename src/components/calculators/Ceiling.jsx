@@ -92,7 +92,7 @@ export default function Ceiling() {
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center">Description</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Length (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Width (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[160px]">Material Type</th>

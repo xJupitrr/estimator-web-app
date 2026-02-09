@@ -3,6 +3,8 @@ import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, C
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import SelectInput from '../common/SelectInput';
+import { calculateFooting, DEFAULT_PRICES } from '../../utils/calculations/footingCalculator';
 
 // Constants for rebar and concrete
 const rebarDiameters = ["10mm", "12mm", "16mm", "20mm", "25mm"];
@@ -25,17 +27,7 @@ const getInitialFooting = () => ({
 
 export default function Footing() {
     const [footings, setFootings] = useLocalStorage('footing_rows', [getInitialFooting()]);
-    const [footingPrices, setFootingPrices] = useLocalStorage('footing_prices', {
-        cement: 240,
-        sand: 1200,
-        gravel: 1400,
-        rebar10: 180,
-        rebar12: 240,
-        rebar16: 450,
-        rebar20: 720,
-        rebar25: 1100,
-        tieWire: 110,
-    });
+    const [footingPrices, setFootingPrices] = useLocalStorage('footing_prices', DEFAULT_PRICES);
     const [footingResult, setFootingResult] = useLocalStorage('footing_result', null);
     const [error, setError] = useState(null);
 
@@ -67,47 +59,23 @@ export default function Footing() {
         const hasEmptyFields = footings.some(footing =>
             footing.x_len === "" ||
             footing.y_len === "" ||
-            footing.z_depth === "" ||
-            footing.rebar_x_count === "" ||
-            footing.rebar_y_count === ""
+            footing.z_depth === ""
         );
 
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Length, Width, Depth, Rebar Counts) before calculating.");
+            setError("Please fill in all required dimensions (Length, Width, Depth) before calculating.");
             setFootingResult(null);
             return;
         }
         setError(null);
 
-        // Simple calculation for demo purposes (usually would call a util)
-        let totalConcrete = 0;
-        let totalCement = 0;
-        let totalSand = 0;
-        let totalGravel = 0;
-        let totalRebarWeight = 0; // Simplified
-        let totalCost = 0;
+        const calcResult = calculateFooting(footings, footingPrices);
 
-        footings.forEach(f => {
-            const vol = (parseFloat(f.x_len) || 0) * (parseFloat(f.y_len) || 0) * (parseFloat(f.z_depth) || 0) * (parseInt(f.quantity) || 0);
-            totalConcrete += vol;
-            totalCement += Math.ceil(vol * 9);
-            totalSand += vol * 0.5;
-            totalGravel += vol * 1;
-        });
-
-        const items = [
-            { name: "Portland Cement (40kg)", qty: totalCement, unit: "bags", price: footingPrices.cement, total: totalCement * footingPrices.cement },
-            { name: "Washed Sand", qty: totalSand.toFixed(2), unit: "m³", price: footingPrices.sand, total: totalSand * footingPrices.sand },
-            { name: "Crushed Gravel (3/4)", qty: totalGravel.toFixed(2), unit: "m³", price: footingPrices.gravel, total: totalGravel * footingPrices.gravel },
-        ];
-
-        const grandTotal = items.reduce((sum, item) => sum + item.total, 0);
-
-        setFootingResult({
-            total: grandTotal,
-            totalVolume: totalConcrete,
-            items: items
-        });
+        if (calcResult) {
+            setFootingResult(calcResult);
+        } else {
+            setFootingResult(null);
+        }
     };
 
     // Global Cost Sync
@@ -148,7 +116,7 @@ export default function Footing() {
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center">Description</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">X-Len (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Y-Wid (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Z-Dep (m)</th>
@@ -202,13 +170,13 @@ export default function Footing() {
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <select
+                                        <SelectInput
                                             value={footing.rebarSpec}
-                                            onChange={(e) => handleFootingChange(footing.id, 'rebarSpec', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
-                                        >
-                                            {rebarOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
+                                            onChange={(val) => handleFootingChange(footing.id, 'rebarSpec', val)}
+                                            options={rebarOptions.map(opt => ({ id: opt, display: opt }))}
+                                            focusColor="emerald"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <MathInput
@@ -258,7 +226,7 @@ export default function Footing() {
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Estimation Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Concrete Volume: <strong className="text-gray-700">{footingResult.totalVolume.toFixed(2)} m³</strong></p>
+                                <p className="text-sm text-gray-500 mt-1">Total Concrete Volume: <strong className="text-gray-700">{footingResult.volume} m³</strong></p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
@@ -291,16 +259,12 @@ export default function Footing() {
                                             </td>
                                             <td className="px-4 py-2">
                                                 <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-xs mr-1">₱</span>
+                                                    <span className="text-gray-400 text-xs mr-1 font-bold">₱</span>
                                                     <input
                                                         type="number"
-                                                        value={item.price}
-                                                        onChange={(e) => {
-                                                            const val = parseFloat(e.target.value) || 0;
-                                                            // Usually update prices state but simplified here
-                                                        }}
-                                                        disabled
-                                                        className="w-24 px-2 py-1 text-right text-sm border border-gray-300 rounded bg-gray-50 font-medium cursor-not-allowed"
+                                                        value={footingPrices[item.priceKey] || 0}
+                                                        onChange={(e) => handlePriceChange(item.priceKey, e.target.value)}
+                                                        className="w-24 px-2 py-1 text-right text-sm border border-gray-300 rounded focus:ring-2 focus:ring-emerald-400 outline-none font-medium"
                                                     />
                                                 </div>
                                             </td>

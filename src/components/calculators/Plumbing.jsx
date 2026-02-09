@@ -6,6 +6,9 @@ import MathInput from '../common/MathInput';
 import { calculatePlumbing, DEFAULT_PRICES } from '../../utils/calculations/plumbingCalculator';
 
 
+import SelectInput from '../common/SelectInput';
+
+
 const PLUMBING_CATEGORIES = [
     { id: 'fixtures', label: 'Plumbing Fixtures' },
     { id: 'waterline', label: 'Waterline System' },
@@ -143,7 +146,7 @@ export default function Plumbing() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-blue-500">
+            <Card className="border-t-4 border-t-blue-500 shadow-md">
                 <div className="p-4 bg-blue-50 border-b border-blue-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-blue-900 flex items-center gap-2">
                         <Droplets size={18} /> Plumbing Works Configuration
@@ -176,26 +179,22 @@ export default function Plumbing() {
                                         <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-2 text-center border-gray-300 rounded text-sm font-bold" />
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <select
+                                        <SelectInput
                                             value={row.category}
-                                            onChange={(e) => handleRowChange(row.id, 'category', e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded text-sm bg-white font-medium text-slate-700"
-                                        >
-                                            {PLUMBING_CATEGORIES.map(c => (
-                                                <option key={c.id} value={c.id}>{c.label}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleRowChange(row.id, 'category', val)}
+                                            options={PLUMBING_CATEGORIES.map(c => ({ id: c.id, display: c.label }))}
+                                            focusColor="blue"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <select
+                                        <SelectInput
                                             value={row.type}
-                                            onChange={(e) => handleRowChange(row.id, 'type', e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded text-sm bg-white"
-                                        >
-                                            {PLUMBING_ITEMS[row.category].map(t => (
-                                                <option key={t.id} value={t.id}>{t.label}</option>
-                                            ))}
-                                        </select>
+                                            onChange={(val) => handleRowChange(row.id, 'type', val)}
+                                            options={PLUMBING_ITEMS[row.category].map(t => ({ id: t.id, display: t.label }))}
+                                            focusColor="blue"
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <input
@@ -218,14 +217,14 @@ export default function Plumbing() {
                 </div>
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={handleCalculate} className="px-8 py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <button onClick={handleCalculate} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
                         <Calculator size={18} /> Calculate Plumbing
                     </button>
                 </div>
-            </div>
+            </Card>
 
             {result && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-blue-500">
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-blue-500">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -244,10 +243,10 @@ export default function Plumbing() {
                             <table className="w-full text-sm text-left font-sans">
                                 <thead className="text-xs text-gray-500 uppercase bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-3">Material Item</th>
+                                        <th className="px-4 py-3 w-[35%]">Material Item</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right">Unit Price</th>
+                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
                                         <th className="px-4 py-3 text-right bg-blue-50">Total</th>
                                     </tr>
                                 </thead>
@@ -255,13 +254,15 @@ export default function Plumbing() {
                                     {result.items.map((item, idx) => (
                                         <tr key={idx} className="hover:bg-blue-50/50 transition-colors">
                                             <td className="px-4 py-3 font-medium text-slate-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-slate-900 font-bold">{item.qty}</td>
-                                            <td className="px-4 py-3 text-center"><span className="bg-blue-100 px-2 py-1 rounded text-[10px] text-blue-700 uppercase font-bold">{item.unit}</span></td>
-                                            <td className="px-4 py-2 text-right">
-                                                <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-xs mr-1 font-bold">₱</span>
-                                                    <input type="number" value={prices[item.priceKey] || 0} onChange={(e) => updatePrice(item.priceKey, e.target.value)} className="w-24 px-1 py-1 text-right border-blue-200 rounded text-xs outline-none focus:ring-1 focus:ring-blue-400" />
-                                                </div>
+                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">{item.qty}</td>
+                                            <td className="px-4 py-3 text-center text-gray-600">
+                                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] || 0}
+                                                    onChange={(val) => updatePrice(item.priceKey, val)}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right text-blue-900 font-extrabold bg-blue-50/20">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
@@ -270,7 +271,7 @@ export default function Plumbing() {
                             </table>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );

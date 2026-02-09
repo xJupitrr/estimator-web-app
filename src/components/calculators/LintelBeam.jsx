@@ -368,7 +368,7 @@ export default function LintelBeam() {
                             <table className="w-full text-sm text-left">
                                 <thead className="text-[11px] text-gray-400 uppercase bg-gray-50/50 border-b border-gray-100">
                                     <tr>
-                                        <th className="px-4 py-3">Material Description</th>
+                                        <th className="px-4 py-3 w-[35%]">Material Description</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center w-[80px]">Unit</th>
                                         <th className="px-4 py-3 text-right w-[150px]">Unit Price (Editable)</th>

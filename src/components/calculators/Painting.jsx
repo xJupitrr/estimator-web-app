@@ -5,6 +5,27 @@ import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import { calculatePainting, DEFAULT_PRICES } from '../../utils/calculations/paintingCalculator';
 
+
+const Card = ({ children, className = "" }) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+        {children}
+    </div>
+);
+
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
+        <input
+            type="number"
+            value={value === null || value === undefined ? '' : String(value)}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-gray-300 rounded-r-lg bg-white focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
+        />
+    </div>
+);
+
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
     quantity: 1,
@@ -73,7 +94,7 @@ export default function Painting() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-teal-500">
+            <Card className="border-t-4 border-t-teal-500 shadow-md">
                 <div className="p-4 bg-teal-50 border-b border-teal-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-teal-900 flex items-center gap-2">
                         <Paintbrush size={18} /> Surface Painting Configuration
@@ -92,7 +113,7 @@ export default function Painting() {
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center">Surface Description</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Surface Description</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Len (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Hgt (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Area (m²)</th>
@@ -147,10 +168,10 @@ export default function Painting() {
                         <Calculator size={18} /> Calculate Painting
                     </button>
                 </div>
-            </div>
+            </Card>
 
             {result && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-teal-500">
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-teal-500">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -170,7 +191,7 @@ export default function Painting() {
                                         <th className="px-4 py-3">Material Item</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right">Unit Price</th>
+                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
                                         <th className="px-4 py-3 text-right bg-teal-100/50">Total</th>
                                     </tr>
                                 </thead>
@@ -180,11 +201,11 @@ export default function Painting() {
                                             <td className="px-4 py-3 text-teal-900">{item.name}</td>
                                             <td className="px-4 py-3 text-right">{item.qty}</td>
                                             <td className="px-4 py-3 text-center"><span className="bg-teal-100 px-2 py-1 rounded text-[10px] text-teal-600 uppercase font-bold">{item.unit}</span></td>
-                                            <td className="px-4 py-2 text-right">
-                                                <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-xs mr-1 font-bold">₱</span>
-                                                    <input type="number" value={prices[item.priceKey] || 0} onChange={(e) => updatePrice(item.priceKey, e.target.value)} className="w-20 px-1 py-0.5 text-right border-teal-200 rounded text-xs focus:ring-1 focus:ring-teal-400 outline-none" />
-                                                </div>
+                                            <td className="px-4 py-2">
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] || 0}
+                                                    onChange={(val) => updatePrice(item.priceKey, val)}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right text-teal-900 font-extrabold bg-teal-50/30">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
@@ -193,7 +214,7 @@ export default function Painting() {
                             </table>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );
