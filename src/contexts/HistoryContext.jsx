@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
+import { setSessionData } from '../hooks/useLocalStorage';
 
 const HistoryContext = createContext(null);
 
@@ -78,9 +79,9 @@ export const HistoryProvider = ({ children }) => {
             console.log(`Undoing ${action.key}`);
             notify(action.key, action.oldValue);
 
-            // Update localStorage to persistence
+            // Update localStorage to persistence (now session cache)
             if (typeof window !== 'undefined') {
-                window.localStorage.setItem(action.key, JSON.stringify(action.oldValue));
+                setSessionData(action.key, action.oldValue);
             }
 
             return currentPointer - 1;
@@ -97,9 +98,9 @@ export const HistoryProvider = ({ children }) => {
             console.log(`Redoing ${action.key}`);
             notify(action.key, action.newValue);
 
-            // Update localStorage
+            // Update localStorage (now session cache)
             if (typeof window !== 'undefined') {
-                window.localStorage.setItem(action.key, JSON.stringify(action.newValue));
+                setSessionData(action.key, action.newValue);
             }
 
             return currentPointer + 1;

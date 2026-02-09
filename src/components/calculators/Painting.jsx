@@ -1,333 +1,132 @@
 import React, { useState, useEffect } from 'react';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Paintbrush, Ruler, PaintBucket, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Paintbrush } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
-import SelectInput from '../common/SelectInput';
+import { calculatePainting, DEFAULT_PRICES } from '../../utils/calculations/paintingCalculator';
 
-// --- Components ---
-
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-);
-
-// Helper component for generic number inputs
-const TableNumberInput = ({ value, onChange, placeholder, className = "" }) => (
-    <MathInput
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none font-medium bg-white text-slate-900 ${className}`}
-    />
-);
-
-// Helper component for currency inputs
-const TablePriceInput = ({ value, onChange, placeholder = "0.00" }) => (
-    <div className="flex items-center justify-end relative">
-        <span className="absolute left-1 text-gray-400 font-bold text-[10px] pointer-events-none">₱</span>
-        <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder={placeholder}
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full pl-5 pr-2 py-1 text-right text-sm border border-gray-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors"
-        />
-    </div>
-);
-
-
-// --- Helper Functions & Data ---
-
-// Initial Wall Configuration Template (Painting)
-const getInitialWall = () => ({
+const getInitialRow = () => ({
     id: Date.now() + Math.random(),
     quantity: 1,
-    length_m: "", // Wall Length (m)
-    height_m: "", // Wall Height (m)
-    sides: "",   // Empty for placeholder
-    area_sqm: "", // Manual Area Input (sqm)
+    length_m: "",
+    height_m: "",
+    area_sqm: "",
+    sides: "2",
+    description: "",
 });
 
-import useLocalStorage from '../../hooks/useLocalStorage';
-
-// --- Main Component ---
-
 export default function Painting() {
-
-    // --- State ---
-    const [walls, setWalls] = useLocalStorage('painting_rows', [getInitialWall()]);
-
-    // Consumable prices (PHP)
-    const [prices, setPrices] = useLocalStorage('painting_prices', {
-        primer: 650,    // 4L Gallon Flat Latex / Primer
-        skimcoat: 450,  // 20kg Bag Skim Coat
-        topcoat: 750,   // 4L Gallon Semi-Gloss/Gloss Latex
-    });
-
-    const [result, setResult] = useState(null);
+    const [rows, setRows] = useLocalStorage('painting_rows', [getInitialRow()]);
+    const [prices, setPrices] = useLocalStorage('painting_prices', DEFAULT_PRICES);
+    const [result, setResult] = useLocalStorage('painting_result', null);
     const [error, setError] = useState(null);
 
-    // Handler to update a specific row
-    const handleWallChange = (id, field, value) => {
-        setWalls(prev =>
-            prev.map(wall => {
-                if (wall.id !== id) return wall;
-                // keep as string to allow flexible typing (e.g. "4.")
-                return { ...wall, [field]: value };
-            })
-        );
-        setResult(null); // Reset result on change
-        setError(null);
-    };
-
-    // Add Row
-    const handleAddRow = () => {
-        setWalls(prev => [...prev, getInitialWall()]);
+    const handleRowChange = (id, field, value) => {
+        setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
         setResult(null);
-        setError(null);
     };
 
-    // Remove Row
+    const handleAddRow = () => {
+        setRows(prev => [...prev, getInitialRow()]);
+        setResult(null);
+    };
+
     const handleRemoveRow = (id) => {
-        if (walls.length > 1) {
-            setWalls(prev => prev.filter(wall => wall.id !== id));
+        if (rows.length > 1) {
+            setRows(prev => prev.filter(r => r.id !== id));
             setResult(null);
-            setError(null);
         } else {
-            // If last row removed, reset it
-            setWalls([getInitialWall()]);
+            setRows([getInitialRow()]);
         }
     };
 
-    // Core Calculation Logic
-    const calculateMaterials = () => {
-
-        let totalAreaM2 = 0;
-
-        // Validation Check - Modified to allow EITHER Dimensions OR Manual Area
-        const hasValidInput = walls.every(wall => {
-            const hasManualArea = wall.area_sqm !== "" && parseFloat(wall.area_sqm) > 0;
-            const hasDimensions = wall.length_m !== "" && wall.height_m !== "" && wall.sides !== "";
-            return hasManualArea || hasDimensions;
-        });
-
-        if (!hasValidInput) {
-            setError("Please provide either L x H dimensions (including number of sides) or a manual Area (sqm) for all surfaces.");
+    const handleCalculate = () => {
+        const isValid = rows.some(r => r.area_sqm || (r.length_m && r.height_m));
+        if (!isValid) {
+            setError("Please fill in dimensions or area for at least one surface.");
             setResult(null);
             return;
         }
         setError(null);
 
-        // Aggregate Area
-        walls.forEach(wall => {
-            const quantity = parseInt(wall.quantity) || 1;
-            let rowArea = 0;
-
-            const manualArea = parseFloat(wall.area_sqm);
-            if (!isNaN(manualArea) && manualArea > 0) {
-                // Priority 1: Manual Area
-                rowArea = manualArea;
-            } else {
-                // Priority 2: Dimensions
-                const length = parseFloat(wall.length_m) || 0;
-                const height = parseFloat(wall.height_m) || 0;
-                const sides = parseFloat(wall.sides) || 1;
-                rowArea = length * height * sides;
-            }
-
-            totalAreaM2 += rowArea * quantity;
-        });
-
-        if (totalAreaM2 <= 0) {
+        const calcResult = calculatePainting(rows, prices);
+        if (calcResult) {
+            setResult(calcResult);
+        } else {
             setResult(null);
-            return;
         }
-
-        /* 
-         * Coverage Estimations:
-         * 1. Primer: ~25-30 sqm per 4L gallon (1 coat)
-         * 2. Skim Coat: ~20 sqm per 20kg bag (standard thin application)
-         * 3. Topcoat: ~25-30 sqm per 4L gallon (per coat). usually 2 coats required.
-         */
-
-        const COVERAGE_PRIMER_GAL = 25;
-        const COVERAGE_SKIMCOAT_BAG = 20;
-        const COVERAGE_TOPCOAT_GAL = 25;
-        const TOPCOAT_COATS = 2; // Standard 2 coats for finish
-
-        // Calculate Quantities
-        const primersNeeded = Math.ceil(totalAreaM2 / COVERAGE_PRIMER_GAL);
-        const skimcoatsNeeded = Math.ceil(totalAreaM2 / COVERAGE_SKIMCOAT_BAG);
-
-        // Topcoat needs to cover area * number of coats
-        const totalTopcoatArea = totalAreaM2 * TOPCOAT_COATS;
-        const topcoatsNeeded = Math.ceil(totalTopcoatArea / COVERAGE_TOPCOAT_GAL);
-
-
-        // Calculate Costs
-        const costPrimer = primersNeeded * (parseFloat(prices.primer) || 0);
-        const costSkimcoat = skimcoatsNeeded * (parseFloat(prices.skimcoat) || 0);
-        const costTopcoat = topcoatsNeeded * (parseFloat(prices.topcoat) || 0);
-
-        const totalCost = costPrimer + costSkimcoat + costTopcoat;
-
-        const items = [
-            {
-                name: "Concrete Primer (4L Gal)",
-                qty: primersNeeded,
-                unit: 'gals',
-                priceKey: 'primer',
-                price: parseFloat(prices.primer) || 0,
-                total: costPrimer
-            },
-            {
-                name: "Skim Coat / Putty (20kg Bag)",
-                qty: skimcoatsNeeded,
-                unit: 'bags',
-                priceKey: 'skimcoat',
-                price: parseFloat(prices.skimcoat) || 0,
-                total: costSkimcoat
-            },
-            {
-                name: `Topcoat Paint (4L Gal) - ${TOPCOAT_COATS} Coats`,
-                qty: topcoatsNeeded,
-                unit: 'gals',
-                priceKey: 'topcoat',
-                price: parseFloat(prices.topcoat) || 0,
-                total: costTopcoat
-            }
-        ];
-
-        setResult({
-            area: totalAreaM2.toFixed(2),
-            items: items,
-            total: totalCost
-        });
     };
 
     // Global Cost Sync
     useEffect(() => {
         if (result) {
-            localStorage.setItem('painting_total', result.total);
+            setSessionData('painting_total', result.total);
         } else {
-            localStorage.removeItem('painting_total');
+            setSessionData('painting_total', null);
         }
         window.dispatchEvent(new CustomEvent('project-total-update'));
     }, [result]);
 
-    // Auto-recalculate on price change if result exists
-    useEffect(() => {
-        if (result) {
-            calculateMaterials();
-        }
-    }, [prices]);
-
+    const updatePrice = (key, value) => {
+        setPrices(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
+    };
 
     return (
         <div className="space-y-6">
-
-            {/* INPUT CARD */}
-            <Card className="border-t-4 border-t-emerald-800 shadow-md">
-                <div className="p-4 bg-emerald-50 border-b border-emerald-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-emerald-900 flex items-center gap-2">
-                        <Settings size={18} /> Surface Configuration ({walls.length} Total)
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-teal-500">
+                <div className="p-4 bg-teal-50 border-b border-teal-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <h2 className="font-bold text-teal-900 flex items-center gap-2">
+                        <Paintbrush size={18} /> Surface Painting Configuration
                     </h2>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleAddRow}
-                            className="flex items-center gap-1 px-4 py-2 bg-emerald-700 text-white rounded-md text-xs font-bold hover:bg-emerald-800 transition-colors active:scale-95 shadow-sm"
-                        >
-                            <PlusCircle size={14} /> Add Surface
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleAddRow}
+                        className="flex items-center gap-1 px-4 py-2 bg-teal-600 text-white rounded-md text-xs font-bold hover:bg-teal-700 transition-all active:scale-95 shadow-sm justify-center"
+                    >
+                        <PlusCircle size={14} /> Add Surface
+                    </button>
                 </div>
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[800px]">
                         <thead className="text-xs text-slate-700 uppercase bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]" rowSpan="2">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[70px]" rowSpan="2">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-emerald-50/50" colSpan="3">Dimensions (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-emerald-100 text-emerald-900 w-[120px]" rowSpan="2">OR Area (sqm)</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]" rowSpan="2"></th>
-                            </tr>
-                            <tr>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Length</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Height</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center">Surface Description</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Len (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Hgt (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Area (m²)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Sides</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {walls.map((wall, index) => (
-                                <tr key={wall.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold">
-                                        {index + 1}
+                            {rows.map((row, index) => (
+                                <tr key={row.id} className="bg-white hover:bg-slate-50 transition-colors">
+                                    <td className="p-2 border border-slate-300 text-center text-xs text-slate-400 font-bold">{index + 1}</td>
+                                    <td className="p-2 border border-slate-300">
+                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" />
                                     </td>
-                                    {/* Qty */}
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput
-                                            value={wall.quantity}
-                                            onChange={(value) => handleWallChange(wall.id, 'quantity', value)}
-                                            min="1"
-                                            step="1"
-                                            className="font-bold"
-                                        />
+                                    <td className="p-2 border border-slate-300">
+                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full p-1.5 border-gray-300 rounded text-sm" placeholder="e.g. Partition Walls" />
                                     </td>
-                                    {/* Length (m) */}
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput
-                                            value={wall.length_m}
-                                            onChange={(value) => handleWallChange(wall.id, 'length_m', value)}
-                                            placeholder="3.00"
-                                            disabled={wall.area_sqm !== ""}
-                                            className={wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}
-                                        />
+                                    <td className="p-2 border border-slate-300">
+                                        <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
                                     </td>
-                                    {/* Height (m) */}
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput
-                                            value={wall.height_m}
-                                            onChange={(value) => handleWallChange(wall.id, 'height_m', value)}
-                                            placeholder="2.70"
-                                            disabled={wall.area_sqm !== ""}
-                                            className={wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}
-                                        />
+                                    <td className="p-2 border border-slate-300">
+                                        <MathInput value={row.height_m} onChange={(val) => handleRowChange(row.id, 'height_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
                                     </td>
-                                    {/* Sides */}
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <SelectInput
-                                            value={wall.sides}
-                                            onChange={(val) => handleWallChange(wall.id, 'sides', val)}
-                                            options={[
-                                                { id: "1", display: "1 Side" },
-                                                { id: "2", display: "2 Sides" }
-                                            ]}
-                                            placeholder="Select..."
-                                            focusColor="emerald"
-                                            disabled={wall.area_sqm !== ""}
-                                            className={`${wall.area_sqm !== "" ? "bg-gray-50 opacity-50" : ""}`}
-                                        />
+                                    <td className="p-2 border border-slate-300">
+                                        <MathInput value={row.area_sqm} onChange={(val) => handleRowChange(row.id, 'area_sqm', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold text-teal-700 bg-teal-50/30" placeholder="Auto" />
                                     </td>
-                                    {/* Manual Area */}
-                                    <td className="p-2 border border-slate-300 align-middle bg-emerald-50/30">
-                                        <TableNumberInput
-                                            value={wall.area_sqm}
-                                            onChange={(value) => handleWallChange(wall.id, 'area_sqm', value)}
-                                            placeholder="Auto"
-                                            className="font-bold text-emerald-700 border-emerald-200"
-                                        />
+                                    <td className="p-2 border border-slate-300">
+                                        <select value={row.sides} onChange={(e) => handleRowChange(row.id, 'sides', e.target.value)} className="w-full p-1 border-gray-300 rounded text-sm bg-white">
+                                            <option value="1">1 Side</option>
+                                            <option value="2">2 Sides</option>
+                                        </select>
                                     </td>
-                                    {/* Delete */}
-                                    <td className="p-2 border border-slate-300 align-middle text-center">
-                                        <button
-                                            onClick={() => handleRemoveRow(wall.id)}
-                                            disabled={walls.length === 1}
-                                            className={`p-2 rounded-full transition-colors ${walls.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}
-                                        >
+                                    <td className="p-2 border border-slate-300 text-center">
+                                        <button onClick={() => handleRemoveRow(row.id)} disabled={rows.length === 1} className="p-2 text-red-400 hover:text-red-600 disabled:text-gray-200">
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
@@ -338,98 +137,62 @@ export default function Painting() {
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-50 border-t border-red-200 text-red-700 text-sm font-medium flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2">
+                    <div className="p-4 bg-red-50 border-t border-red-200 text-red-700 text-sm font-medium flex items-center justify-center gap-2">
                         <AlertCircle size={16} /> {error}
                     </div>
                 )}
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={calculateMaterials} className="w-full md:w-auto px-8 py-3 bg-emerald-700 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-emerald-800 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> Calculate
+                    <button onClick={handleCalculate} className="w-full sm:w-auto px-8 py-3 bg-teal-600 text-white rounded-lg font-bold shadow-lg hover:bg-teal-700 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <Calculator size={18} /> Calculate Painting
                     </button>
                 </div>
-            </Card>
+            </div>
 
-            {/* RESULT CARD */}
             {result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-emerald-700">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-teal-500">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
-                                    Estimation Result
-                                </h3>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Total Surface Area: <strong className="text-gray-700">{result.area} m²</strong>
-                                </p>
+                                <h3 className="font-bold text-2xl text-gray-800">Painting Result</h3>
+                                <p className="text-sm text-gray-500 mt-1">Total Surface Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
                             </div>
-                            <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
-                                <p className="text-xs text-emerald-800 font-bold uppercase tracking-wide mb-1">Estimated Material Cost</p>
-                                <p className="font-bold text-4xl text-rose-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <div className="text-left md:text-right bg-teal-50 px-5 py-3 rounded-xl border border-teal-100">
+                                <p className="text-xs text-teal-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
+                                <p className="font-bold text-4xl text-teal-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             </div>
                         </div>
 
-                        {/* Export Buttons */}
-                        <div className="flex justify-end gap-2 mb-4">
-                            <button
-                                onClick={() => copyToClipboard(result.items)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                title="Copy table to clipboard"
-                            >
-                                <ClipboardCopy size={14} /> Copy
-                            </button>
-                            <button
-                                onClick={() => downloadCSV(result.items, 'painting_estimation.csv')}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                title="Download as CSV"
-                            >
-                                <Download size={14} /> CSV
-                            </button>
-                        </div>
-
-                        <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
+                        <div className="overflow-hidden rounded-lg border border-gray-200">
                             <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-                                    <tr><th className="px-4 py-3">Material Item</th>
+                                <thead className="text-xs text-gray-500 uppercase bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3">Material Item</th>
                                         <th className="px-4 py-3 text-right">Quantity</th>
                                         <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
+                                        <th className="px-4 py-3 text-right">Unit Price</th>
+                                        <th className="px-4 py-3 text-right bg-teal-100/50">Total</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-gray-100 font-medium font-sans">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors"><td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">
-                                                {item.qty.toLocaleString()}
+                                        <tr key={idx} className="hover:bg-teal-50 transition-colors">
+                                            <td className="px-4 py-3 text-teal-900">{item.name}</td>
+                                            <td className="px-4 py-3 text-right">{item.qty}</td>
+                                            <td className="px-4 py-3 text-center"><span className="bg-teal-100 px-2 py-1 rounded text-[10px] text-teal-600 uppercase font-bold">{item.unit}</span></td>
+                                            <td className="px-4 py-2 text-right">
+                                                <div className="flex items-center justify-end">
+                                                    <span className="text-gray-400 text-xs mr-1 font-bold">₱</span>
+                                                    <input type="number" value={prices[item.priceKey] || 0} onChange={(e) => updatePrice(item.priceKey, e.target.value)} className="w-20 px-1 py-0.5 text-right border-teal-200 rounded text-xs focus:ring-1 focus:ring-teal-400 outline-none" />
+                                                </div>
                                             </td>
-                                            <td className="px-4 py-3 text-center text-gray-600">
-                                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                <TablePriceInput
-                                                    value={prices[item.priceKey]}
-                                                    onChange={(newValue) => setPrices({ ...prices, [item.priceKey]: newValue })}
-                                                />
-                                            </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className="px-4 py-3 text-right text-teal-900 font-extrabold bg-teal-50/30">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                </Card>
-            )}
-
-            {!result && !error && (
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
-                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Paintbrush size={32} className="text-emerald-600" />
-                    </div>
-                    <p className="font-medium text-center max-w-md">
-                        Enter your wall dimensions and number of sides, then click <span className="font-bold text-emerald-700">'Calculate'</span>.
-                    </p>
                 </div>
             )}
         </div>

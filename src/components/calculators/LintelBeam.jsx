@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import useLocalStorage from '../../hooks/useLocalStorage';
+import { calculateLintelBeam } from '../../utils/calculations/lintelBeamCalculator';
+import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, Box, AlertCircle, ClipboardCopy, Download, Info, DoorOpen } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
@@ -86,12 +87,33 @@ const NumberInput = ({ value, onChange, placeholder, className = "" }) => (
 // --- MAIN COMPONENT ---
 
 export default function LintelBeam() {
-    const [prices, setPrices] = useLocalStorage('lintel_prices', DEFAULT_PRICES);
-    const [specs, setSpecs] = useLocalStorage('lintel_specs', DEFAULT_SPECS);
-    const [showResult, setShowResult] = useState(false);
+    // --- STATE ---
 
-    // Read door/window openings using useLocalStorage to respect the "Reset on Refresh" behavior
+    // We source the openings from the "Doors & Windows" module
     const [doorsWindowsItems] = useLocalStorage('doorswindows_rows', []);
+
+    // Config: Main Bars & Ties (Persisted for Global Calc)
+    const [specs, setSpecs] = useLocalStorage('lintelbeam_specs', {
+        lintelDepth: 0.15, // 150mm standard depth (wall thickness)
+        lintelHeight: 0.20, // 200mm standard height
+        mainBarSku: '',  // e.g. '12_6.0'
+        mainBarCount: 2,
+        tieSku: '',      // e.g. '10_6.0'
+        tieSpacing: 150, // mm
+    });
+
+    const [prices, setPrices] = useLocalStorage('lintelbeam_prices', {
+        cement: 240,
+        sand: 1200,
+        gravel: 1400,
+        rebar_10: 185,
+        rebar_12: 260,
+        rebar_16: 480,
+        tie_wire: 85,
+    });
+
+    const [showResult, setShowResult] = useLocalStorage('lintelbeam_show_result', false);
+    const [resultData, setResultData] = useLocalStorage('lintelbeam_result', null); // For Global Sync logic
 
     // Transform to lintel beams
     const lintelBeams = useMemo(() => {
@@ -131,128 +153,33 @@ export default function LintelBeam() {
         setShowResult(false);
     };
 
+    // ... inside component ...
+
     // --- CALCULATION ENGINE ---
     const result = useMemo(() => {
         if (!showResult) return null;
+        // Pass lintelBeams (transformed data) and prices. 
+        // We pass 'specs' just to ensure we have context but calculateLintelBeam handles pre-processed data too.
+        // Actually, looking at my utility implementation, if I pass 'specs' it assumes raw input.
+        // If I pass array as first arg and NO specs, it assumes processed.
+        // `lintelBeams` in this component IS PROCESSED (has lintelWidth, mainBarSku etc).
+        // BUT it relies on `specs.lintelHeight` being in the object if not passed via specs?
+        // My utility adds `lintelHeight` from specs if available.
+        // So I should pass specs OR add lintelHeight to the map above.
+        // The map above ALREADY includes `specs.mainBarSku` etc but NOT `lintelHeight` explicitly in the mapped object?
+        // Wait, line 108: `lintelDepth: depth`.
+        // I don't see `lintelHeight` in the map in LintelBeam.jsx. It uses `specs.lintelHeight` in the calc.
 
-        let totalVolConcrete = 0;
-        let totalCementBags = 0;
-        let totalSandCum = 0;
-        let totalGravelCum = 0;
-        let totalTieWireKg = 0;
-
-        const rebarRequirements = {};
-        const concreteCover = 0.025; // 25mm for lintels
-        const wireMetersPerKg = 53;
-
-        const depth = parseFloat(specs.lintelDepth) || 0.15;
-        const height = parseFloat(specs.lintelHeight) || 0.20;
-
-        const addRebarReq = (skuId, cutLength, count) => {
-            if (cutLength <= 0 || count <= 0) return;
-            const { length: commercialLength } = getSkuDetails(skuId);
-            if (!rebarRequirements[skuId]) rebarRequirements[skuId] = { cuts: [], commercialLength };
-            rebarRequirements[skuId].cuts.push({ cutLength, count });
-        };
-
-        lintelBeams.forEach(lintel => {
-            const qty = lintel.quantity;
-            const W = lintel.lintelWidth;
-            const D = depth;
-            const H = height;
-            const L = lintel.openingWidth + (2 * BEARING_LENGTH);
-
-            if (W <= 0 || D <= 0 || L <= 0) return;
-
-            // 1. Concrete
-            const vol = W * D * H * qty;
-            totalVolConcrete += vol;
-            const wasteMult = 1 + (CONCRETE_WASTE_PCT / 100);
-            totalCementBags += vol * 9.0 * wasteMult;
-            totalSandCum += vol * 0.5 * wasteMult;
-            totalGravelCum += vol * 1.0 * wasteMult;
-
-            // 2. Main Rebar
-            const mainSkuDetails = getSkuDetails(lintel.mainBarSku);
-            const mainDiaM = mainSkuDetails.diameter / 1000;
-            const L_dev = L_ANCHOR_DEV_FACTOR * mainDiaM;
-            const mainCutLength = L + (2 * L_dev);
-            const totalMainBars = lintel.mainBarCount * qty;
-            addRebarReq(lintel.mainBarSku, mainCutLength, totalMainBars);
-
-            // 3. Ties/Stirrups
-            const tieSkuDetails = getSkuDetails(lintel.tieSku);
-            const H_tie = H - (2 * concreteCover);
-            const D_tie = D - (2 * concreteCover);
-            const hookLength = Math.max(12 * (tieSkuDetails.diameter / 1000), 0.075);
-            const tieCutLength = (2 * (H_tie + D_tie)) + (2 * hookLength);
-
-            if (H_tie > 0 && D_tie > 0) {
-                const spacingM = lintel.tieSpacing / 1000;
-                const tiesPerBeam = Math.ceil(L / spacingM) + 1;
-                addRebarReq(lintel.tieSku, tieCutLength, tiesPerBeam * qty);
-
-                // Tie Wire
-                const intersections = lintel.mainBarCount * tiesPerBeam * qty;
-                totalTieWireKg += (intersections * 0.30) / wireMetersPerKg;
-            }
-        });
-
-        // --- Finalize Quantities ---
-        const items = [];
-        let subTotal = 0;
-
-        const addItem = (name, qty, unit, priceKey, priceDefault) => {
-            if (qty <= 0) return;
-            const finalQty = Number.isInteger(qty) ? qty : Math.ceil(qty * 100) / 100;
-            const price = prices[priceKey] !== undefined ? parseFloat(prices[priceKey]) : priceDefault;
-            const total = finalQty * price;
-            subTotal += total;
-            items.push({ name, qty: finalQty, unit, priceKey, price, total });
-        };
-
-        // Concrete
-        addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement", 240);
-        addItem("Wash Sand (S1)", totalSandCum, "cu.m", "sand", 1200);
-        addItem("Crushed Gravel (3/4)", totalGravelCum, "cu.m", "gravel", 1400);
-
-        // Rebar
-        Object.keys(rebarRequirements).forEach(skuId => {
-            const { cuts, commercialLength } = rebarRequirements[skuId];
-            const { diameter, priceKey } = getSkuDetails(skuId);
-
-            let totalBars = 0;
-            cuts.forEach(({ cutLength, count }) => {
-                const yieldPerBar = Math.floor(commercialLength / cutLength);
-                if (yieldPerBar > 0) {
-                    totalBars += Math.ceil(count / yieldPerBar);
-                } else {
-                    const spliceLength = 40 * (diameter / 1000); // 40d splice length in meters
-                    const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
-                    if (effectiveLengthPerAdditionalBar > 0) {
-                        const piecesPerRun = Math.ceil((cutLength - commercialLength) / effectiveLengthPerAdditionalBar) + 1;
-                        totalBars += (piecesPerRun * count);
-                    } else {
-                        totalBars += Math.ceil(cutLength / commercialLength) * count;
-                    }
-                }
-            });
-
-            if (totalBars > 0) addItem(`Corrugated Rebar (${diameter}mm x ${commercialLength}m)`, totalBars, "pcs", priceKey, 200);
-        });
-
-        addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
-
-        return { volume: totalVolConcrete.toFixed(3), items, grandTotal: subTotal };
-
-    }, [lintelBeams, prices, specs.lintelDepth, specs.lintelHeight, showResult]);
+        // I will update the utility call to pass specs so the utility can grab the height.
+        return calculateLintelBeam(lintelBeams, prices, specs);
+    }, [lintelBeams, prices, specs, showResult]);
 
     // Global Cost Sync
     useEffect(() => {
         if (result) {
-            localStorage.setItem('lintel_beam_total', result.grandTotal);
+            setSessionData('lintel_beam_total', result.grandTotal);
         } else {
-            localStorage.removeItem('lintel_beam_total');
+            setSessionData('lintel_beam_total', null);
         }
         window.dispatchEvent(new CustomEvent('project-total-update'));
     }, [result]);

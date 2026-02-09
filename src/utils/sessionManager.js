@@ -43,7 +43,38 @@ const SETTINGS_KEYS = [
     'lintel_prices',
     'lintel_specs',
     'project_name',
-    'last_save_info'
+    'last_save_info',
+
+    // --- Estimation Result Tables (Objects) ---
+    'masonry_result',
+    'slab_result',
+    'suspended_slab_result',
+    'footing_result',
+    'column_result',
+    'roofing_result',
+    'formworks_result',
+    'tiles_result',
+    'painting_result',
+    'ceiling_result',
+    'doorswindows_result',
+    // On-the-fly calculators (persist display state)
+    'beam_show_result',
+    'lintel_show_result',
+
+    // --- Totals (for Dashboard) ---
+    'masonry_total',
+    'slab_total',
+    'suspended_slab_total',
+    'footing_total',
+    'column_total',
+    'beam_total',
+    'roofing_total',
+    'formworks_total',
+    'tiles_total',
+    'painting_total',
+    'ceiling_total',
+    'doors_windows_total',
+    'lintel_beam_total'
 ];
 
 /**
@@ -126,6 +157,10 @@ const csvToArray = (csvText) => {
 
 
 
+import { getSessionData, setSessionData } from '../hooks/useLocalStorage';
+
+// ... (KEEP CONSTANTS SAME) ...
+
 export const exportProjectToCSV = () => {
     let csvParts = [];
     csvParts.push("### ESTIMATOR PROJECT EXPORT ###");
@@ -134,13 +169,16 @@ export const exportProjectToCSV = () => {
 
     // 1. Export Lists
     Object.entries(LIST_SECTIONS).forEach(([sectionName, key]) => {
-        const raw = localStorage.getItem(key);
-        if (raw) {
+        const data = getSessionData(key);
+        if (data) {
             try {
-                const data = JSON.parse(raw);
-                if (Array.isArray(data) && data.length > 0) {
+                // If it's already an object (from session cache), use it directly.
+                // If it's a string (legacy/edge case), parse it (though cache should store objects).
+                const arrayData = (typeof data === 'string') ? JSON.parse(data) : data;
+
+                if (Array.isArray(arrayData) && arrayData.length > 0) {
                     csvParts.push(`### SECTION: ${sectionName} ###`);
-                    csvParts.push(arrayToCSV(data));
+                    csvParts.push(arrayToCSV(arrayData));
                     csvParts.push(""); // Spacer
                 }
             } catch (e) { console.warn(`Failed to export ${key}`, e); }
@@ -151,11 +189,23 @@ export const exportProjectToCSV = () => {
     csvParts.push("### SECTION: SETTINGS ###");
     csvParts.push("Key,ValueType,Value");
     SETTINGS_KEYS.forEach(key => {
-        const val = localStorage.getItem(key);
-        if (val !== null) {
-            // We store the raw string from LS. If it's a JSON object string, it stays a string.
-            // Escape it for CSV.
-            const escVal = val.replace(/"/g, '""');
+        const val = getSessionData(key);
+        if (val !== null && val !== undefined) {
+            // Session cache stores actual values (objects/numbers/strings)
+            // We need to stringify objects/arrays for the CSV "Value" column if they are complex, 
+            // but SETTINGS_KEYS are mostly simple or single objects.
+            // Based on previous logic: "We store raw string from LS. If it's JSON object string..."
+            // New logic: Convert value to string representation.
+
+            let stringVal = val;
+            if (typeof val === 'object') {
+                stringVal = JSON.stringify(val);
+            } else {
+                stringVal = String(val);
+            }
+
+            // Escape quotes for CSV
+            const escVal = stringVal.replace(/"/g, '""');
             csvParts.push(`${key},JSON,"${escVal}"`);
         }
     });
@@ -163,19 +213,29 @@ export const exportProjectToCSV = () => {
     return csvParts.join('\n');
 };
 
-export const importProjectFromCSV = async (file) => {
+/**
+ * Parses a CSV file and returns a structured object of the session data.
+ * Does NOT apply changes to the session.
+ * @returns {Promise<{ settings: Object, sections: Object }>}
+ */
+export const parseProjectCSV = async (file) => {
     const text = await file.text();
     const lines = text.split('\n');
 
     let currentSection = null;
     let sectionBuffer = [];
-    const updates = {};
+
+    // Structure to hold parsed data
+    const parsedData = {
+        settings: {}, // Key-value pairs for settings/prices/results
+        sections: {}  // Array data for LIST_SECTIONS
+    };
 
     const processSection = (name, lines) => {
         if (!name || lines.length === 0) return;
 
         if (name === 'SETTINGS') {
-            lines.shift(); // Remove header (Key,ValueType,Value)
+            lines.shift(); // Remove header
             lines.forEach(line => {
                 if (!line.trim()) return;
                 const parts = parseCSVLine(line);
@@ -183,7 +243,11 @@ export const importProjectFromCSV = async (file) => {
                     const key = parts[0];
                     const value = parts[2];
                     if (key && value) {
-                        localStorage.setItem(key, value);
+                        try {
+                            parsedData.settings[key] = JSON.parse(value);
+                        } catch (e) {
+                            parsedData.settings[key] = value;
+                        }
                     }
                 }
             });
@@ -192,7 +256,7 @@ export const importProjectFromCSV = async (file) => {
             const csvString = lines.join('\n');
             const data = csvToArray(csvString);
             if (data.length > 0) {
-                localStorage.setItem(key, JSON.stringify(data));
+                parsedData.sections[name] = data; // Store by Section Name (e.g., 'MASONRY DATA')
             }
         }
     };
@@ -200,25 +264,60 @@ export const importProjectFromCSV = async (file) => {
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim();
         if (line.startsWith('### SECTION:')) {
-            // Process previous
             processSection(currentSection, sectionBuffer);
-
-            // Start new
             currentSection = line.replace('### SECTION:', '').replace('###', '').trim();
             sectionBuffer = [];
         } else if (line.startsWith('###')) {
-            // Meta headers, ignore or process if needed
             processSection(currentSection, sectionBuffer);
             currentSection = null;
             sectionBuffer = [];
         } else {
             if (currentSection && line) {
-                sectionBuffer.push(lines[i]); // Keep original formatting for CSV parser
+                sectionBuffer.push(lines[i]);
             }
         }
     }
-    // Process last
     processSection(currentSection, sectionBuffer);
 
+    return parsedData;
+};
+
+/**
+ * Applies selected parts of the parsed session data to the current session.
+ * @param {Object} parsedData - The object returned by parseProjectCSV
+ * @param {Array<string>} selectedSectionNames - List of Section Names to import (e.g. ['MASONRY DATA']). 
+ *                                               Includes 'SETTINGS' for the settings block.
+ */
+export const applySessionData = (parsedData, selectedSectionNames) => {
+    if (!parsedData) return;
+
+    // 1. Apply Settings if selected
+    if (selectedSectionNames.includes('SETTINGS') && parsedData.settings) {
+        Object.entries(parsedData.settings).forEach(([key, value]) => {
+            setSessionData(key, value);
+        });
+    }
+
+    // 2. Apply List Sections
+    Object.entries(parsedData.sections).forEach(([sectionName, data]) => {
+        if (selectedSectionNames.includes(sectionName)) {
+            const key = LIST_SECTIONS[sectionName];
+            if (key) {
+                setSessionData(key, data);
+            }
+        }
+    });
+
+    return true;
+};
+
+/**
+ * Legacy wrapper for backward compatibility if needed, though we will update App.jsx
+ */
+export const importProjectFromCSV = async (file) => {
+    const data = await parseProjectCSV(file);
+    // Import everything by default
+    const allSections = ['SETTINGS', ...Object.keys(data.sections)];
+    applySessionData(data, allSections);
     return true;
 };

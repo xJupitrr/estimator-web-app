@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
+import { initGlobalCalculator } from './utils/globalCalculator';
 import Footing from './components/calculators/Footing';
 import Column from './components/calculators/Column';
 import Beam from './components/calculators/Beam';
@@ -15,8 +16,13 @@ import Roofing from './components/calculators/Roofing';
 import Formworks from './components/calculators/Formworks';
 import SuspendedSlab from './components/calculators/SuspendedSlab';
 import DoorsWindows from './components/calculators/DoorsWindows';
+import Electrical from './components/calculators/Electrical';
+import Plumbing from './components/calculators/Plumbing';
 import LintelBeam from './components/calculators/LintelBeam';
-import { exportProjectToCSV, importProjectFromCSV } from './utils/sessionManager';
+
+import { exportProjectToCSV, parseProjectCSV, applySessionData } from './utils/sessionManager';
+import { getSessionData } from './hooks/useLocalStorage';
+import SessionImportModal from './components/modals/SessionImportModal';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -30,7 +36,10 @@ const TABS = [
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
     { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
+    { id: 'electrical', label: 'Electrical Works', component: Electrical, icon: Zap },
+    { id: 'plumbing', label: 'Plumbing Works', component: Plumbing, icon: Droplets },
     { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
+
     { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
 ];
 
@@ -65,17 +74,7 @@ const getInitialBeam = () => ({
 
 export default function App() {
     const { undo, redo, clearHistory } = useHistory();
-    const [activeTabId, setActiveTabId] = useState(() => {
-        return localStorage.getItem('last_active_tab') || 'home';
-    });
-
-    useEffect(() => {
-        // Clear the redirect flag after it's been consumed by state initialization
-        const saved = localStorage.getItem('last_active_tab');
-        if (saved) {
-            localStorage.removeItem('last_active_tab');
-        }
-    }, []);
+    const [activeTabId, setActiveTabId] = useState('home');
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -113,12 +112,13 @@ export default function App() {
             const costKeys = [
                 'masonry_total', 'slab_total', 'suspended_slab_total', 'footing_total',
                 'column_total', 'beam_total', 'roofing_total', 'formworks_total',
-                'tiles_total', 'painting_total', 'ceiling_total', 'doors_windows_total',
-                'lintel_beam_total'
+                'tiles_total', 'painting_total', 'ceiling_total', 'electrical_total',
+                'plumbing_total', 'doors_windows_total', 'lintel_beam_total'
+
             ];
             let total = 0;
             costKeys.forEach(key => {
-                const val = localStorage.getItem(key);
+                const val = getSessionData(key);
                 if (val) total += parseFloat(val) || 0;
             });
             setProjectTotal(total);
@@ -161,26 +161,58 @@ export default function App() {
         link.click();
     };
 
+    // Initialize Global Events
+    useEffect(() => {
+        const cleanupCalc = initGlobalCalculator();
+        return () => {
+            cleanupCalc();
+        };
+    }, []);
+
+    // --- Import Modal State ---
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [parsedSessionData, setParsedSessionData] = useState(null);
+    const [currentImportFileName, setCurrentImportFileName] = useState("");
+
     const handleLoadSession = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         try {
-            await importProjectFromCSV(file);
+            // Parse first, don't apply yet
+            const data = await parseProjectCSV(file);
+            setParsedSessionData(data);
+            setCurrentImportFileName(file.name);
+            setImportModalOpen(true);
 
-            // 1. Clear Undo/Redo history as we're starting a "new" imported session
-            clearHistory();
-
-            // 2. Switch to the first calculator tab
-            setActiveTabId(TABS[0].id);
-
-            // 3. Notify all listeners to refresh their local state from localStorage
-            window.dispatchEvent(new CustomEvent('project-session-loaded'));
-
-            // Note: window.location.reload() removed to maintain "Reset on Refresh" behavior
+            // Reset file input
+            if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (err) {
             console.error(err);
-            alert('Failed to load session. Check file format.');
+            alert('Failed to parse session file. Check format.');
+        }
+    };
+
+    const handleConfirmImport = (selectedKeys) => {
+        if (!parsedSessionData) return;
+
+        try {
+            applySessionData(parsedSessionData, selectedKeys);
+
+            // 1. Clear Undo/Redo history as we're starting a "new" imported session state
+            clearHistory();
+
+            // 2. Switch to the first calculator tab to ensure we leave the landing page
+            setActiveTabId(TABS[0].id);
+
+            // 3. Notify all listeners to refresh their local state
+            window.dispatchEvent(new CustomEvent('project-session-loaded'));
+
+            setImportModalOpen(false);
+            setParsedSessionData(null);
+        } catch (err) {
+            console.error("Import failed", err);
+            alert("Failed to apply imported data.");
         }
     };
 
@@ -190,8 +222,58 @@ export default function App() {
 
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
 
+    // --- Drag & Drop Handlers ---
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.relatedTarget === null) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDrop = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            if (file.name.endsWith('.csv')) {
+                // Reuse existing load logic
+                await handleLoadSession({ target: { files: [file] } });
+            } else {
+                alert('Please drop a valid CSV session file.');
+            }
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
+        <div
+            className="min-h-screen bg-gray-50 font-sans flex flex-col relative"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {/* Drag & Drop Overlay */}
+            {isDragging && (
+                <div className="absolute inset-0 z-[100] bg-blue-600/90 backdrop-blur-sm flex items-center justify-center transition-all duration-300">
+                    <div className="flex flex-col items-center p-12 border-4 border-white/30 rounded-xl bg-white/10 animate-pulse">
+                        <Upload size={64} className="text-white mb-6" />
+                        <h2 className="text-3xl font-bold text-white uppercase tracking-widest mb-2">Drop to Load Session</h2>
+                        <p className="text-white/80 font-mono text-sm">Release the file to import project data</p>
+                    </div>
+                </div>
+            )}
             {/* Header - Hidden on Home */}
             {/* Header - Industrial / Architectural Style (Light) */}
             {activeTabId !== 'home' && (
@@ -230,7 +312,16 @@ export default function App() {
                                 </div>
                                 <div className="h-8 w-px bg-zinc-200"></div>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Project Cost</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] text-zinc-400 uppercase tracking-wider font-mono">Project Cost</span>
+                                        <button
+                                            onClick={() => window.dispatchEvent(new CustomEvent('trigger-global-recalc'))}
+                                            className="text-zinc-400 hover:text-blue-600 transition-colors"
+                                            title="Recalculate Session Totals"
+                                        >
+                                            <RotateCw size={10} />
+                                        </button>
+                                    </div>
                                     <span className="text-sm font-bold tracking-tight text-emerald-600">
                                         ₱{projectTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
@@ -271,6 +362,15 @@ export default function App() {
                     <div className="h-[2px] w-full bg-blue-600"></div>
                 </header>
             )}
+
+            {/* Import Modal */}
+            <SessionImportModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                onConfirm={handleConfirmImport}
+                parsedData={parsedSessionData}
+                fileName={currentImportFileName}
+            />
 
             {/* Hidden Input for File Upload - Always present for both header and landing page access */}
             <input

@@ -16,28 +16,25 @@ export default function useLocalStorage(key, initialValue) {
     const { captureChange, subscribe } = useHistory();
 
     // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
+    // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
     const [storedValue, setStoredValue] = useState(() => {
+        // 1. Check session cache first (for tab switching persistence)
         if (sessionCache[key] !== undefined) {
             return sessionCache[key];
         }
+
+        // 2. Fallback to initial value
+        // We strictly rely on sessionCache or initialValue (LocalStorage disabled).
         return initialValue;
     });
 
-    const loadFromLocalStorage = useCallback(() => {
-        try {
-            const item = window.localStorage.getItem(key);
-            if (item) {
-                const parsed = JSON.parse(item);
-                setStoredValue(parsed);
-                sessionCache[key] = parsed;
-            }
-        } catch (error) {
-            console.error(`Error loading from localStorage key "${key}":`, error);
+    const loadFromCache = useCallback(() => {
+        if (sessionCache[key] !== undefined) {
+            setStoredValue(sessionCache[key]);
         }
     }, [key]);
 
-    // Return a wrapped version of useState's setter function that ...
-    // ... persists the new value to sessionCache (session-only, clears on refresh).
+    // Return a wrapped version of useState's setter function
     const setValue = useCallback((value) => {
         try {
             const valueToStore = value instanceof Function ? value(storedValue) : value;
@@ -48,11 +45,11 @@ export default function useLocalStorage(key, initialValue) {
             setStoredValue(valueToStore);
             sessionCache[key] = valueToStore;
 
-            // NOTE: We do NOT write to localStorage here anymore.
-            // This ensures data clears on browser refresh.
-            // The Save/Load Session features handle localStorage directly.
+            // Trigger update for listeners (like totals)
+            window.dispatchEvent(new CustomEvent('storage-update', { detail: { key, value: valueToStore } }));
+
         } catch (error) {
-            console.error(`Error setting localStorage key "${key}":`, error);
+            console.error(`Error setting session key "${key}":`, error);
         }
     }, [key, storedValue, captureChange]);
 
@@ -65,15 +62,28 @@ export default function useLocalStorage(key, initialValue) {
         return unsubscribe;
     }, [key, subscribe]);
 
-    // 2. Listen for "project-session-loaded" event to force-load from localStorage
+    // 2. Listen for "project-session-loaded" event to force-load from sessionCache
     useEffect(() => {
         const handleSessionLoad = () => {
-            loadFromLocalStorage();
+            loadFromCache();
         };
 
         window.addEventListener('project-session-loaded', handleSessionLoad);
         return () => window.removeEventListener('project-session-loaded', handleSessionLoad);
-    }, [loadFromLocalStorage]);
+    }, [loadFromCache]);
 
     return [storedValue, setValue];
 }
+
+/**
+ * Helper to direct access session data for Export/Import
+ */
+export const getSessionData = (key) => {
+    return sessionCache[key];
+};
+
+export const setSessionData = (key, value) => {
+    sessionCache[key] = value;
+    // We don't trigger React updates here directly, the events do that if needed, 
+    // or the components read on mount/event.
+};

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
+import { calculateColumn } from '../../utils/calculations/columnCalculator';
 
 // --- Components ---
 
@@ -68,17 +70,6 @@ const availableRebarSKUs = [
 // Filtered list for ties (typically 10mm and 12mm)
 const availableTieSKUs = availableRebarSKUs.filter(sku => sku.diameter <= 12);
 
-
-// Utility function to get SKU details from its ID string (e.g., '16_9.0')
-const getSkuDetails = (skuId) => {
-    const [diameter, length] = skuId.split('_').map(Number);
-    return {
-        diameter,
-        length,
-        priceKey: `rebar_${diameter}`
-    };
-};
-
 // Initial Column Template
 const getInitialColumn = () => ({
     id: Date.now() + Math.random(),
@@ -91,8 +82,6 @@ const getInitialColumn = () => ({
     tie_bar_sku: '',      // Lateral Tie SKU (Diameter_Length)
     tie_spacing_mm: "", // Empty default
 });
-
-import useLocalStorage from '../../hooks/useLocalStorage';
 
 export default function Column({ columns: propColumns, setColumns: propSetColumns }) {
     // Use props if provided, otherwise use local state (for backward compatibility if used standalone)
@@ -114,7 +103,7 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
         tie_wire: 85,      // per kg
     });
 
-    const [result, setResult] = useState(null);
+    const [result, setResult] = useLocalStorage('column_result', null);
     const [error, setError] = useState(null);
 
     const handleColumnChange = (id, field, value) => {
@@ -146,26 +135,6 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
 
     // --- Calculation Engine ---
     const calculateMaterials = () => {
-
-        let totalVolConcrete = 0;
-
-        // Material Accumulators
-        let totalCementBags = 0;
-        let totalSandCum = 0;
-        let totalGravelCum = 0;
-        let totalTieWireKg = 0;
-
-        // Rebar Accumulator: stores pieces required per specific cut length, per SKU
-        // Key: SKU ID (e.g., '16_9.0')
-        // Value: Array of required cuts { cutLength: m, count: pcs }
-        const rebarRequirements = {};
-
-        // Standard Concrete Cover for columns (40mm = 0.04m)
-        const concreteCover = 0.04;
-
-        // Wire: #16 GI Wire is ~53m per kg
-        const wireMetersPerKg = 53;
-
         // Validation
         const hasEmptyFields = columns.some(col =>
             col.length_m === "" ||
@@ -184,191 +153,21 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
         }
         setError(null);
 
-        columns.forEach(col => {
-            const qty = parseInt(col.quantity) || 1;
-            const L = parseFloat(col.length_m) || 0;
-            const W = parseFloat(col.width_m) || 0;
-            const H = parseFloat(col.height_m) || 0;
+        const calcResult = calculateColumn(columns, prices, wastePct);
 
-            const mainSku = col.main_bar_sku;
-            const mainCount = parseInt(col.main_bar_count) || 4;
-
-            const tieSku = col.tie_bar_sku;
-            const tieSpacing = parseFloat(col.tie_spacing_mm) || 200;
-
-            if (L <= 0 || W <= 0 || H <= 0) return;
-
-            // 1. Concrete Volume (Class A 1:2:4 assumed)
-            const volume = L * W * H * qty;
-            totalVolConcrete += volume;
-
-            const wasteMult = 1 + (wastePct / 100);
-
-            // Quantities for Class A (1:2:4) per cubic meter
-            totalCementBags += volume * 9.0 * wasteMult;
-            totalSandCum += volume * 0.5 * wasteMult;
-            totalGravelCum += volume * 1.0 * wasteMult;
-
-            // --- Rebar Direct Counting Input ---
-
-            // 2. Main Reinforcement (Length Piece Counting)
-            const mainSkuDetails = getSkuDetails(mainSku);
-            // Main Bar Diameter in meters
-            const mainDiameter_m = mainSkuDetails.diameter / 1000;
-
-            // Starter/Dowel Length (L_dowel): Standard 40 times diameter (40D)
-            const L_dowel_splice = 40 * mainDiameter_m;
-
-            // Main Bar Cut Length is initially just the column height (H)
-            let mainBarCutLength = H;
-
-            // If the commercial length is NOT long enough for the piece, we must include the required 40D dowel/splice length.
-            if (H > mainSkuDetails.length) {
-                // If the piece is longer than the commercial bar, the piece must be spliced.
-                // In this simple model, we assume H is the piece length, and if it exceeds the commercial length, 
-                // we are assuming a splice will be done at the job site.
-                // However, based on the prompt's structural intent (starter/dowel), we calculate the required total length:
-                mainBarCutLength = H + L_dowel_splice;
-            } else {
-                // If the piece fits within the commercial length, we only need the H + 40D for the piece connecting to the footing or beam.
-                mainBarCutLength = H + L_dowel_splice;
-            }
-
-            const totalMainBarPieces = mainCount * qty;
-
-            if (!rebarRequirements[mainSku]) {
-                rebarRequirements[mainSku] = [];
-            }
-            rebarRequirements[mainSku].push({
-                cutLength: mainBarCutLength,
-                count: totalMainBarPieces
-            });
-
-            // 3. Lateral Ties (Stirrups) (Perimeter Piece Counting)
-            const tieSkuDetails = getSkuDetails(tieSku);
-            // Tie Bar Diameter in meters
-            const tieDiameter_m = tieSkuDetails.diameter / 1000;
-
-            // Internal tie dimensions (center-to-center): L_tie and W_tie
-            // L_tie = Column L - 2 * Cover
-            const L_tie = L - (2 * concreteCover);
-            const W_tie = W - (2 * concreteCover);
-
-            // Tie Perimeter (straight section length)
-            const tiePerimeter = 2 * (L_tie + W_tie);
-
-            // Hook Length (135 degree hook): Max(12D, 75mm)
-            // 0.075m is 75mm
-            const hookLength = Math.max(12 * tieDiameter_m, 0.075);
-
-            // Total Cut Length = Perimeter + (2 * Hook Length)
-            // Note: Bend allowance subtraction for 90-degree corners is often omitted in simple estimates 
-            // as it's small, and the hook length calculation covers the required additional length for bending.
-            let tieCutLength = tiePerimeter + (2 * hookLength);
-
-            // Validate tie dimensions (should not be negative or zero)
-            if (L_tie <= 0 || W_tie <= 0) {
-                console.warn(`Column L=${L}m or W=${W}m is too small for 40mm cover. Tie calculation skipped for this row.`);
-                tieCutLength = 0;
-            }
-
-            const numTiesPerCol = Math.ceil((H * 1000) / tieSpacing) + 1; // +1 for starter/pad
-            const totalTiePieces = numTiesPerCol * qty;
-
-            if (tieCutLength > 0) {
-                if (!rebarRequirements[tieSku]) {
-                    rebarRequirements[tieSku] = [];
-                }
-                rebarRequirements[tieSku].push({
-                    cutLength: tieCutLength,
-                    count: totalTiePieces
-                });
-            }
-
-            // 4. Tie Wire (#16 GI Wire)
-            // Approx 35cm (0.35m) per intersection
-            const intersections = mainCount * numTiesPerCol * qty;
-            const wireMeters = intersections * 0.35;
-            totalTieWireKg += wireMeters / wireMetersPerKg;
-        });
-
-        // Final Compilation
-        const items = [];
-        let subTotal = 0;
-
-        // Helper to add item
-        const addItem = (name, qty, unit, priceKey, priceDefault) => {
-            if (qty <= 0) return;
-            const price = prices[priceKey] !== undefined ? prices[priceKey] : priceDefault;
-            const total = qty * price;
-            subTotal += total;
-            items.push({ name, qty, unit, priceKey, price, total });
-        };
-
-        // Concrete Materials
-        addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement", 240);
-        addItem("Wash Sand (S1)", Math.ceil(totalSandCum * 10) / 10, "cu.m", "sand", 1200); // <-- Changed m³ to cu.m
-        addItem("Crushed Gravel (3/4)", Math.ceil(totalGravelCum * 10) / 10, "cu.m", "gravel", 1400); // <-- Changed m³ to cu.m
-
-        // Steel Materials - Direct Counting Yield Calculation
-        Object.keys(rebarRequirements).forEach(skuId => {
-            const requirements = rebarRequirements[skuId]; // Array of { cutLength, count }
-
-            // Get details from the SKU ID
-            const { diameter, length: commercialLength, priceKey } = getSkuDetails(skuId);
-
-            let totalCommercialBars = 0;
-
-            // Iterate through all required cut lengths for this specific SKU
-            requirements.forEach(req => {
-                const { cutLength, count } = req;
-
-                if (cutLength <= 0 || count <= 0) return;
-
-                // Calculate how many pieces can be cut from ONE commercial bar (the yield)
-                // Use Math.floor() to discard the remaining cut-off waste
-                const piecesPerBar = Math.floor(commercialLength / cutLength);
-
-                if (piecesPerBar > 0) {
-                    // Total bars needed to satisfy the requirement for this specific cut length
-                    const barsNeededForCut = Math.ceil(count / piecesPerBar);
-                    totalCommercialBars += barsNeededForCut;
-                } else {
-                    // If cutLength > commercialLength, we need multiple commercial bars spliced together
-                    const spliceLength = 40 * (diameter / 1000); // 40d splice length in meters
-                    const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
-
-                    if (effectiveLengthPerAdditionalBar > 0) {
-                        const additionalPiecesNeeded = Math.ceil((cutLength - commercialLength) / effectiveLengthPerAdditionalBar);
-                        const piecesPerRun = 1 + additionalPiecesNeeded;
-                        totalCommercialBars += (piecesPerRun * count);
-                    } else {
-                        // Fallback: If splice length >= bar length (extreme case), just use simple division
-                        totalCommercialBars += Math.ceil(cutLength / commercialLength) * count;
-                    }
-                }
-            });
-
-            if (totalCommercialBars > 0) {
-                addItem(`Corrugated Rebar (${diameter}mm x ${commercialLength}m)`, totalCommercialBars, "pcs", priceKey, 200);
-            }
-        });
-
-        addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
-
-        setResult({
-            volume: totalVolConcrete.toFixed(2),
-            items: items,
-            grandTotal: subTotal
-        });
+        if (calcResult) {
+            setResult(calcResult);
+        } else {
+            setResult(null);
+        }
     };
 
     // Global Cost Sync
     useEffect(() => {
         if (result) {
-            localStorage.setItem('column_total', result.grandTotal);
+            setSessionData('column_total', result.grandTotal);
         } else {
-            localStorage.removeItem('column_total');
+            setSessionData('column_total', null);
         }
         window.dispatchEvent(new CustomEvent('project-total-update'));
     }, [result]);

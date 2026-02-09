@@ -36,6 +36,15 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             color: "amber",
             icon: HardHat,
             tools: ['formworks']
+        },
+        {
+            title: "MEP Works",
+            id: "mep",
+            code: "MEP-04",
+            description: "Mechanical & Electrical",
+            color: "yellow",
+            icon: Cpu,
+            tools: ['electrical', 'plumbing']
         }
     ];
 
