@@ -180,6 +180,7 @@ export const calculateDoorsWindows = (items) => {
     }
 
     items.forEach((item) => {
+        if (item.isExcluded) return;
         const width = parseFloat(item.width_m) || 0;
         const height = parseFloat(item.height_m) || 0;
         const quantity = parseInt(item.quantity) || 1;

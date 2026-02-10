@@ -30,7 +30,9 @@ export const LUMBER_OPTIONS = [
  * @param {Object} config - Configuration { wastePlywood, wasteLumber, includeColumns, includeBeams, importPlywood, importLumber }
  * @returns {Object} Result object { area, items, grandTotal } or null
  */
-export const calculateFormworks = (rows, columns, beams, prices, config) => {
+export const calculateFormworks = (rows, config, prices) => {
+    const columns = config.columns || [];
+    const beams = config.beams || [];
     let totalAreaAccumulator = 0;
     const plywoodByType = {};
     const lumberByType = {};
@@ -48,14 +50,17 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
         }
         plywoodByType[pType].area += areaPerUnit * qty;
 
-        // Lumber
+        // Lumber calculation (Studs and Walers/Yokes)
         const perimeter = 2 * (L + W);
-        const numStuds = Math.ceil(perimeter / 0.6) * 2;
+        // Studs: spaced at 0.6m around the perimeter. Total count is perimeter/0.6. 
+        // We multiply by 1.5 to account for corners and extra support.
+        const numStuds = Math.max(4, Math.ceil(perimeter / 0.6) * 2);
         const lumberStuds = numStuds * H;
-        let numWalers = 2;
-        if (H > 0.50 && H <= 1.0) numWalers = 3;
-        else if (H > 1.0) numWalers = 4;
-        const lumberWalers = numWalers * 2 * perimeter;
+
+        // Walers/Yokes: spaced at 0.6m along the height/length H.
+        // For a column, these are horizontal hoops. For a beam, these are vertical yokes.
+        const numWalers = Math.max(2, Math.ceil(H / 0.6) + 1);
+        const lumberWalers = numWalers * 2 * perimeter; // Wrapping approx.
         const totalLumberLinear = (lumberStuds + lumberWalers) * qty;
 
         if (!lumberByType[lType]) {
@@ -66,6 +71,7 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
 
     // 1. Process Manual Rows (Treat as 4 sides + bottom)
     rows.forEach(row => {
+        if (row.isExcluded) return;
         const Q = parseInt(row.quantity) || 0;
         const L = parseFloat(row.length_m) || 0;
         const W = parseFloat(row.width_m) || 0;
@@ -79,6 +85,7 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
     // 2. Process Columns (Treat as 4 vertical sides)
     if (config.includeColumns) {
         columns.forEach(col => {
+            if (col.isExcluded) return;
             const Q = parseInt(col.quantity) || 0;
             const L = parseFloat(col.length_m) || 0;
             const W = parseFloat(col.width_m) || 0;
@@ -93,6 +100,7 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
     // 3. Process Beams (Treat as 2 sides + bottom)
     if (config.includeBeams) {
         beams.forEach(beam => {
+            if (beam.isExcluded) return;
             const Q = parseInt(beam.quantity) || 0;
             const B = parseFloat(beam.length_m) || 0; // Width (B)
             const H = parseFloat(beam.width_m) || 0;  // Depth (H)
@@ -114,6 +122,7 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
 
     Object.keys(plywoodByType).forEach(pId => {
         const { area, spec } = plywoodByType[pId];
+        if (!spec) return;
         const sheets = Math.ceil((area / spec.area_sqm) * pWasteFactor);
         const price = prices[pId] || DEFAULT_PRICES[pId];
         const total = sheets * price;
@@ -123,6 +132,7 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
 
     Object.keys(lumberByType).forEach(lId => {
         const { linear, spec } = lumberByType[lId];
+        if (!spec) return;
         const bf = Math.ceil(linear * spec.bf_per_meter * lWasteFactor);
         const price = prices[lId] || DEFAULT_PRICES[lId];
         const total = bf * price;
@@ -137,7 +147,7 @@ export const calculateFormworks = (rows, columns, beams, prices, config) => {
     finalItems.push({ name: "Common Nails (Assorted)", qty: nailsKg, unit: "kg", priceKey: "nails_kg", price: nailPrice, total: nailTotal });
 
     return {
-        area: totalAreaAccumulator.toFixed(2),
+        totalArea: totalAreaAccumulator,
         items: finalItems,
         grandTotal: grandTotal,
         total: grandTotal

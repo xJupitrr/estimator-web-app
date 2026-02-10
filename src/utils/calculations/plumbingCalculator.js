@@ -1,18 +1,34 @@
 
 export const DEFAULT_PRICES = {
-    // PPR Waterline (20mm)
-    ppr_pipe_20mm: 480,
+    // PPR Waterline (20mm & 25mm)
+    ppr_pipe_20mm: 480,       // 1/2"
+    ppr_pipe_25mm: 650,       // 3/4"
     ppr_elbow_90_20mm: 25,
+    ppr_elbow_90_25mm: 45,
     ppr_elbow_45_20mm: 35,
+    ppr_elbow_45_25mm: 55,
     ppr_tee_20mm: 35,
+    ppr_tee_25mm: 65,
     ppr_coupling_20mm: 15,
+    ppr_coupling_25mm: 25,
     ppr_female_adapter_20mm: 120, // w/ brass thread
+    ppr_female_adapter_25mm: 180,
     ppr_male_adapter_20mm: 110,
+    ppr_male_adapter_25mm: 165,
+    ppr_female_elbow_20mm: 145,
+    ppr_female_elbow_25mm: 210,
+    ppr_male_elbow_20mm: 135,
+    ppr_male_elbow_25mm: 195,
     ppr_end_cap_20mm: 15,
+    ppr_end_cap_25mm: 25,
     ppr_union_patente_20mm: 280,
+    ppr_union_patente_25mm: 380,
     ppr_gate_valve_20mm: 850,
+    ppr_gate_valve_25mm: 1150,
     ppr_ball_valve_20mm: 450,
+    ppr_ball_valve_25mm: 650,
     ppr_check_valve_20mm: 650,
+    ppr_check_valve_25mm: 850,
 
     // uPVC Sanitary/Storm (100mm, 75mm, 50mm)
     pvc_pipe_100mm: 820,
@@ -27,13 +43,19 @@ export const DEFAULT_PRICES = {
     pvc_sanitary_tee_100mm: 165,
     pvc_sanitary_tee_75mm: 125,
     pvc_sanitary_tee_50mm: 75,
+    pvc_sanitary_tee_100x50: 185,
+    pvc_sanitary_tee_100x75: 195,
     pvc_wye_100mm: 210,
     pvc_wye_75mm: 160,
     pvc_wye_50mm: 95,
+    pvc_wye_100x50: 245, // 4"x2" Wye
+    pvc_wye_100x75: 265, // 4"x3" Wye
     pvc_cleanout_100mm: 145,
     pvc_cleanout_75mm: 110,
     pvc_cleanout_50mm: 70,
+    pvc_p_trap_100mm: 350,
     pvc_p_trap_50mm: 120,
+    pvc_vent_cap_100mm: 110,
     pvc_vent_cap_50mm: 45,
     pvc_reducer_100x50: 135,
     pvc_reducer_100x75: 150,
@@ -42,6 +64,7 @@ export const DEFAULT_PRICES = {
     solvent_cement: 180,
     teflon_tape: 25,
     pipe_clamp_100mm: 45,
+    pipe_clamp_75mm: 35,
     pipe_clamp_50mm: 25,
 
     // Fixtures
@@ -86,6 +109,7 @@ export const calculatePlumbing = (data, prices) => {
     };
 
     data.forEach(row => {
+        if (row.isExcluded) return;
         const qty = parseFloat(row.quantity) || 0;
         if (qty <= 0) return;
 
@@ -180,13 +204,29 @@ export const calculatePlumbing = (data, prices) => {
         if (fixtureCounts[key] !== undefined) return;
         if (key.endsWith('_set')) return; // Also skip set keys if they leaked here
 
+        let sizeInfo = "";
+        if (key.includes('100x50')) sizeInfo = '4"x2"';
+        else if (key.includes('100x75')) sizeInfo = '4"x3"';
+        else if (key.includes('100mm')) sizeInfo = '4"';
+        else if (key.includes('75mm')) sizeInfo = '3"';
+        else if (key.includes('50mm')) sizeInfo = '2"';
+        else if (key.includes('20mm')) sizeInfo = '20mm';
+        else if (key.includes('25mm')) sizeInfo = '25mm';
+
         let name = key.replace(/_/g, ' ')
             .replace(/\bppr\b/gi, 'PPR')
-            .replace(/\bpvc\b/gi, 'PVC')
+            .replace(/\bpvc\b/gi, 'uPVC')
             .replace(/\bwc\b/gi, 'WC')
             .replace(/\b90\b/g, '90°')
             .replace(/\b45\b/g, '45°')
+            .replace(/\b100mm\b|\b75mm\b|\b50mm\b|\b100x50\b|\b100x75\b|\b20mm\b|\b25mm\b/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
             .replace(/\b\w/g, c => c.toUpperCase());
+
+        if (sizeInfo) {
+            name = `${sizeInfo} ${name}`;
+        }
 
         let unit = 'pcs';
 

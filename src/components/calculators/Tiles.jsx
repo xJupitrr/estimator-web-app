@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, LayoutGrid } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, LayoutGrid, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateTiles, TILE_CONSUMABLES, DEFAULT_PRICES } from '../../utils/calculations/tilesCalculator';
+
+const Card = ({ children, className = "" }) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+        {children}
+    </div>
+);
+
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
+        <input
+            type="number"
+            value={value === null || value === undefined ? '' : String(value)}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
+        />
+    </div>
+);
 
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
@@ -13,6 +33,7 @@ const getInitialRow = () => ({
     width_m: "",
     tile_size_cm: "60x60",
     description: "",
+    isExcluded: false,
 });
 
 export default function Tiles() {
@@ -28,6 +49,48 @@ export default function Tiles() {
 
     const handleAddRow = () => {
         setRows(prev => [...prev, getInitialRow()]);
+        setResult(null);
+    };
+
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleAddRowAbove = (id) => {
+        setRows(prev => {
+            const index = prev.findIndex(r => r.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialRow());
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setRows(prev => {
+            const index = prev.findIndex(r => r.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setRows(prev => prev.map(r => r.id === id ? { ...r, isExcluded: !r.isExcluded } : r));
+        setContextMenu(null);
         setResult(null);
     };
 
@@ -73,7 +136,38 @@ export default function Tiles() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-indigo-500">
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {rows.find(r => r.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
+
+            <Card className="border-t-4 border-t-indigo-500 shadow-md">
                 <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-indigo-900 flex items-center gap-2">
                         <LayoutGrid size={18} /> Floor Tiles Area Configuration
@@ -101,8 +195,24 @@ export default function Tiles() {
                         </thead>
                         <tbody>
                             {rows.map((row, index) => (
-                                <tr key={row.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 text-center text-xs text-slate-400 font-bold">{index + 1}</td>
+                                <tr
+                                    key={row.id}
+                                    className={`transition-colors ${row.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: row.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${row.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
+                                    </td>
                                     <td className="p-2 border border-slate-300">
                                         <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" />
                                     </td>
@@ -149,13 +259,13 @@ export default function Tiles() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={handleCalculate} className="w-full sm:w-auto px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold shadow-lg hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Calculator size={18} /> Calculate Tiles
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
-            </div>
+            </Card>
 
             {result && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-indigo-500">
+                <Card className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-indigo-500">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -186,10 +296,10 @@ export default function Tiles() {
                                             <td className="px-4 py-3 text-right">{item.qty}</td>
                                             <td className="px-4 py-3 text-center"><span className="bg-indigo-100 px-2 py-1 rounded text-[10px] text-indigo-600 uppercase font-bold">{item.unit}</span></td>
                                             <td className="px-4 py-2 text-right font-medium">
-                                                <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-xs mr-1 font-bold font-mono">₱</span>
-                                                    <input type="number" value={prices[item.priceKey] || 0} onChange={(e) => updatePrice(item.priceKey, e.target.value)} className="w-20 px-1 py-0.5 text-right border-indigo-200 rounded text-xs focus:ring-1 focus:ring-indigo-400 outline-none" />
-                                                </div>
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] || 0}
+                                                    onChange={(val) => updatePrice(item.priceKey, val)}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right text-indigo-900 font-extrabold bg-indigo-50/30">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
@@ -198,7 +308,7 @@ export default function Tiles() {
                             </table>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );

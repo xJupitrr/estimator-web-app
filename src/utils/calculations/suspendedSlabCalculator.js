@@ -142,6 +142,7 @@ export const calculateSuspendedSlab = (slabs, prices) => {
     }
 
     slabs.forEach(s => {
+        if (s.isExcluded) return;
         const Q = parseFloat(s.quantity) || 0;
         const L = parseFloat(s.length) || 0;
         const W = parseFloat(s.width) || 0;

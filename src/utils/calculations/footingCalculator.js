@@ -24,6 +24,7 @@ export const calculateFooting = (footings, prices) => {
     if (!footings || footings.length === 0) return null;
 
     footings.forEach(f => {
+        if (f.isExcluded) return;
         const Q = parseFloat(f.quantity) || 0;
         const X = parseFloat(f.x_len) || 0;
         const Y = parseFloat(f.y_len) || 0;

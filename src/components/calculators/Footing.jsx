@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import SelectInput from '../common/SelectInput';
 import { calculateFooting, DEFAULT_PRICES } from '../../utils/calculations/footingCalculator';
+
+const Card = ({ children, className = "" }) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+        {children}
+    </div>
+);
+
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
+        <input
+            type="number"
+            value={value === null || value === undefined ? '' : String(value)}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
+        />
+    </div>
+);
 
 // Constants for rebar and concrete
 const rebarDiameters = ["10mm", "12mm", "16mm", "20mm", "25mm"];
@@ -23,6 +43,7 @@ const getInitialFooting = () => ({
     rebar_x_count: "",
     rebar_y_count: "",
     description: "",
+    isExcluded: false,
 });
 
 export default function Footing() {
@@ -45,13 +66,46 @@ export default function Footing() {
         setFootingResult(null);
     };
 
-    const handleRemoveFooting = (id) => {
-        if (footings.length > 1) {
-            setFootings(prev => prev.filter(footing => footing.id !== id));
-            setFootingResult(null);
-        } else {
-            setFootings([getInitialFooting()]);
-        }
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleAddRowAbove = (id) => {
+        setFootings(prev => {
+            const index = prev.findIndex(f => f.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialFooting());
+            return newRows;
+        });
+        setContextMenu(null);
+        setFootingResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setFootings(prev => {
+            const index = prev.findIndex(f => f.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setFootingResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setFootings(prev => prev.map(f => f.id === id ? { ...f, isExcluded: !f.isExcluded } : f));
+        setContextMenu(null);
+        setFootingResult(null);
     };
 
     const calculateFootings = () => {
@@ -97,7 +151,38 @@ export default function Footing() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-emerald-600">
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {footings.find(f => f.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
+
+            <Card className="border-t-4 border-t-emerald-600 shadow-md">
                 <div className="p-4 bg-emerald-50 border-b border-emerald-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-emerald-900 flex items-center gap-2">
                         <Columns size={18} /> Footing Configuration
@@ -121,15 +206,31 @@ export default function Footing() {
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Y-Wid (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Z-Dep (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Rebar Spec</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">X-Rebars</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Y-Rebars</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Rebars along X</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Rebars along Y</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {footings.map((footing, index) => (
-                                <tr key={footing.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 text-center text-xs text-slate-500 font-bold">{index + 1}</td>
+                                <tr
+                                    key={footing.id}
+                                    className={`transition-colors ${footing.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: footing.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${footing.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
+                                    </td>
                                     <td className="p-2 border border-slate-300">
                                         <MathInput
                                             value={footing.quantity}
@@ -215,13 +316,13 @@ export default function Footing() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={calculateFootings} className="w-full sm:w-auto px-8 py-3 bg-emerald-600 text-white rounded-lg font-bold shadow-lg hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Calculator size={18} /> Calculate Footing
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
-            </div>
+            </Card>
 
             {footingResult && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-emerald-600">
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-emerald-600 mt-6">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -257,16 +358,11 @@ export default function Footing() {
                                             <td className="px-4 py-3 text-center text-gray-600">
                                                 <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-2">
-                                                <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-xs mr-1 font-bold">₱</span>
-                                                    <input
-                                                        type="number"
-                                                        value={footingPrices[item.priceKey] || 0}
-                                                        onChange={(e) => handlePriceChange(item.priceKey, e.target.value)}
-                                                        className="w-24 px-2 py-1 text-right text-sm border border-gray-300 rounded focus:ring-2 focus:ring-emerald-400 outline-none font-medium"
-                                                    />
-                                                </div>
+                                            <td className="px-4 py-2 text-right">
+                                                <TablePriceInput
+                                                    value={footingPrices[item.priceKey] || 0}
+                                                    onChange={(val) => handlePriceChange(item.priceKey, val)}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
                                                 ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -277,7 +373,7 @@ export default function Footing() {
                             </table>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );

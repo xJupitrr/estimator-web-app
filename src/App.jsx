@@ -50,26 +50,24 @@ const getInitialColumn = () => ({
     length_m: "",
     width_m: "",
     height_m: "",
-    main_bar_sku: '',
-    main_bar_count: "",
+    main_rebar_cuts: [{ sku: '', length: '', quantity: '' }],
     tie_bar_sku: '',
     tie_spacing_mm: "",
+    isExcluded: false,
 });
 
 const getInitialBeam = () => ({
     id: Date.now() + Math.random(),
     quantity: 1,
-    length_m: "",
-    width_m: "",
-    height_m: "",
-    main_bar_sku: '',
-    main_bar_count: "",
+    length_m: "",      // Width (B)
+    width_m: "",       // Depth (H)
+    height_m: "",      // Length (L)
+    main_rebar_cuts: [{ sku: '', length: '', quantity: '' }],
     tie_bar_sku: '',
     tie_spacing_mm: "",
-    cut_support_sku: '',
-    cut_support_count: "",
-    cut_midspan_sku: '',
-    cut_midspan_count: "",
+    cut_support_cuts: [{ sku: '', length: '', quantity: '' }],
+    cut_midspan_cuts: [{ sku: '', length: '', quantity: '' }],
+    isExcluded: false,
 });
 
 
@@ -100,8 +98,9 @@ export default function App() {
 
 
     // Persisted via localStorage
-    const [columns, setColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
-    const [beams, setBeams] = useLocalStorage('app_beams', [getInitialBeam()]);
+    // Unified State - Syncing with component local storage keys for cross-tab availability
+    const [columns, setColumns] = useLocalStorage('column_elements', [getInitialColumn()]);
+    const [beams, setBeams] = useLocalStorage('beam_elements', [getInitialBeam()]);
     const [projectName, setProjectName] = useLocalStorage('project_name', 'Untitled Project');
     const [lastSaveInfo, setLastSaveInfo] = useLocalStorage('last_save_info', { date: '', count: 0 });
 

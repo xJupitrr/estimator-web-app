@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -77,15 +77,15 @@ const getInitialColumn = () => ({
     length_m: "",      // Empty default
     width_m: "",       // Empty default
     height_m: "",      // Empty default
-    main_bar_sku: '',     // Main Bar SKU (Diameter_Length)
-    main_bar_count: "",   // Empty default
+    main_rebar_cuts: [{ sku: '', length: '', quantity: '' }],
     tie_bar_sku: '',      // Lateral Tie SKU (Diameter_Length)
     tie_spacing_mm: "", // Empty default
+    isExcluded: false,
 });
 
 export default function Column({ columns: propColumns, setColumns: propSetColumns }) {
     // Use props if provided, otherwise use local state (for backward compatibility if used standalone)
-    const [localColumns, setLocalColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
+    const [localColumns, setLocalColumns] = useLocalStorage('column_elements', [getInitialColumn()]);
     const columns = propColumns || localColumns;
     const setColumns = propSetColumns || setLocalColumns;
     const [wastePct, setWastePct] = useState(5); // Concrete waste factor (for concrete materials only)
@@ -105,6 +105,31 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
 
     const [result, setResult] = useLocalStorage('column_result', null);
     const [error, setError] = useState(null);
+    const [editingCutsId, setEditingCutsId] = useState(null);
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    // Migration logic for old state
+    useEffect(() => {
+        const needsMigration = columns.some(c => !c.main_rebar_cuts);
+        if (needsMigration) {
+            setColumns(prev => prev.map(c => {
+                if (!c.main_rebar_cuts) {
+                    return {
+                        ...c,
+                        main_rebar_cuts: c.main_bar_sku ? [{ sku: c.main_bar_sku, length: '', quantity: c.main_bar_count }] : [{ sku: '', length: '', quantity: '' }]
+                    };
+                }
+                return c;
+            }));
+        }
+    }, [columns, setColumns]);
 
     const handleColumnChange = (id, field, value) => {
         setColumns(prev =>
@@ -115,6 +140,73 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
         );
         setResult(null);
         setError(null);
+    };
+
+    const updateRebarCut = (colId, index, subField, value) => {
+        setColumns(prev => prev.map(col => {
+            if (col.id === colId) {
+                const newCuts = [...(col.main_rebar_cuts || [{ sku: '', length: '', quantity: '' }])];
+                newCuts[index] = { ...newCuts[index], [subField]: value };
+                return { ...col, main_rebar_cuts: newCuts };
+            }
+            return col;
+        }));
+        setResult(null);
+    };
+
+    const addRebarCut = (colId) => {
+        setColumns(prev => prev.map(col => {
+            if (col.id === colId) {
+                return { ...col, main_rebar_cuts: [...(col.main_rebar_cuts || []), { sku: '', length: '', quantity: '' }] };
+            }
+            return col;
+        }));
+        setResult(null);
+    };
+
+    const removeRebarCut = (colId, index) => {
+        setColumns(prev => prev.map(col => {
+            if (col.id === colId) {
+                const cuts = col.main_rebar_cuts || [];
+                const newCuts = cuts.filter((_, i) => i !== index);
+                return { ...col, main_rebar_cuts: newCuts.length > 0 ? newCuts : [{ sku: '', length: '', quantity: '' }] };
+            }
+            return col;
+        }));
+        setResult(null);
+    };
+
+    const handleAddRowAbove = (id) => {
+        setColumns(prev => {
+            const index = prev.findIndex(c => c.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialColumn());
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setColumns(prev => {
+            const index = prev.findIndex(c => c.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setColumns(prev => prev.map(c => c.id === id ? { ...c, isExcluded: !c.isExcluded } : c));
+        setContextMenu(null);
+        setResult(null);
     };
 
     const handleAddRow = () => {
@@ -140,9 +232,8 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
             col.length_m === "" ||
             col.width_m === "" ||
             col.height_m === "" ||
-            col.main_bar_count === "" ||
+            (col.main_rebar_cuts || []).some(cut => cut.sku === "" || cut.quantity === "") ||
             col.tie_spacing_mm === "" ||
-            col.main_bar_sku === "" ||
             col.tie_bar_sku === ""
         );
 
@@ -180,8 +271,100 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
     }, [prices, wastePct]);
 
 
+    const activeColForCuts = columns.find(c => c.id === editingCutsId);
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* REBAR MODAL OVERLAY */}
+            {editingCutsId && activeColForCuts && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl border border-zinc-200 flex flex-col animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50 rounded-t-xl">
+                            <div>
+                                <h3 className="font-bold text-lg text-zinc-800">Manage Main Rebar</h3>
+                                <p className="text-xs text-zinc-500">Configure different sizes and quantities for this column.</p>
+                            </div>
+                            <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+                                <X size={20} className="text-zinc-500" />
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-3">
+                            {(activeColForCuts.main_rebar_cuts || [{ sku: '', quantity: '' }]).map((cut, idx) => (
+                                <div key={idx} className="flex items-center gap-3">
+                                    <span className="text-xs font-mono text-zinc-400 w-6">{idx + 1}</span>
+                                    <div className="flex-[2]">
+                                        <SelectInput
+                                            value={cut.sku}
+                                            onChange={(val) => updateRebarCut(activeColForCuts.id, idx, 'sku', val)}
+                                            options={availableRebarSKUs}
+                                            placeholder="Select SKU..."
+                                            focusColor="indigo"
+                                        />
+                                    </div>
+                                    <div className="w-28 text-center bg-slate-50 border border-slate-200 py-2 rounded text-xs font-medium text-slate-500">
+                                        {(parseFloat(activeColForCuts.height_m) + (40 * (parseInt(cut.sku.split('_')[0]) || 12) / 1000) || 0).toFixed(2)} m
+                                    </div>
+                                    <span className="text-zinc-400 text-xs text-center w-4">×</span>
+                                    <div className="w-24">
+                                        <MathInput
+                                            placeholder="Qty"
+                                            value={cut.quantity}
+                                            onChange={(val) => updateRebarCut(activeColForCuts.id, idx, 'quantity', val)}
+                                            className="w-full"
+                                        />
+                                    </div>
+                                    <span className="text-zinc-400 text-xs text-center w-8">pcs</span>
+                                    <button onClick={() => removeRebarCut(activeColForCuts.id, idx)} className="p-2 text-zinc-400 hover:text-red-500 transition-colors">
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                onClick={() => addRebarCut(activeColForCuts.id)}
+                                className="w-full py-2 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg text-xs font-bold uppercase hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2 mt-2"
+                            >
+                                <PlusCircle size={14} /> Add Rebar Set
+                            </button>
+                        </div>
+                        <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end rounded-b-xl">
+                            <button onClick={() => setEditingCutsId(null)} className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700 transition-colors">
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {columns.find(c => c.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
 
             {/* INPUT CARD */}
             <Card className="border-t-4 border-t-indigo-600 shadow-md">
@@ -206,7 +389,7 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[30px]" rowSpan="2">#</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]" rowSpan="2">Qty</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-blue-50 text-blue-900" colSpan="3">Dimensions (m)</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-orange-50 text-orange-900" colSpan="2">Main Rebar</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-orange-50 text-orange-900 w-[160px]" rowSpan="2">Main Rebar</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-emerald-50 text-emerald-900" colSpan="2">Ties</th>
                                 <th className="px-1 py-2 font-bold border border-slate-300 text-center w-[30px]" rowSpan="2"></th>
                             </tr>
@@ -216,8 +399,6 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                                 <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[70px] bg-blue-50/50">W</th>
                                 <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[70px] bg-blue-50/50">H</th>
                                 {/* Main Bars */}
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[85px] bg-orange-50/50">Size & Length</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[70px] bg-orange-50/50">Count</th>
                                 {/* Ties */}
                                 <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[85px] bg-emerald-50/50">Size & Length</th>
                                 <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[80px] bg-emerald-50/50">Space (mm)</th>
@@ -225,8 +406,24 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                         </thead>
                         <tbody>
                             {columns.map((col, index) => (
-                                <tr key={col.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold">{index + 1}</td>
+                                <tr
+                                    key={col.id}
+                                    className={`transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-slate-400 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: col.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${col.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
+                                    </td>
 
                                     {/* Qty */}
                                     <td className="p-2 border border-slate-300 align-middle">
@@ -241,16 +438,23 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.height_m} onChange={(v) => handleColumnChange(col.id, 'height_m', v)} placeholder="3.00" /></td>
 
                                     {/* Main Bars */}
-                                    <td className="p-2 border border-slate-300 align-middle bg-orange-50/20">
-                                        <SelectInput
-                                            value={col.main_bar_sku}
-                                            onChange={(val) => handleColumnChange(col.id, 'main_bar_sku', val)}
-                                            options={availableRebarSKUs}
-                                            placeholder="Select SKU..."
-                                            focusColor="indigo"
-                                        />
+                                    <td className="p-2 border border-slate-300 align-middle bg-orange-50/20 text-center">
+                                        <button
+                                            onClick={() => setEditingCutsId(col.id)}
+                                            className="px-3 py-1.5 bg-white hover:bg-orange-100 text-orange-600 hover:text-orange-700 rounded border border-orange-200 hover:border-orange-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]"
+                                        >
+                                            <Edit2 size={12} className="opacity-70 flex-shrink-0" />
+                                            <span className="truncate">
+                                                {(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length > 0
+                                                    ? (col.main_rebar_cuts || [])
+                                                        .filter(c => c.sku && c.quantity)
+                                                        .map(c => `${c.quantity}-${c.sku.split('_')[0]}mm`)
+                                                        .join(', ')
+                                                    : "Sets"
+                                                }
+                                            </span>
+                                        </button>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-orange-50/20"><TableNumberInput value={col.main_bar_count} onChange={(v) => handleColumnChange(col.id, 'main_bar_count', v)} placeholder="4" step="1" /></td>
 
                                     {/* Ties */}
                                     <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20">
@@ -288,7 +492,7 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
 
                 <div className="p-6 bg-slate-50 border-t border-gray-200 flex justify-end">
                     <button onClick={calculateMaterials} className="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-indigo-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> Calculate
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
             </Card>
@@ -378,7 +582,7 @@ export default function Column({ columns: propColumns, setColumns: propSetColumn
                         <Hammer size={32} className="text-indigo-500" />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Enter your column dimensions and reinforcement details, then click <span className="font-bold text-indigo-600">'Calculate'</span>.
+                        Enter your column dimensions and reinforcement details, then click <span className="font-bold text-indigo-600">'CALCULATE'</span>.
                     </p>
                 </div>
             )}

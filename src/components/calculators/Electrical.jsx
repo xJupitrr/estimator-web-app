@@ -158,7 +158,7 @@ export default function Electrical() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={handleCalculate} className="px-8 py-3 bg-yellow-600 text-white rounded-lg font-bold shadow-lg hover:bg-yellow-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Calculator size={18} /> Calculate Electrical
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
             </div>

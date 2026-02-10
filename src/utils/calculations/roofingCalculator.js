@@ -15,6 +15,7 @@ export const calculateRoofing = (rows, prices, settings) => {
     let isValid = false;
 
     rows.forEach(row => {
+        if (row.isExcluded) return;
         const Q = parseInt(row.quantity) || 0;
         const L = parseFloat(row.length_m) || 0;
         const W = parseFloat(row.width_m) || 0;

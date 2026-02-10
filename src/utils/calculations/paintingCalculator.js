@@ -17,6 +17,7 @@ export const calculatePainting = (walls, prices) => {
     if (!walls || walls.length === 0) return null;
 
     walls.forEach(wall => {
+        if (wall.isExcluded) return;
         const quantity = parseInt(wall.quantity) || 1;
         let rowArea = 0;
 

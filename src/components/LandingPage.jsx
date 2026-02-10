@@ -99,7 +99,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
                 {/* Primary Actions Command Center */}
                 <div className="flex flex-col sm:flex-row items-center gap-4 mb-24 w-full max-w-md">
                     <button
-                        onClick={() => setActiveCategory('structure')}
+                        onClick={() => onNavigate(tabs[0].id)}
                         className="group w-full relative overflow-hidden bg-blue-600 text-white px-8 py-4 rounded-sm font-bold text-sm tracking-widest uppercase transition-all hover:bg-blue-700 shadow-lg shadow-blue-200"
                     >
                         <span className="relative z-10 flex items-center justify-center gap-3">

@@ -27,6 +27,7 @@ export const calculateTiles = (areas, prices) => {
     if (!areas || areas.length === 0) return null;
 
     areas.forEach(area => {
+        if (area.isExcluded) return;
         const x_len = parseFloat(area.length_m) || 0; // Room Length (m)
         const y_len = parseFloat(area.width_m) || 0; // Room Width (m)
         const quantity = parseInt(area.quantity) || 1;

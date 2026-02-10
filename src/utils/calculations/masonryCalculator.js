@@ -16,6 +16,7 @@ export const calculateMasonry = (walls, wallPrices) => {
 
     // Validation Check handled by caller or generic check
     const validWalls = walls.filter(wall => {
+        if (wall.isExcluded) return false;
         const L = parseFloat(wall.length);
         const H = parseFloat(wall.height);
         return L > 0 && H > 0;

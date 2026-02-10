@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
 import MathInput from '../common/MathInput';
@@ -56,6 +56,7 @@ const getInitialWall = () => ({
     vertSpacing: "", // Spacing along the height (controls horizontal bars)
     horizRebarSpec: "", // 10mm x 6.0m
     vertRebarSpec: "", // 12mm x 6.0m
+    isExcluded: false,
 });
 
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
@@ -99,16 +100,46 @@ export default function Masonry() { // Renamed to Masonry
         setError(null);
     };
 
-    // Handler to remove a wall
-    const handleRemoveWall = (id) => {
-        if (walls.length > 1) {
-            setWalls(prevWalls => prevWalls.filter(wall => wall.id !== id));
-            setHasEstimated(false);
-            setWallResult(null);
-            setError(null);
-        } else {
-            setWalls([getInitialWall()]);
-        }
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleAddRowAbove = (id) => {
+        setWalls(prev => {
+            const index = prev.findIndex(w => w.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialWall());
+            return newRows;
+        });
+        setContextMenu(null);
+        setWallResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setWalls(prev => {
+            const index = prev.findIndex(w => w.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setWallResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setWalls(prev => prev.map(w => w.id === id ? { ...w, isExcluded: !w.isExcluded } : w));
+        setContextMenu(null);
+        setWallResult(null);
     };
 
     // Auto-update suggested price for the *first* wall when size changes
@@ -176,6 +207,37 @@ export default function Masonry() { // Renamed to Masonry
     return (
         <div className="space-y-6">
 
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {walls.find(w => w.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
+
             {/* INPUT CARD */}
             <Card className="border-t-4 border-t-orange-500 shadow-md">
                 <div className="p-4 bg-orange-50 border-b border-orange-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -214,10 +276,24 @@ export default function Masonry() { // Renamed to Masonry
                         </thead>
                         <tbody>
                             {walls.map((wall, index) => (
-                                <tr key={wall.id} className="bg-white hover:bg-slate-50 transition-colors">
+                                <tr
+                                    key={wall.id}
+                                    className={`transition-colors ${wall.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
                                     {/* Index */}
-                                    <td className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold">
-                                        {index + 1}
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: wall.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${wall.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
                                     </td>
                                     {/* Quantity */}
                                     <td className="p-2 border border-slate-300 align-middle">
@@ -352,7 +428,7 @@ export default function Masonry() { // Renamed to Masonry
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={calculateWall} className="w-full md:w-auto px-8 py-3 bg-orange-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-orange-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> Calculate
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
             </Card>
@@ -443,7 +519,7 @@ export default function Masonry() { // Renamed to Masonry
                         <Calculator size={32} className="text-orange-500" />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Enter your wall dimensions above, then click <span className="font-bold text-orange-600">'Calculate'</span> to generate the material list.
+                        Enter your wall dimensions above, then click <span className="font-bold text-orange-600">'CALCULATE'</span> to generate the material list.
                     </p>
                 </div>
             )}

@@ -499,7 +499,7 @@ export default function SteelTruss() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={calculateAll} className="w-full md:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-blue-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> Calculate Info
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
             </Card>
@@ -594,7 +594,7 @@ export default function SteelTruss() {
                         <Construction size={32} className="text-blue-500" />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Configure truss parts above, then click <span className="font-bold text-blue-600">'Calculate Info'</span> to compare results.
+                        Configure truss parts above, then click <span className="font-bold text-blue-600">'CALCULATE'</span> to compare results.
                     </p>
                 </div>
             )}

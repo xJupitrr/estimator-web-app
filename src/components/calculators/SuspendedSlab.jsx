@@ -1,10 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, CheckCircle2, XCircle } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, CheckCircle2, XCircle, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateSuspendedSlab, getSlabType, rebarDiameters, commonLengths, rebarOptions, DECKING_OPTIONS, FORMWORK_OPTIONS, SUPPORT_TYPES, DEFAULT_PRICES } from '../../utils/calculations/suspendedSlabCalculator';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+
+const Card = ({ children, className = "" }) => (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+        {children}
+    </div>
+);
+
+const TablePriceInput = ({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
+            ₱
+        </div>
+        <input
+            type="number"
+            value={value === null || value === undefined ? '' : String(value)}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
+        />
+    </div>
+);
 
 const getInitialSlab = () => ({
     id: Date.now() + Math.random(),
@@ -19,6 +39,7 @@ const getInitialSlab = () => ({
     support_type: "standard_shoring",
     formwork_type: "standard_forms",
     description: "",
+    isExcluded: false,
 });
 
 export default function SuspendedSlab() {
@@ -39,14 +60,46 @@ export default function SuspendedSlab() {
         setError(null);
     };
 
-    const handleRemoveSlab = (id) => {
-        if (slabs.length > 1) {
-            setSlabs(prev => prev.filter(s => s.id !== id));
-            setResult(null);
-            setError(null);
-        } else {
-            setSlabs([getInitialSlab()]);
-        }
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleAddRowAbove = (id) => {
+        setSlabs(prev => {
+            const index = prev.findIndex(s => s.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialSlab());
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setSlabs(prev => {
+            const index = prev.findIndex(s => s.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setSlabs(prev => prev.map(s => s.id === id ? { ...s, isExcluded: !s.isExcluded } : s));
+        setContextMenu(null);
+        setResult(null);
     };
 
     const performCalculation = () => {
@@ -86,7 +139,38 @@ export default function SuspendedSlab() {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-blue-600">
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {slabs.find(s => s.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
+
+            <Card className="border-t-4 border-t-blue-600 shadow-md">
                 <div className="p-4 bg-blue-50 border-b border-blue-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-blue-900 flex items-center gap-2">
                         <Layers size={18} /> Suspended Slab Configuration
@@ -118,8 +202,24 @@ export default function SuspendedSlab() {
                         </thead>
                         <tbody>
                             {slabs.map((slab, index) => (
-                                <tr key={slab.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 text-center text-xs text-slate-500 font-bold">{index + 1}</td>
+                                <tr
+                                    key={slab.id}
+                                    className={`transition-colors ${slab.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-slate-500 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: slab.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${slab.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
+                                    </td>
                                     <td className="p-2 border border-slate-300">
                                         <MathInput
                                             value={slab.quantity}
@@ -219,13 +319,13 @@ export default function SuspendedSlab() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={performCalculation} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Calculator size={18} /> Calculate Suspended Slab
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
-            </div>
+            </Card>
 
             {result && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-blue-600">
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-blue-600 mt-6">
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -270,15 +370,10 @@ export default function SuspendedSlab() {
                                                 <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                             </td>
                                             <td className="px-4 py-2">
-                                                <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-xs mr-1">₱</span>
-                                                    <input
-                                                        type="number"
-                                                        value={prices[item.priceKey] || 0}
-                                                        onChange={(e) => handlePriceChange(item.priceKey, e.target.value)}
-                                                        className="w-24 px-2 py-1 text-right text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-400 outline-none font-medium"
-                                                    />
-                                                </div>
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] || 0}
+                                                    onChange={(val) => handlePriceChange(item.priceKey, val)}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
                                                 ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -289,7 +384,7 @@ export default function SuspendedSlab() {
                             </table>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );

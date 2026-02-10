@@ -57,6 +57,7 @@ export const calculateCeiling = (rooms, prices, config = {}) => {
     const CARRYING_SPACING = 1.20;
 
     rooms.forEach(room => {
+        if (room.isExcluded) return;
         const L = parseFloat(room.length_m) || 0;
         const W = parseFloat(room.width_m) || 0;
         const qty = parseInt(room.quantity) || 1;

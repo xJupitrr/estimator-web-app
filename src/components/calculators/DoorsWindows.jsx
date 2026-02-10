@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, DoorOpen, AlertCircle, ClipboardCopy, Download } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, DoorOpen, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
@@ -56,6 +56,7 @@ const getInitialItem = () => ({
     customLeafPrice: "",
     customHardwarePrice: "",
     description: "",
+    isExcluded: false,
 });
 
 export default function DoorsWindows() {
@@ -95,6 +96,48 @@ export default function DoorsWindows() {
         }));
         setResult(null);
         setError(null);
+    };
+
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleAddRowAbove = (id) => {
+        setItems(prev => {
+            const index = prev.findIndex(item => item.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialItem());
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setItems(prev => {
+            const index = prev.findIndex(item => item.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setItems(prev => prev.map(item => item.id === id ? { ...item, isExcluded: !item.isExcluded } : item));
+        setContextMenu(null);
+        setResult(null);
     };
 
     const handleAddRow = () => {
@@ -152,6 +195,37 @@ export default function DoorsWindows() {
         <div className="space-y-6">
 
             {/* INPUT CARD */}
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {items.find(i => i.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
+
             <Card className="border-t-4 border-t-amber-600 shadow-md">
                 <div className="p-4 bg-amber-50 border-b border-amber-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-amber-900 flex items-center gap-2">
@@ -184,9 +258,23 @@ export default function DoorsWindows() {
                         </thead>
                         <tbody>
                             {items.map((item, index) => (
-                                <tr key={item.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold">
-                                        {index + 1}
+                                <tr
+                                    key={item.id}
+                                    className={`transition-colors ${item.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: item.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${item.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <TableNumberInput
@@ -273,7 +361,7 @@ export default function DoorsWindows() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button onClick={calculateMaterials} className="w-full md:w-auto px-8 py-3 bg-amber-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-amber-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> Calculate
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
             </Card>
@@ -374,7 +462,7 @@ export default function DoorsWindows() {
                         <DoorOpen size={32} className="text-amber-500" />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Enter your door/window specifications, then click <span className="font-bold text-amber-600">'Calculate'</span> to get itemized cost estimates.
+                        Enter your door/window specifications, then click <span className="font-bold text-amber-600">'CALCULATE'</span> to get itemized cost estimates.
                     </p>
                 </div>
             )}

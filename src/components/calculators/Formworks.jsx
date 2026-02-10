@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import { calculateFormworks, DEFAULT_PRICES, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
@@ -14,6 +14,7 @@ const getInitialRow = (data = {}) => ({
     description: data.description || "",
     plywood_type: data.plywood_type || 'phenolic_1_2',
     lumber_size: data.lumber_size || 'lumber_2x2',
+    isExcluded: false,
 });
 
 export default function Formworks({ columns = [], beams = [] }) {
@@ -27,6 +28,14 @@ export default function Formworks({ columns = [], beams = [] }) {
     const [includeBeams, setIncludeBeams] = useLocalStorage('formworks_include_beams', false);
     const [importPlywood, setImportPlywood] = useLocalStorage('formworks_import_plywood', 'phenolic_1_2');
     const [importLumber, setImportLumber] = useLocalStorage('formworks_import_lumber', 'lumber_2x3');
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
 
     const handleRowChange = (id, field, value) => {
         setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
@@ -45,6 +54,39 @@ export default function Formworks({ columns = [], beams = [] }) {
         } else {
             setRows([getInitialRow()]);
         }
+    };
+
+    const handleAddRowAbove = (id) => {
+        setRows(prev => {
+            const index = prev.findIndex(r => r.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, getInitialRow());
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleDuplicateRow = (id) => {
+        setRows(prev => {
+            const index = prev.findIndex(r => r.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setResult(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setRows(prev => prev.map(r => r.id === id ? { ...r, isExcluded: !r.isExcluded } : r));
+        setContextMenu(null);
+        setResult(null);
     };
 
     const performCalculation = () => {
@@ -142,6 +184,37 @@ export default function Formworks({ columns = [], beams = [] }) {
                 </div>
             </div>
 
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {rows.find(r => r.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-slate-700">
                 <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <h2 className="font-bold text-slate-900 flex items-center gap-2">
@@ -172,8 +245,24 @@ export default function Formworks({ columns = [], beams = [] }) {
                         </thead>
                         <tbody>
                             {rows.map((row, index) => (
-                                <tr key={row.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 text-center text-xs text-slate-400 font-bold">{index + 1}</td>
+                                <tr
+                                    key={row.id}
+                                    className={`transition-colors ${row.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                >
+                                    <td
+                                        className="p-2 border border-slate-300 text-center text-xs text-slate-400 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: row.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${row.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
+                                    </td>
                                     <td className="p-2 border border-slate-300">
                                         <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" />
                                     </td>
@@ -222,7 +311,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                         </label>
                     </div>
                     <button onClick={performCalculation} className="px-8 py-3 bg-slate-800 text-white rounded-lg font-bold shadow-lg hover:bg-slate-900 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-wide text-xs">
-                        <Calculator size={18} /> Calculate Formworks
+                        <Calculator size={18} /> CALCULATE
                     </button>
                 </div>
             </div>
@@ -233,11 +322,11 @@ export default function Formworks({ columns = [], beams = [] }) {
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Formwork Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
+                                <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
                             </div>
                             <div className="text-left md:text-right bg-slate-50 px-5 py-3 rounded-xl border border-slate-100">
                                 <p className="text-xs text-slate-500 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                <p className="font-bold text-4xl text-slate-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                <p className="font-bold text-4xl text-slate-700 tracking-tight">₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
                             </div>
                         </div>
 

@@ -331,7 +331,7 @@ export default function LintelBeam() {
                         disabled={lintelBeams.length === 0}
                         className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg font-bold shadow-lg hover:bg-purple-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 uppercase tracking-widest text-xs"
                     >
-                        <Calculator size={16} /> Calculate Materials
+                        <Calculator size={16} /> CALCULATE
                     </button>
                 </div>
             </Card>

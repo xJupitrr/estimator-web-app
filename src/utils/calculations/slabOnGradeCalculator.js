@@ -12,6 +12,7 @@ export const calculateSlabOnGrade = (slabs, prices) => {
 
     // Validation
     const validSlabs = slabs.filter(slab => {
+        if (slab.isExcluded) return false;
         const L = parseFloat(slab.length);
         const W = parseFloat(slab.width);
         const T = parseFloat(slab.thickness);
