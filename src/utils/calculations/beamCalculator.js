@@ -71,26 +71,26 @@ export const calculateBeam = (beams, prices) => {
     const wireMetersPerKg = 53;
 
     // Helpers within calculation scope
-    const addShortCutReq = (skuId, length, quantity) => {
+    const addRebarReq = (skuId, length, quantity, label) => {
         if (length <= 0 || quantity <= 0) return;
-        const { length: commercialLength } = getSkuDetails(skuId);
-        if (!rebarRequirements[skuId]) rebarRequirements[skuId] = { shortCuts: [], splicedBarsPieces: 0, commercialLength };
-        rebarRequirements[skuId].shortCuts.push({ length, quantity });
+        const { diameter, length: commercialLength } = getSkuDetails(skuId);
+        if (!rebarRequirements[skuId]) {
+            rebarRequirements[skuId] = {
+                cuts: [],
+                diameter,
+                commercialLength
+            };
+        }
+        rebarRequirements[skuId].cuts.push({ length, quantity, label });
     };
 
-    const addSplicedBarReq = (skuId, totalBars) => {
-        if (totalBars <= 0) return;
-        const { length: commercialLength } = getSkuDetails(skuId);
-        if (!rebarRequirements[skuId]) rebarRequirements[skuId] = { shortCuts: [], splicedBarsPieces: 0, commercialLength };
-        rebarRequirements[skuId].splicedBarsPieces += totalBars;
-    };
-
-    beams.forEach(col => {
+    beams.forEach((col, index) => {
         if (col.isExcluded) return;
         const qty = parseInt(col.quantity) || 1;
         const W_cross = parseFloat(col.length_m) || 0; // Width
         const D_cross = parseFloat(col.width_m) || 0;  // Depth
         const L_elem = parseFloat(col.height_m) || 0;  // Length
+        const beamLabel = `B${index + 1}`;
 
         if (W_cross <= 0 || D_cross <= 0 || L_elem <= 0) return;
 
@@ -107,7 +107,7 @@ export const calculateBeam = (beams, prices) => {
 
         // 3. Rebar - Main
         let mainCount = 0;
-        if (col.main_rebar_cuts && col.main_rebar_cuts.length > 0) {
+        if (col.main_rebar_cuts && col.main_rebar_cuts.length > 0 && col.main_rebar_cuts.some(c => c.sku)) {
             col.main_rebar_cuts.forEach(cut => {
                 const skuId = cut.sku;
                 const count = parseInt(cut.quantity) || 0;
@@ -115,46 +115,26 @@ export const calculateBeam = (beams, prices) => {
 
                 if (skuId && count > 0) {
                     mainCount += count;
-                    const { diameter, length: commercialLength } = getSkuDetails(skuId);
+                    const { diameter } = getSkuDetails(skuId);
                     if (isNaN(len) || len <= 0) {
                         const mainDiaM = diameter / 1000;
                         const L_dev = L_ANCHOR_DEV_FACTOR * mainDiaM;
                         len = L_elem + (2 * L_dev);
                     }
-
-                    if (len > commercialLength && commercialLength > 0) {
-                        // Spliced
-                        const mainDiaM = diameter / 1000;
-                        const spliceLength = L_ANCHOR_DEV_FACTOR * mainDiaM;
-                        const effectiveLengthPerAdditionalBar = commercialLength - spliceLength;
-                        const barsPerRun = effectiveLengthPerAdditionalBar > 0
-                            ? Math.ceil((len - commercialLength) / effectiveLengthPerAdditionalBar) + 1
-                            : Math.ceil(len / commercialLength);
-                        addSplicedBarReq(skuId, barsPerRun * count * qty);
-                    } else {
-                        addShortCutReq(skuId, len, count * qty);
-                    }
+                    addRebarReq(skuId, len, count * qty, `${beamLabel} Main`);
                 }
             });
         } else if (col.main_bar_sku) {
-            // Fallback for old state
+            // Robust Fallback for old state or legacy data
             const mainSkuDetails = getSkuDetails(col.main_bar_sku);
             const mainDiaM = mainSkuDetails.diameter / 1000;
             const L_dev = L_ANCHOR_DEV_FACTOR * mainDiaM;
             mainCount = parseInt(col.main_bar_count) || 4;
             const totalMainPieces = mainCount * qty;
+            const len = L_elem + (2 * L_dev);
 
-            if (L_elem > mainSkuDetails.length) {
-                // Spliced
-                const spliceLength = L_ANCHOR_DEV_FACTOR * mainDiaM;
-                const effectiveLengthPerAdditionalBar = mainSkuDetails.length - spliceLength;
-                const barsPerRun = effectiveLengthPerAdditionalBar > 0
-                    ? Math.ceil((L_elem - mainSkuDetails.length) / effectiveLengthPerAdditionalBar) + 1
-                    : Math.ceil(L_elem / mainSkuDetails.length);
-                addSplicedBarReq(col.main_bar_sku, barsPerRun * totalMainPieces);
-            } else {
-                // Not Spliced (Add 2x Development Length)
-                addShortCutReq(col.main_bar_sku, L_elem + (2 * L_dev), totalMainPieces);
+            if (mainSkuDetails.diameter > 0) {
+                addRebarReq(col.main_bar_sku, len, totalMainPieces, `${beamLabel} Main`);
             }
         }
 
@@ -168,9 +148,9 @@ export const calculateBeam = (beams, prices) => {
         if (W_tie > 0 && D_tie > 0) {
             const spacingM = (parseFloat(col.tie_spacing_mm) || 150) / 1000;
             const tiesPerBeam = Math.ceil(L_elem / spacingM) + 1;
-            addShortCutReq(col.tie_bar_sku, tieCutLength, tiesPerBeam * qty);
+            addRebarReq(col.tie_bar_sku, tieCutLength, tiesPerBeam * qty, `${beamLabel} Stirrup`);
 
-            // Tie Wire calculations: calculate total number of bars passing through this tie
+            // Tie Wire calculations
             const supportBarsCount = (col.cut_support_cuts || []).reduce((sum, c) => sum + (parseInt(c.quantity) || 0), 0);
             const midspanBarsCount = (col.cut_midspan_cuts || []).reduce((sum, c) => sum + (parseInt(c.quantity) || 0), 0);
 
@@ -189,17 +169,7 @@ export const calculateBeam = (beams, prices) => {
                     const L_dev_sup = L_ANCHOR_DEV_FACTOR * (supportDetails.diameter / 1000);
                     const reqLen = (0.3 * L_elem) + (2 * L_dev_sup);
                     const totalPieces = qtyPerPos * qty * 2; // 2 supports
-
-                    if (reqLen > supportDetails.length) {
-                        const spliceLength = L_ANCHOR_DEV_FACTOR * (supportDetails.diameter / 1000);
-                        const effectiveLengthPerAdditionalBar = supportDetails.length - spliceLength;
-                        const barsPerRun = effectiveLengthPerAdditionalBar > 0
-                            ? Math.ceil((reqLen - supportDetails.length) / effectiveLengthPerAdditionalBar) + 1
-                            : Math.ceil(reqLen / supportDetails.length);
-                        addSplicedBarReq(skuId, barsPerRun * totalPieces);
-                    } else {
-                        addShortCutReq(skuId, reqLen, totalPieces);
-                    }
+                    addRebarReq(skuId, reqLen, totalPieces, `${beamLabel} Top Bar`);
                 }
             });
         }
@@ -214,17 +184,7 @@ export const calculateBeam = (beams, prices) => {
                     const L_dev_mid = L_ANCHOR_DEV_FACTOR * (midDetails.diameter / 1000);
                     const reqLen = (0.4 * L_elem) + (2 * L_dev_mid);
                     const totalPieces = qtyPerPos * qty;
-
-                    if (reqLen > midDetails.length) {
-                        const spliceLength = L_ANCHOR_DEV_FACTOR * (midDetails.diameter / 1000);
-                        const effectiveLengthPerAdditionalBar = midDetails.length - spliceLength;
-                        const barsPerRun = effectiveLengthPerAdditionalBar > 0
-                            ? Math.ceil((reqLen - midDetails.length) / effectiveLengthPerAdditionalBar) + 1
-                            : Math.ceil(reqLen / midDetails.length);
-                        addSplicedBarReq(skuId, barsPerRun * totalPieces);
-                    } else {
-                        addShortCutReq(skuId, reqLen, totalPieces);
-                    }
+                    addRebarReq(skuId, reqLen, totalPieces, `${beamLabel} Bot Bar`);
                 }
             });
         }
@@ -258,18 +218,30 @@ export const calculateBeam = (beams, prices) => {
 
     // Rebar Yield Processing
     Object.keys(rebarRequirements).forEach(skuId => {
-        const { shortCuts, splicedBarsPieces, commercialLength } = rebarRequirements[skuId];
-        const { diameter, priceKey } = getSkuDetails(skuId);
+        const { cuts, diameter, commercialLength } = rebarRequirements[skuId];
+        const { priceKey } = getSkuDetails(skuId);
 
-        let totalBars = splicedBarsPieces;
+        if (cuts.length > 0) {
+            const spliceLen = 40 * (diameter / 1000); // 40d splice
+            const optimization = optimizeCuts(cuts, commercialLength, 0.005, spliceLen);
+            const totalBars = optimization.barsRequired;
 
-        if (shortCuts.length > 0) {
-            // Optimize all short cuts for this SKU
-            const optimization = optimizeCuts(shortCuts, commercialLength, 0.005);
-            totalBars += optimization.barsRequired;
+            if (totalBars > 0) {
+                const name = `Corrugated Rebar (${diameter}mm x ${commercialLength}m)`;
+                const price = prices[priceKey] !== undefined ? parseFloat(prices[priceKey]) : 200;
+                const total = totalBars * price;
+                subTotal += total;
+                items.push({
+                    name,
+                    qty: totalBars,
+                    unit: "pcs",
+                    priceKey,
+                    price,
+                    total,
+                    optimization // Store full optimization for UI
+                });
+            }
         }
-
-        if (totalBars > 0) addItem(`Corrugated Rebar (${diameter}mm x ${commercialLength}m)`, totalBars, "pcs", priceKey, 200);
     });
 
     addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);

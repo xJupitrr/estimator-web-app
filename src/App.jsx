@@ -44,6 +44,37 @@ const TABS = [
     { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
 ];
 
+const TAB_CATEGORIES = [
+    {
+        title: "Structure",
+        id: "structure",
+        code: "STR-01",
+        color: "blue",
+        tabs: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'lintel-beam', 'steel-truss', 'roofing']
+    },
+    {
+        title: "Finishes",
+        id: "finishes",
+        code: "FIN-02",
+        color: "emerald",
+        tabs: ['masonry', 'doors-windows', 'ceiling', 'tiles', 'painting']
+    },
+    {
+        title: "Auxiliary",
+        id: "auxiliary",
+        code: "AUX-03",
+        color: "amber",
+        tabs: ['formworks']
+    },
+    {
+        title: "MEP Works",
+        id: "mep",
+        code: "MEP-04",
+        color: "yellow",
+        tabs: ['electrical', 'plumbing']
+    }
+];
+
 const getInitialColumn = () => ({
     id: Date.now() + Math.random(),
     quantity: 1,
@@ -434,28 +465,45 @@ export default function App() {
 
                 {/* Right Sidebar Tabs - Only show when NOT on home */}
                 {activeTabId !== 'home' && (
-                    <aside className="w-64 flex-shrink-0 hidden md:block">
-                        <div className="sticky top-24 space-y-2">
-
-                            {TABS.map((tab) => {
-                                const Icon = tab.icon;
-                                const isActive = activeTabId === tab.id;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTabId(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all duration-200 border ${isActive
-                                            ? 'bg-white border-blue-500 text-blue-700 shadow-md translate-x-1'
-                                            : 'bg-transparent border-transparent text-slate-500 hover:bg-white hover:border-slate-200 hover:shadow-sm'
-                                            }`}
-                                    >
-                                        <div className={`p-1.5 rounded-md ${isActive ? 'bg-blue-100' : 'bg-slate-100'}`}>
-                                            <Icon size={18} className={isActive ? 'text-blue-600' : 'text-slate-500'} />
+                    <aside className="w-64 flex-shrink-0 hidden lg:block">
+                        <div className="sticky top-24 space-y-6">
+                            {TAB_CATEGORIES.map((category) => (
+                                <div key={category.id} className="space-y-2">
+                                    <div className="flex items-center justify-between px-2 mb-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-1 h-3 rounded-full bg-${category.tabs.some(id => id === activeTabId) ? category.color : 'zinc'}-500 transition-colors`}></div>
+                                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400">
+                                                {category.title}
+                                            </span>
                                         </div>
-                                        {tab.label}
-                                    </button>
-                                )
-                            })}
+                                        <span className="text-[9px] font-mono text-zinc-300">{category.code}</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {category.tabs.map((tabId) => {
+                                            const tab = TABS.find(t => t.id === tabId);
+                                            if (!tab) return null;
+                                            const Icon = tab.icon;
+                                            const isActive = activeTabId === tab.id;
+                                            return (
+                                                <button
+                                                    key={tab.id}
+                                                    onClick={() => setActiveTabId(tab.id)}
+                                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-sm text-[11px] font-bold transition-all duration-200 border uppercase tracking-wider ${isActive
+                                                        ? `bg-white border-${category.color}-500 text-${category.color}-700 shadow-sm translate-x-1`
+                                                        : 'bg-transparent border-transparent text-zinc-500 hover:bg-zinc-100/50 hover:text-zinc-900'
+                                                        }`}
+                                                >
+                                                    <div className={`p-1 rounded-sm ${isActive ? `bg-${category.color}-50` : 'bg-transparent opacity-60'}`}>
+                                                        <Icon size={14} className={isActive ? `text-${category.color}-600` : 'text-zinc-400'} />
+                                                    </div>
+                                                    {tab.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="h-px bg-zinc-100 mx-2"></div>
+                                </div>
+                            ))}
                         </div>
                     </aside>
                 )}

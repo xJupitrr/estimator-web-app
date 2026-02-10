@@ -58,6 +58,7 @@ export const calculateElectrical = (data, prices) => {
     const directItems = {};
 
     data.forEach(row => {
+        if (row.isExcluded) return;
         const qty = parseInt(row.quantity) || 0;
         if (qty <= 0) return;
 

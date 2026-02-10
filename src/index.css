@@ -16,3 +16,61 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Professional Print Styles for Structural Plans */
+@media print {
+  @page {
+    margin: 1cm;
+    size: auto;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  /* The printable area logic */
+  .printable-area, 
+  .printable-area * {
+    visibility: visible !important;
+  }
+  
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Hide UI elements within printable area */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Force high-contrast for readability */
+  .bg-zinc-900 {
+    background-color: black !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .bg-zinc-50, .bg-zinc-100 {
+    background-color: transparent !important;
+    border-color: #ccc !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  
+  th, td {
+    border: 1px solid #000 !important;
+    color: black !important;
+  }
+
+  /* Visual bars don't print well as background colors usually, 
+     but we can try to force them or just rely on the table data. */
+}

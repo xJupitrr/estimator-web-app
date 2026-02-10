@@ -79,7 +79,7 @@ export default function Masonry() { // Renamed to Masonry
 
     const [wallResult, setWallResult] = useLocalStorage('masonry_result', null);
     // Track if an estimate has been run at least once to enable auto-recalc
-    const [hasEstimated, setHasEstimated] = useState(false);
+    const [hasEstimated, setHasEstimated] = useLocalStorage('masonry_has_estimated', false);
     const [error, setError] = useState(null);
 
     // Handler to update a specific wall in the array

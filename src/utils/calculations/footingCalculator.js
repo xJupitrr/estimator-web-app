@@ -20,6 +20,7 @@ export const calculateFooting = (footings, prices) => {
     let totalSandCum = 0;
     let totalGravelCum = 0;
     let totalRebarPcs = {};
+    let rebarGroups = {}; // New: Track individual cuts per specification
 
     if (!footings || footings.length === 0) return null;
 
@@ -49,13 +50,50 @@ export const calculateFooting = (footings, prices) => {
         const countX = parseInt(f.rebar_x_count) || 0;
         const countY = parseInt(f.rebar_y_count) || 0;
 
-        const totalLenX = (X + 0.2) * countX * Q; // 0.2 for hooks
-        const totalLenY = (Y + 0.2) * countY * Q;
-
-        const totalPcs = Math.ceil((totalLenX + totalLenY) / commLen);
+        // Individual cut lengths with hooks (0.1m per side = 0.2m total hook)
+        const cutX = X + 0.2;
+        const cutY = Y + 0.2;
 
         const priceKey = `rebar${diameter}`;
-        if (!totalRebarPcs[priceKey]) totalRebarPcs[priceKey] = { qty: 0, name: `Corrugated Rebar (${sizeStr})`, size: diameter };
+        if (!totalRebarPcs[priceKey]) {
+            totalRebarPcs[priceKey] = {
+                qty: 0,
+                name: `Corrugated Rebar (${sizeStr})`,
+                size: diameter
+            };
+        }
+
+        // Tracking cuts for optimization
+        if (!rebarGroups[spec]) {
+            rebarGroups[spec] = {
+                type: 'rebar',
+                size: sizeStr,
+                thickness: '', // Not applicable but matching steel truss structure
+                specKey: priceKey,
+                stockLength: commLen,
+                cuts: []
+            };
+        }
+
+        if (countX > 0) {
+            rebarGroups[spec].cuts.push({
+                length: cutX,
+                quantity: countX * Q,
+                label: f.description || `Footing ${f.id.toString().slice(-4)} (X)`
+            });
+        }
+        if (countY > 0) {
+            rebarGroups[spec].cuts.push({
+                length: cutY,
+                quantity: countY * Q,
+                label: f.description || `Footing ${f.id.toString().slice(-4)} (Y)`
+            });
+        }
+
+        // Existing simplified piece calculation for summary
+        const totalLenX = cutX * countX * Q;
+        const totalLenY = cutY * countY * Q;
+        const totalPcs = Math.ceil((totalLenX + totalLenY) / commLen);
         totalRebarPcs[priceKey].qty += totalPcs;
     });
 
@@ -85,6 +123,7 @@ export const calculateFooting = (footings, prices) => {
     return {
         volume: totalConcreteVol.toFixed(2),
         items: items,
-        total: totalCost
+        total: totalCost,
+        rebarGroups: rebarGroups
     };
 };

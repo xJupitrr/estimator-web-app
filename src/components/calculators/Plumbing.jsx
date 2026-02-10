@@ -42,9 +42,20 @@ const PLUMBING_ITEMS = {
         { id: 'sink', label: 'Kitchen Sink' },
         { id: 'shower', label: 'Shower' },
         { id: 'hose_bibb', label: 'Hose Bibb / Faucet' },
-        { id: 'floor_drain', label: 'Floor Drain' },
+        { id: 'floor_drain', label: 'Floor Drain (4x4)' },
         { id: 'roof_drain', label: 'Roof Drain' },
         { id: 'catch_basin', label: 'Catch Basin' },
+        { id: 'urinal', label: 'Urinal (Wall-hung)' },
+        { id: 'bidet', label: 'Bidet Spray' },
+        { id: 'bathtub', label: 'Bathtub (Standard)' },
+        { id: 'grease_trap', label: 'Grease Trap' },
+        { id: 'water_heater_single', label: 'Water Heater (Single Point)' },
+        { id: 'water_heater_multi', label: 'Water Heater (Multi Point)' },
+        { id: 'kitchen_faucet', label: 'Kitchen Faucet (Gooseneck)' },
+        { id: 'lavatory_faucet', label: 'Lavatory Faucet' },
+        { id: 'angle_valve', label: 'Angle Valve (1/2"x1/2")' },
+        { id: 'flex_hose', label: 'Flexible Hose (Stainless)' },
+        { id: 'laundry_tray', label: 'Laundry Tray' },
     ],
     waterline: [
         // 20mm Group (1/2")
@@ -370,7 +381,7 @@ export default function Plumbing() {
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Plumbing Result</h3>
                                 <p className="text-sm text-gray-500 mt-1 italic flex items-center gap-1">
-                                    <Info size={14} /> Estimates include rough-in piping & fittings
+                                    <Info size={14} /> Estimates reflect selected items only (excludes automatic rough-ins)
                                 </p>
                             </div>
                             <div className="text-left md:text-right bg-blue-50 px-5 py-3 rounded-xl border border-blue-100">

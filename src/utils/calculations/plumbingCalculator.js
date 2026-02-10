@@ -76,6 +76,17 @@ export const DEFAULT_PRICES = {
     floor_drain: 140,
     roof_drain: 380,
     catch_basin: 1200,
+    urinal_set: 4500,
+    bidet_set: 850,
+    bathtub_set: 18000,
+    grease_trap: 3200,
+    water_heater_single: 6500,
+    water_heater_multi: 11500,
+    kitchen_faucet: 1200,
+    lavatory_faucet: 950,
+    angle_valve: 280,
+    flex_hose: 220,
+    laundry_tray: 2500,
 };
 
 /**
@@ -106,6 +117,17 @@ export const calculatePlumbing = (data, prices) => {
         floor_drain: 0,
         roof_drain: 0,
         catch_basin: 0,
+        urinal_set: 0,
+        bidet_set: 0,
+        bathtub_set: 0,
+        grease_trap: 0,
+        water_heater_single: 0,
+        water_heater_multi: 0,
+        kitchen_faucet: 0,
+        lavatory_faucet: 0,
+        angle_valve: 0,
+        flex_hose: 0,
+        laundry_tray: 0,
     };
 
     data.forEach(row => {
@@ -117,44 +139,26 @@ export const calculatePlumbing = (data, prices) => {
         const item = row.type || row.item;
 
         if (cat === 'fixtures') {
-            // AUTOMATED ROUGH-IN LOGIC
-            if (item === 'wc') {
-                fixtureCounts.wc_set += qty;
-                total_ppr_20mm_m += (3 * qty);
-                total_pvc_100mm_m += (4 * qty);
-                total_pvc_50mm_m += (2 * qty); // vent
-            }
-            else if (item === 'lavatory') {
-                fixtureCounts.lav_set += qty;
-                total_ppr_20mm_m += (3 * qty);
-                total_pvc_50mm_m += (3 * qty);
-            }
-            else if (item === 'sink') {
-                fixtureCounts.sink_set += qty;
-                total_ppr_20mm_m += (4 * qty);
-                total_pvc_50mm_m += (4 * qty);
-            }
-            else if (item === 'shower') {
-                fixtureCounts.shower_set += qty;
-                total_ppr_20mm_m += (5 * qty);
-                total_pvc_50mm_m += (3 * qty);
-            }
-            else if (item === 'hose_bibb') {
-                fixtureCounts.hose_bibb += qty;
-                total_ppr_20mm_m += (6 * qty);
-            }
-            else if (item === 'floor_drain') {
-                fixtureCounts.floor_drain += qty;
-                total_pvc_50mm_m += (2 * qty);
-            }
-            else if (item === 'roof_drain') {
-                fixtureCounts.roof_drain += qty;
-                total_pvc_100mm_m += (4 * qty);
-            }
-            else if (item === 'catch_basin') {
-                fixtureCounts.catch_basin += qty;
-                total_pvc_100mm_m += (5 * qty);
-            }
+            // Updated: Removed automated rough-in pipe logic. Only count the fixture itself.
+            if (item === 'wc') fixtureCounts.wc_set += qty;
+            else if (item === 'lavatory') fixtureCounts.lav_set += qty;
+            else if (item === 'sink') fixtureCounts.sink_set += qty;
+            else if (item === 'shower') fixtureCounts.shower_set += qty;
+            else if (item === 'hose_bibb') fixtureCounts.hose_bibb += qty;
+            else if (item === 'floor_drain') fixtureCounts.floor_drain += qty;
+            else if (item === 'roof_drain') fixtureCounts.roof_drain += qty;
+            else if (item === 'catch_basin') fixtureCounts.catch_basin += qty;
+            else if (item === 'urinal') fixtureCounts.urinal_set += qty;
+            else if (item === 'bidet') fixtureCounts.bidet_set += qty;
+            else if (item === 'bathtub') fixtureCounts.bathtub_set += qty;
+            else if (item === 'grease_trap') fixtureCounts.grease_trap += qty;
+            else if (item === 'water_heater_single') fixtureCounts.water_heater_single += qty;
+            else if (item === 'water_heater_multi') fixtureCounts.water_heater_multi += qty;
+            else if (item === 'kitchen_faucet') fixtureCounts.kitchen_faucet += qty;
+            else if (item === 'lavatory_faucet') fixtureCounts.lavatory_faucet += qty;
+            else if (item === 'angle_valve') fixtureCounts.angle_valve += qty;
+            else if (item === 'flex_hose') fixtureCounts.flex_hose += qty;
+            else if (item === 'laundry_tray') fixtureCounts.laundry_tray += qty;
         } else {
             // MANUAL MATERIAL ENTRY
             materialCounts[item] = (materialCounts[item] || 0) + qty;
@@ -170,33 +174,31 @@ export const calculatePlumbing = (data, prices) => {
     };
 
     // Fixtures
-    addItem('wc_set', fixtureCounts.wc_set, 'sets', "Water Closet Set (Complete)");
-    addItem('lav_set', fixtureCounts.lav_set, 'sets', "Lavatory Set w/ Faucet");
-    addItem('sink_set', fixtureCounts.sink_set, 'sets', "Kitchen Sink w/ Faucet");
-    addItem('shower_set', fixtureCounts.shower_set, 'sets', "Shower Head & Valve Set");
+    addItem('wc_set', fixtureCounts.wc_set, 'sets', "Water Closet (WC)");
+    addItem('lav_set', fixtureCounts.lav_set, 'sets', "Lavatory");
+    addItem('sink_set', fixtureCounts.sink_set, 'sets', "Kitchen Sink");
+    addItem('shower_set', fixtureCounts.shower_set, 'sets', "Shower");
     addItem('hose_bibb', fixtureCounts.hose_bibb, 'pcs', "Hose Bibb / Faucet");
     addItem('floor_drain', fixtureCounts.floor_drain, 'pcs', "Floor Drain (4x4)");
-    addItem('roof_drain', fixtureCounts.roof_drain, 'pcs', "Roof Drain (Dome Type)");
-    addItem('catch_basin', fixtureCounts.catch_basin, 'pcs', "Pre-cast / Built-in Catch Basin");
+    addItem('roof_drain', fixtureCounts.roof_drain, 'pcs', "Roof Drain");
+    addItem('catch_basin', fixtureCounts.catch_basin, 'pcs', "Catch Basin");
+    addItem('urinal_set', fixtureCounts.urinal_set, 'sets', "Urinal (Wall-hung)");
+    addItem('bidet_set', fixtureCounts.bidet_set, 'sets', "Bidet Spray");
+    addItem('bathtub_set', fixtureCounts.bathtub_set, 'sets', "Bathtub (Standard)");
+    addItem('grease_trap', fixtureCounts.grease_trap, 'pcs', "Grease Trap");
+    addItem('water_heater_single', fixtureCounts.water_heater_single, 'sets', "Water Heater (Single Point)");
+    addItem('water_heater_multi', fixtureCounts.water_heater_multi, 'sets', "Water Heater (Multi Point)");
+    addItem('kitchen_faucet', fixtureCounts.kitchen_faucet, 'pcs', "Kitchen Faucet (Gooseneck)");
+    addItem('lavatory_faucet', fixtureCounts.lavatory_faucet, 'pcs', "Lavatory Faucet");
+    addItem('angle_valve', fixtureCounts.angle_valve, 'pcs', "Angle Valve (1/2\"x1/2\")");
+    addItem('flex_hose', fixtureCounts.flex_hose, 'pcs', "Flexible Hose (Stainless)");
+    addItem('laundry_tray', fixtureCounts.laundry_tray, 'pcs', "Laundry Tray");
 
-    // Merge manual material counts with auto-calc'd piping
-    // Convert accumulated meters to pieces
-    const ppr_pcs = Math.ceil(total_ppr_20mm_m / 4);
-    const pvc_100_pcs = Math.ceil(total_pvc_100mm_m / 3);
-    const pvc_75_pcs = Math.ceil(total_pvc_75mm_m / 3);
-    const pvc_50_pcs = Math.ceil(total_pvc_50mm_m / 3);
-
-    // Sum up
+    // Merge manual material counts
     const finalMaterialCounts = { ...materialCounts };
-    if (ppr_pcs > 0) finalMaterialCounts.ppr_pipe_20mm = (finalMaterialCounts.ppr_pipe_20mm || 0) + ppr_pcs;
-    if (pvc_100_pcs > 0) finalMaterialCounts.pvc_pipe_100mm = (finalMaterialCounts.pvc_pipe_100mm || 0) + pvc_100_pcs;
-    if (pvc_75_pcs > 0) finalMaterialCounts.pvc_pipe_75mm = (finalMaterialCounts.pvc_pipe_75mm || 0) + pvc_75_pcs;
-    if (pvc_50_pcs > 0) finalMaterialCounts.pvc_pipe_50mm = (finalMaterialCounts.pvc_pipe_50mm || 0) + pvc_50_pcs;
 
-    // Rough Estimated Fittings for Auto-Calc'd fixtures
-    if (total_ppr_20mm_m > 0) finalMaterialCounts.ppr_elbow_90_20mm = (finalMaterialCounts.ppr_elbow_90_20mm || 0) + Math.ceil(total_ppr_20mm_m * 1.5);
-    if (fixtureCounts.wc_set > 0) finalMaterialCounts.pvc_elbow_90_100mm = (finalMaterialCounts.pvc_elbow_90_100mm || 0) + (fixtureCounts.wc_set * 2);
-    if (total_pvc_50mm_m > 0) finalMaterialCounts.pvc_elbow_90_50mm = (finalMaterialCounts.pvc_elbow_90_50mm || 0) + Math.ceil(total_pvc_50mm_m);
+    // Set pieces for manual entries (using default piece logic if they were added via manual selection)
+    // Note: Since we removed auto-calc, finalMaterialCounts only contains what the user manually added in the table.
 
     // Dynamic Material List Output
     Object.entries(finalMaterialCounts).forEach(([key, qty]) => {

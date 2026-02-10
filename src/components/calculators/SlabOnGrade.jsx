@@ -49,7 +49,7 @@ export default function SlabOnGrade() {
         tieWire: 110,
     });
     const [result, setResult] = useLocalStorage('slab_result', null);
-    const [hasEstimated, setHasEstimated] = useState(false);
+    const [hasEstimated, setHasEstimated] = useLocalStorage('slab_has_estimated', false);
     const [error, setError] = useState(null);
 
     const handleSlabChange = (id, field, value) => {
