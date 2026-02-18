@@ -37,17 +37,18 @@ const TableNumberInput = React.memo(({ value, onChange, placeholder, className =
     />
 ));
 
-const TablePriceInput = React.memo(({ value, onChange, placeholder = "0.00" }) => (
-    <div className="flex items-center justify-end relative">
-        <span className="absolute left-2 text-gray-400 font-bold text-[10px] pointer-events-none">₱</span>
+const TablePriceInput = React.memo(({ value, onChange }) => (
+    <div className="flex items-center justify-end">
+        {/* Peso Sign Segment */}
+        <div className="bg-slate-100/50 px-2 py-1.5 text-slate-600 text-sm font-bold flex items-center border border-slate-300 rounded-l border-r-0 h-full">
+            ₱
+        </div>
+        {/* Input Field Segment */}
         <input
             type="number"
-            min="0"
-            step="0.01"
-            placeholder={placeholder}
-            value={value === null || value === undefined ? '' : value}
+            value={value === null || value === undefined ? '' : String(value)}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full pl-6 pr-2 py-1 text-right text-sm border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors"
+            className="w-24 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
         />
     </div>
 ));
@@ -97,7 +98,6 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     // Logic to prefer props if provided (from App globally) or local storage
     const columns = propColumns || localColumns;
     const setColumns = propSetColumns || setLocalColumns;
-    const [wastePct, setWastePct] = useState(5);
 
     const [prices, setPrices] = useLocalStorage('column_prices', {
         cement: 240,
@@ -214,13 +214,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     const result = useMemo(() => {
         if (!showResult) return null;
         try {
-            return calculateColumn(columns, prices, wastePct);
+            return calculateColumn(columns, prices);
         } catch (err) {
             console.error(err);
             setError("Calculation error. Check inputs.");
             return null;
         }
-    }, [columns, prices, wastePct, showResult]);
+    }, [columns, prices, showResult]);
 
     useEffect(() => {
         if (result) setSessionData('column_total', result.grandTotal);
@@ -239,67 +239,33 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 
     return (
         <div className="space-y-6 relative animate-in fade-in duration-700">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div className="flex items-center gap-4">
-                    <div className="bg-indigo-600 p-3 rounded-lg shadow-lg shadow-indigo-100">
-                        <Columns className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>RC Column</h2>
-                        <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mt-0.5">Structural Estimation System STR-COL-03</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-end border-r pr-6 border-slate-100">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Concrete Waste</span>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                value={wastePct}
-                                onChange={(e) => {
-                                    setWastePct(parseFloat(e.target.value) || 0);
-                                    setShowResult(false);
-                                }}
-                                className="w-12 text-right font-bold text-indigo-600 bg-transparent outline-none focus:ring-0"
-                            />
-                            <span className="text-sm font-bold text-slate-400 font-mono">%</span>
-                        </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Generated</span>
-                        <span className="text-xs font-mono font-bold text-slate-900">{new Date().toLocaleDateString()}</span>
-                    </div>
-                </div>
-            </div>
-
             <Card className="border-t-4 border-t-indigo-600 shadow-md">
-                <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wide text-xs">
-                        <Settings size={18} className="text-indigo-600" /> Column Configuration ({columns.length} Items)
+                <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <h2 className="font-bold text-indigo-900 flex items-center gap-2">
+                        <Settings size={18} /> Column Configuration ({columns.length} Total)
                     </h2>
-                    <button onClick={addColumn} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded text-[10px] font-bold uppercase hover:bg-indigo-700 transition-all active:scale-95 shadow-md tracking-widest">
-                        <PlusCircle size={14} /> Add Mark
+                    <button onClick={addColumn} className="flex items-center gap-1 px-4 py-2 bg-indigo-600 text-white rounded-md text-xs font-bold hover:bg-indigo-700 transition-colors active:scale-95 shadow-sm">
+                        <PlusCircle size={14} /> Add Row
                     </button>
                 </div>
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full border-collapse border border-slate-200 rounded-lg min-w-[800px]">
-                        <thead>
-                            <tr className="bg-slate-100 uppercase text-[10px] font-bold text-slate-600">
-                                <th className="p-3 text-center border border-slate-200 w-12" rowSpan="2">#</th>
-                                <th className="p-3 text-center border border-slate-200 w-20" rowSpan="2">Qty</th>
-                                <th className="p-3 text-center border border-slate-200 bg-indigo-50/50" colSpan="3">Dimensions (m)</th>
-                                <th className="p-3 text-center border border-slate-200 w-[180px] bg-indigo-50/50" rowSpan="2">Main Steel</th>
-                                <th className="p-3 text-center border border-slate-200 bg-indigo-50/50" colSpan="2">Lateral Ties Spec</th>
-                                <th className="p-3 text-center border border-slate-200 w-12" rowSpan="2"></th>
+                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]" rowSpan="2">#</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]" rowSpan="2">Qty</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-indigo-50/50" colSpan="3">Dimensions (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px] bg-indigo-50/50" rowSpan="2">Main Rebar</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-indigo-50/50" colSpan="2">Lateral Ties Spec</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]" rowSpan="2"></th>
                             </tr>
-                            <tr className="bg-slate-50 uppercase text-[9px] font-bold text-slate-500">
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">Length</th>
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">Width</th>
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">Height</th>
-                                <th className="p-2 border border-slate-200 text-center w-[160px]">Bar SKU</th>
-                                <th className="p-2 border border-slate-200 text-center w-[100px]">Spacing</th>
+                            <tr className="bg-slate-50 text-[10px]">
+                                <th className="px-2 py-2 border border-slate-300 text-center w-[80px]">Length</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center w-[80px]">Width</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center w-[80px]">Height</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center w-[160px]">Bar SKU</th>
+                                <th className="px-2 py-2 border border-slate-300 text-center w-[100px]">Spacing</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -317,16 +283,31 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             {idx + 1}
                                         </div>
                                     </td>
-                                    <td className="p-3 border border-slate-200">
-                                        <TableNumberInput value={col.quantity} onChange={(val) => handleColumnChange(col.id, 'quantity', val)} placeholder="1" className="font-bold" />
+                                    <td className="p-2 border border-slate-300">
+                                        <TableNumberInput value={col.quantity} onChange={(val) => handleColumnChange(col.id, 'quantity', val)} placeholder="1" className="font-bold focus:ring-indigo-400" />
                                     </td>
-                                    <td className="p-3 border border-slate-200"><TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" /></td>
-                                    <td className="p-3 border border-slate-200"><TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" /></td>
-                                    <td className="p-3 border border-slate-200"><TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" /></td>
-                                    <td className="p-3 border border-slate-200 bg-indigo-50/10">
+                                    <td className="p-2 border border-slate-300">
+                                        <div className="relative">
+                                            <TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" className="pr-6 focus:ring-indigo-400" />
+                                            <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-2 border border-slate-300">
+                                        <div className="relative">
+                                            <TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" className="pr-6 focus:ring-indigo-400" />
+                                            <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-2 border border-slate-300">
+                                        <div className="relative">
+                                            <TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" className="pr-6 focus:ring-indigo-400" />
+                                            <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-2 border border-slate-300 bg-indigo-50/10">
                                         <button
                                             onClick={() => setEditingCutsId(col.id)}
-                                            className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold uppercase transition-all hover:border-indigo-400 hover:text-indigo-600 group/btn"
+                                            className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold uppercase transition-all hover:border-indigo-400 hover:text-indigo-600 group/btn shadow-sm"
                                         >
                                             <span className="truncate max-w-[120px]">
                                                 {(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length > 0
@@ -337,23 +318,28 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             <Edit2 size={12} className="text-slate-400 group-hover/btn:text-indigo-400" />
                                         </button>
                                     </td>
-                                    <td className="p-3 border border-slate-200 bg-emerald-50/10">
+                                    <td className="p-2 border border-slate-300 bg-emerald-50/10">
                                         <SelectInput
                                             value={col.tie_bar_sku}
                                             onChange={(val) => handleColumnChange(col.id, 'tie_bar_sku', val)}
                                             options={availableTieSKUs.map(sku => ({ value: sku.id, label: sku.display }))}
                                             placeholder="SKU"
                                             className="text-[10px] h-9"
+                                            focusColor="indigo"
                                         />
                                     </td>
-                                    <td className="p-3 border border-slate-200 bg-emerald-50/10">
-                                        <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="150" className="h-9 font-bold" />
+                                    <td className="p-2 border border-slate-300 bg-emerald-50/10">
+                                        <div className="relative">
+                                            <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="150" className="h-9 font-bold pr-6 focus:ring-indigo-400 shadow-sm" />
+                                            <span className="absolute right-2 top-2.5 text-[10px] text-gray-400 pointer-events-none font-sans">mm</span>
+                                        </div>
                                     </td>
-                                    <td className="p-3 border border-slate-200 text-center">
+                                    <td className="p-2 border border-slate-300 text-center">
                                         <button
                                             onClick={() => removeColumn(col.id)}
                                             disabled={columns.length === 1}
-                                            className={`p-2 transition-colors ${columns.length > 1 ? 'text-slate-300 hover:text-red-500' : 'text-slate-100 cursor-not-allowed'}`}
+                                            className={`p-2 rounded-full transition-colors ${columns.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}
+                                            title={columns.length === 1 ? 'Minimum one item is required' : 'Remove Item'}
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -381,122 +367,103 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             )}
 
             {!showResult && !error && (
-                <div className="border-2 border-dashed border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
-                    <div className="bg-white p-4 rounded-full shadow-sm mb-4 border border-slate-100 italic">
-                        <Columns size={40} className="text-indigo-400" />
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Columns size={32} className="text-indigo-500" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-600 uppercase tracking-tight" style={{ fontFamily: "'Anton', sans-serif" }}>System Ready</h3>
-                    <p className="max-w-md mx-auto text-[10px] font-mono tracking-widest uppercase mt-2 leading-relaxed">
-                        Input column dimensions, rebar specifications, and lateral tie spacing. <br /> Right-click row numbers for advanced duplication/exclusion options.
+                    <p className="font-medium text-center max-w-md">
+                        Enter your column dimensions above, then click <span className="font-bold text-indigo-600">'CALCULATE'</span> to generate the material list.
                     </p>
                 </div>
             )}
 
             {showResult && result && (
-                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-900 rounded-sm">
-                                <Package className="text-white" size={18} />
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-indigo-500">
+                    <div className="p-6">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                            <div>
+                                <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
+                                    Estimation Result
+                                </h3>
+                                <p className="text-sm text-gray-500 mt-1 italic">Based on <strong className="text-gray-700">{columns.filter(c => !c.isExcluded).length}</strong> column marks totaling <strong className="text-gray-700">{result.volume} m³</strong> concrete.</p>
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight font-mono">Bill of Quantities</h3>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className="text-left md:text-right bg-indigo-50 px-5 py-3 rounded-xl border border-indigo-100 min-w-[300px]">
+                                    <p className="text-xs text-indigo-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
+                                    <p className="font-bold text-4xl text-indigo-700 tracking-tight">
+                                        {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'column_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                    <button
+                                        onClick={() => setViewingPatterns(true)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white border border-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+                                    >
+                                        <Scissors size={14} /> Cutting Analysis
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => copyToClipboard(result.items, 'Column Calculation')} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold text-slate-600 hover:border-slate-400 transition-all active:scale-95 shadow-sm uppercase tracking-widest">
-                                <ClipboardCopy size={12} /> COPY TSV
-                            </button>
-                            <button
-                                onClick={() => downloadCSV(
-                                    result.items,
-                                    'column_estimate.csv',
-                                    columns.filter(c => !c.isExcluded),
-                                    ['quantity', 'length_m', 'width_m', 'height_m', 'tie_bar_sku', 'tie_spacing_mm']
-                                )}
-                                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold text-slate-600 hover:border-slate-400 transition-all active:scale-95 shadow-sm uppercase tracking-widest"
-                            >
-                                <Download size={12} /> DOWNLOAD CSV
-                            </button>
-                            <button
-                                onClick={() => setViewingPatterns(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded text-[10px] font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-md uppercase tracking-widest"
-                            >
-                                <Scissors size={12} /> CUTTING ANALYSIS
-                            </button>
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-2 opacity-5">
-                                <Box size={48} />
-                            </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Concrete Vol.</span>
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-black text-slate-900 tracking-tighter italic">{result.volume}</span>
-                                <span className="text-xs font-bold text-slate-400 font-mono italic">cu.m</span>
-                            </div>
-                        </div>
-                        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm md:col-span-2 relative overflow-hidden group border-l-4 border-l-emerald-500">
-                            <div className="absolute top-0 right-0 p-2 opacity-5 text-emerald-600">
-                                <Calculator size={64} />
-                            </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-mono">Estimated Sum Total</span>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-slate-400 font-mono italic">PHP</span>
-                                <span className="text-4xl font-black text-emerald-600 tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>{result.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
-                        </div>
-                        <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100 flex flex-col justify-center items-center shadow-inner group">
-                            <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Status</span>
-                            <span className="text-xs font-black text-indigo-700 uppercase tracking-widest flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> ESTIMATED
-                            </span>
-                        </div>
-                    </div>
-
-                    <Card>
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-50 border-b border-slate-200">
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Material Item</th>
-                                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantity</th>
-                                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unit</th>
-                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest w-32 border-x border-slate-100">Price (PHP)</th>
-                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100/30">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 italic">
-                                {result.items.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-slate-800 uppercase tracking-tight">{item.name}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="text-sm font-mono font-bold text-slate-900 leading-none">{item.qty.toLocaleString()}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                            <span className="bg-slate-100 px-2 py-1 rounded">{item.unit}</span>
-                                        </td>
-                                        <td className="px-6 py-2 border-x border-slate-100">
-                                            <TablePriceInput
-                                                value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
-                                                onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: parseFloat(val) || 0 }))}
-                                            />
-                                        </td>
-                                        <td className="px-6 py-4 text-right bg-slate-100/30">
-                                            <span className="text-sm font-mono font-black text-slate-900 tracking-tighter">₱{item.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                        </td>
+                        <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                                    <tr>
+                                        <th className="px-4 py-3 font-bold">Material Item</th>
+                                        <th className="px-4 py-3 text-right font-bold">Quantity</th>
+                                        <th className="px-4 py-3 text-center font-bold">Unit</th>
+                                        <th className="px-4 py-3 text-right w-[160px] font-bold">Unit Price (Editable)</th>
+                                        <th className="px-4 py-3 text-right bg-gray-100/50 font-bold">Total</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </Card>
-                    <div className="flex justify-between items-center p-2 opacity-50">
-                        <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest italic flex items-center gap-2">
-                            <Info size={12} /> Standard fabrication losses and development lengths applied to rebar schedule.
-                        </p>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {result.items.map((item, idx) => (
+                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-4 py-3 font-medium text-gray-800 uppercase tracking-tight">{item.name}</td>
+                                            <td className="px-4 py-3 text-right text-gray-800 font-bold font-mono">
+                                                {item.qty.toLocaleString()}
+                                            </td>
+                                            <td className="px-4 py-3 text-center text-gray-600">
+                                                <span className="bg-gray-100 px-2 py-1 rounded text-[10px] font-bold uppercase text-gray-500">{item.unit}</span>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
+                                                    onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: parseFloat(val) || 0 }))}
+                                                />
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50 font-mono">
+                                                {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="flex justify-between items-center p-2 opacity-50">
+                            <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest italic flex items-center gap-2">
+                                <Info size={12} /> Standard fabrication losses and development lengths applied to rebar schedule.
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </Card>
             )}
 
             {/* Set Config Modal */}

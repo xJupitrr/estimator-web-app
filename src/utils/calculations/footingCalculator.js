@@ -36,10 +36,11 @@ export const calculateFooting = (footings, prices) => {
         const vol = X * Y * Z * Q;
         totalConcreteVol += vol;
 
-        // Class A Concrete
-        totalCementBags += vol * 9.0;
-        totalSandCum += vol * 0.5;
-        totalGravelCum += vol * 1.0;
+        // Class A Concrete with 5% Waste
+        const wasteMult = 1.05;
+        totalCementBags += vol * 9.0 * wasteMult;
+        totalSandCum += vol * 0.5 * wasteMult;
+        totalGravelCum += vol * 1.0 * wasteMult;
 
         // Rebar
         const spec = f.rebarSpec || "12mm x 6.0m";
