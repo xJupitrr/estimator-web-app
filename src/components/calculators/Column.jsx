@@ -274,32 +274,32 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             </div>
 
             <Card className="border-t-4 border-t-indigo-600 shadow-md">
-                <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wide text-xs">
-                        <Settings size={18} className="text-indigo-600" /> Column Configuration ({columns.length} Items)
+                <div className="px-4 py-3 bg-white border-b border-slate-100 flex justify-between items-center">
+                    <h2 className="font-bold text-slate-800 flex items-center gap-2 text-sm">
+                        <Settings size={18} className="text-slate-600" /> Column Configuration ({columns.length} Total)
                     </h2>
-                    <button onClick={addColumn} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded text-[10px] font-bold uppercase hover:bg-indigo-700 transition-all active:scale-95 shadow-md tracking-widest">
-                        <PlusCircle size={14} /> Add Mark
+                    <button onClick={addColumn} className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 text-white rounded-md text-[10px] font-bold uppercase hover:bg-indigo-700 transition-all active:scale-95 shadow-sm tracking-wider">
+                        <PlusCircle size={14} /> Add Column
                     </button>
                 </div>
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full border-collapse border border-slate-200 rounded-lg min-w-[800px]">
                         <thead>
-                            <tr className="bg-slate-100 uppercase text-[10px] font-bold text-slate-600">
+                            <tr className="bg-slate-50 uppercase text-[9px] font-bold text-indigo-900">
                                 <th className="p-3 text-center border border-slate-200 w-12" rowSpan="2">#</th>
                                 <th className="p-3 text-center border border-slate-200 w-20" rowSpan="2">Qty</th>
-                                <th className="p-3 text-center border border-slate-200 bg-indigo-50/50" colSpan="3">Dimensions (m)</th>
-                                <th className="p-3 text-center border border-slate-200 w-[180px] bg-indigo-50/50" rowSpan="2">Main Steel</th>
-                                <th className="p-3 text-center border border-slate-200 bg-indigo-50/50" colSpan="2">Lateral Ties Spec</th>
+                                <th className="p-2 text-center border border-slate-200 bg-blue-50/70" colSpan="3">Dimensions (m)</th>
+                                <th className="p-2 text-center border border-slate-200 w-[180px] bg-orange-50/70" rowSpan="2">Main Rebar</th>
+                                <th className="p-2 text-center border border-slate-200 bg-emerald-50/50" colSpan="2">Ties</th>
                                 <th className="p-3 text-center border border-slate-200 w-12" rowSpan="2"></th>
                             </tr>
-                            <tr className="bg-slate-50 uppercase text-[9px] font-bold text-slate-500">
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">Length</th>
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">Width</th>
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">Height</th>
-                                <th className="p-2 border border-slate-200 text-center w-[160px]">Bar SKU</th>
-                                <th className="p-2 border border-slate-200 text-center w-[100px]">Spacing</th>
+                            <tr className="bg-slate-50 uppercase text-[8px] font-bold text-slate-500">
+                                <th className="p-2 border border-slate-200 text-center w-[80px]">L</th>
+                                <th className="p-2 border border-slate-200 text-center w-[80px]">W</th>
+                                <th className="p-2 border border-slate-200 text-center w-[80px]">H</th>
+                                <th className="p-2 border border-slate-200 text-center w-[160px]">Size & Length</th>
+                                <th className="p-2 border border-slate-200 text-center w-[100px]">Space (mm)</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -323,31 +323,31 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                     <td className="p-3 border border-slate-200"><TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" /></td>
                                     <td className="p-3 border border-slate-200"><TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" /></td>
                                     <td className="p-3 border border-slate-200"><TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" /></td>
-                                    <td className="p-3 border border-slate-200 bg-indigo-50/10">
+                                    <td className="p-3 border border-slate-200 bg-orange-50/5">
                                         <button
                                             onClick={() => setEditingCutsId(col.id)}
-                                            className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold uppercase transition-all hover:border-indigo-400 hover:text-indigo-600 group/btn"
+                                            className="w-full h-9 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-orange-200 rounded text-[10px] font-bold text-orange-600 transition-all hover:bg-orange-50 group/btn"
                                         >
-                                            <span className="truncate max-w-[120px]">
+                                            <Edit2 size={12} className="text-orange-400" />
+                                            <span className="italic">
                                                 {(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length > 0
-                                                    ? `${(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length} REBAR SETS`
-                                                    : 'SETUP MAIN'
+                                                    ? `${(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length} Sets`
+                                                    : 'Sets'
                                                 }
                                             </span>
-                                            <Edit2 size={12} className="text-slate-400 group-hover/btn:text-indigo-400" />
                                         </button>
                                     </td>
-                                    <td className="p-3 border border-slate-200 bg-emerald-50/10">
+                                    <td className="p-3 border border-slate-200">
                                         <SelectInput
                                             value={col.tie_bar_sku}
                                             onChange={(val) => handleColumnChange(col.id, 'tie_bar_sku', val)}
                                             options={availableTieSKUs.map(sku => ({ value: sku.id, label: sku.display }))}
-                                            placeholder="SKU"
+                                            placeholder="Select SKU..."
                                             className="text-[10px] h-9"
                                         />
                                     </td>
-                                    <td className="p-3 border border-slate-200 bg-emerald-50/10">
-                                        <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="150" className="h-9 font-bold" />
+                                    <td className="p-3 border border-slate-200">
+                                        <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="200" className="h-9 font-medium" />
                                     </td>
                                     <td className="p-3 border border-slate-200 text-center">
                                         <button
@@ -363,12 +363,12 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                         </tbody>
                     </table>
                 </div>
-                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <div className="p-4 bg-white border-none flex justify-end">
                     <button
                         onClick={handleCalculate}
-                        className="flex items-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 uppercase tracking-[0.1em]"
+                        className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold text-xs hover:bg-indigo-700 transition-all shadow-md active:scale-95 uppercase tracking-wider"
                     >
-                        <Calculator size={18} /> CALCULATE ESTIMATE
+                        <Calculator size={16} /> CALCULATE
                     </button>
                 </div>
             </Card>
@@ -381,47 +381,60 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             )}
 
             {!showResult && !error && (
-                <div className="border-2 border-dashed border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
-                    <div className="bg-white p-4 rounded-full shadow-sm mb-4 border border-slate-100 italic">
-                        <Columns size={40} className="text-indigo-400" />
+                <div className="border border-dashed border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-white shadow-sm mt-6">
+                    <div className="bg-indigo-50/50 p-6 rounded-full mb-6">
+                        <Hammer size={36} className="text-indigo-600/60" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-600 uppercase tracking-tight" style={{ fontFamily: "'Anton', sans-serif" }}>System Ready</h3>
-                    <p className="max-w-md mx-auto text-[10px] font-mono tracking-widest uppercase mt-2 leading-relaxed">
-                        Input column dimensions, rebar specifications, and lateral tie spacing. <br /> Right-click row numbers for advanced duplication/exclusion options.
+                    <p className="max-w-md mx-auto text-sm font-medium text-slate-500 leading-relaxed">
+                        Enter your column dimensions and reinforcement details, <br />
+                        then click <span className="text-indigo-600 font-bold uppercase">'Calculate'</span>.
                     </p>
                 </div>
             )}
 
             {showResult && result && (
                 <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center justify-between px-2">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-slate-900 rounded-sm">
-                                <Package className="text-white" size={18} />
-                            </div>
-                            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight font-mono">Bill of Quantities</h3>
+                    <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div>
+                            <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
+                                Estimation Result
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">Based on <strong className="text-gray-700">{columns.filter(c => !c.isExcluded).length}</strong> column configurations.</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => copyToClipboard(result.items, 'Column Calculation')} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold text-slate-600 hover:border-slate-400 transition-all active:scale-95 shadow-sm uppercase tracking-widest">
-                                <ClipboardCopy size={12} /> COPY TSV
-                            </button>
-                            <button
-                                onClick={() => downloadCSV(
-                                    result.items,
-                                    'column_estimate.csv',
-                                    columns.filter(c => !c.isExcluded),
-                                    ['quantity', 'length_m', 'width_m', 'height_m', 'tie_bar_sku', 'tie_spacing_mm']
-                                )}
-                                className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold text-slate-600 hover:border-slate-400 transition-all active:scale-95 shadow-sm uppercase tracking-widest"
-                            >
-                                <Download size={12} /> DOWNLOAD CSV
-                            </button>
-                            <button
-                                onClick={() => setViewingPatterns(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded text-[10px] font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-md uppercase tracking-widest"
-                            >
-                                <Scissors size={12} /> CUTTING ANALYSIS
-                            </button>
+                        <div className="flex flex-col items-end gap-3">
+                            <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
+                                <p className="text-xs text-emerald-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
+                                <p className="font-bold text-4xl text-emerald-700 tracking-tight">
+                                    {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => copyToClipboard(result.items, 'Column Calculation')}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                    title="Copy table to clipboard for Excel"
+                                >
+                                    <ClipboardCopy size={14} /> Copy to Clipboard
+                                </button>
+                                <button
+                                    onClick={() => downloadCSV(
+                                        result.items,
+                                        'column_estimate.csv',
+                                        columns.filter(c => !c.isExcluded),
+                                        ['quantity', 'length_m', 'width_m', 'height_m', 'tie_bar_sku', 'tie_spacing_mm']
+                                    )}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                    title="Download as CSV"
+                                >
+                                    <Download size={14} /> Download CSV
+                                </button>
+                                <button
+                                    onClick={() => setViewingPatterns(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+                                >
+                                    <Scissors size={14} /> Cutting Analysis
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -440,57 +453,55 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                             <div className="absolute top-0 right-0 p-2 opacity-5 text-emerald-600">
                                 <Calculator size={64} />
                             </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-mono">Estimated Sum Total</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-mono">BoQ Generation Status</span>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-slate-400 font-mono italic">PHP</span>
-                                <span className="text-4xl font-black text-emerald-600 tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>{result.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                <span className="text-sm font-bold text-slate-400 font-mono italic">Verified</span>
+                                <span className="text-4xl font-black text-emerald-600 tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>LATEST</span>
                             </div>
                         </div>
-                        <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100 flex flex-col justify-center items-center shadow-inner group">
-                            <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Status</span>
-                            <span className="text-xs font-black text-indigo-700 uppercase tracking-widest flex items-center gap-1.5">
+                        <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100 flex flex-col justify-center items-center shadow-inner group">
+                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Status</span>
+                            <span className="text-xs font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> ESTIMATED
                             </span>
                         </div>
                     </div>
 
-                    <Card>
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-slate-50 border-b border-slate-200">
-                                    <th className="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Material Item</th>
-                                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quantity</th>
-                                    <th className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unit</th>
-                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest w-32 border-x border-slate-100">Price (PHP)</th>
-                                    <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100/30">Total</th>
+                    <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
+                        <table className="w-full text-sm text-left">
+                            <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th className="px-4 py-3">Material Item</th>
+                                    <th className="px-4 py-3 text-right">Quantity</th>
+                                    <th className="px-4 py-3 text-center">Unit</th>
+                                    <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
+                                    <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 italic">
+                            <tbody className="divide-y divide-gray-100">
                                 {result.items.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-slate-800 uppercase tracking-tight">{item.name}</span>
+                                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 font-medium text-gray-800 uppercase tracking-tight">{item.name}</td>
+                                        <td className="px-4 py-3 text-right text-gray-800 font-medium">
+                                            {item.qty.toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="text-sm font-mono font-bold text-slate-900 leading-none">{item.qty.toLocaleString()}</span>
+                                        <td className="px-4 py-3 text-center text-gray-600">
+                                            <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                         </td>
-                                        <td className="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                            <span className="bg-slate-100 px-2 py-1 rounded">{item.unit}</span>
-                                        </td>
-                                        <td className="px-6 py-2 border-x border-slate-100">
+                                        <td className="px-4 py-2">
                                             <TablePriceInput
                                                 value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
                                                 onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: parseFloat(val) || 0 }))}
                                             />
                                         </td>
-                                        <td className="px-6 py-4 text-right bg-slate-100/30">
-                                            <span className="text-sm font-mono font-black text-slate-900 tracking-tighter">₱{item.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
+                                            {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                    </Card>
+                    </div>
                     <div className="flex justify-between items-center p-2 opacity-50">
                         <p className="text-[10px] text-slate-400 font-mono uppercase tracking-widest italic flex items-center gap-2">
                             <Info size={12} /> Standard fabrication losses and development lengths applied to rebar schedule.
@@ -504,14 +515,14 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingCutsId(null)}></div>
                     <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                        <div className="px-6 py-4 bg-indigo-50 border-b border-indigo-200 flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wide text-sm leading-none">
+                                <h3 className="font-bold text-indigo-800 flex items-center gap-2 uppercase tracking-wide text-sm leading-none">
                                     <Edit2 size={16} className="text-indigo-600" /> Longitudinal Steel Spec
                                 </h3>
                                 <p className="text-[9px] text-slate-500 font-mono mt-1 uppercase tracking-widest leading-none">Element ID: C{(columns.findIndex(c => c.id === editingCutsId) + 1)}</p>
                             </div>
-                            <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400"><X size={20} /></button>
+                            <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-indigo-100 rounded-full transition-colors text-slate-400"><X size={20} /></button>
                         </div>
                         <div className="p-6 space-y-4">
                             <table className="w-full border-collapse border border-slate-100 mb-2">
@@ -580,7 +591,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                 handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
                             }} className="w-full py-2.5 bg-indigo-50 border border-dashed border-indigo-200 rounded text-[9px] font-bold text-indigo-600 hover:bg-indigo-100 uppercase tracking-widest transition-all shadow-sm">+ Add Reinforcement Mark</button>
                         </div>
-                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                        <div className="p-4 bg-indigo-50 border-t border-indigo-100 flex justify-end">
                             <button onClick={() => setEditingCutsId(null)} className="px-10 py-2.5 bg-indigo-600 text-white rounded font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Confirm Reinforcement</button>
                         </div>
                     </div>
@@ -704,7 +715,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <span className="text-sm font-bold text-zinc-900 font-mono leading-none underline decoration-indigo-400 decoration-2 underline-offset-4">{item.qty} PCS</span>
+                                                    <span className="text-sm font-bold text-zinc-900 font-mono leading-none underline decoration-orange-400 decoration-2 underline-offset-4">{item.qty} PCS</span>
                                                 </div>
                                             </div>
                                             <table className="w-full text-[10px] font-mono text-left border-collapse border-none">
