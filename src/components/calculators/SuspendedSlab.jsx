@@ -28,16 +28,17 @@ const TablePriceInput = ({ value, onChange }) => (
 
 const getInitialSlab = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length: "",
     width: "",
-    thickness: "0.15", // Standard suspended slab
-    rebarSpec: "12mm x 6.0m", // Standard spec
-    rebar_x_spacing: "0.20",
-    rebar_y_spacing: "0.20",
-    decking_type: "b_deck_0_8", // Metal Decking common for suspended
-    support_type: "standard_shoring",
-    formwork_type: "standard_forms",
+    thickness: "",
+    mainBarSpec: "",
+    tempBarSpec: "",
+    mainSpacing: "",
+    tempSpacing: "",
+    deckingType: "",
+    supportType: "",
+    formworkType: "",
     description: "",
     isExcluded: false,
 });
@@ -49,7 +50,15 @@ export default function SuspendedSlab() {
     const [error, setError] = useState(null);
 
     const handleSlabChange = (id, field, value) => {
-        setSlabs(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+        setSlabs(prev => prev.map(s => {
+            if (s.id === id) {
+                const updated = { ...s, [field]: value };
+                // Sync tempBarSpec if mainBarSpec changes
+                if (field === 'mainBarSpec') updated.tempBarSpec = value;
+                return updated;
+            }
+            return s;
+        }));
         setResult(null);
         setError(null);
     };
@@ -194,8 +203,8 @@ export default function SuspendedSlab() {
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Width (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Thkns (m)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[160px]">Rebar Spec</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">X-Spac</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Y-Spac</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Main-Sp</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Temp-Sp</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[140px]">Decking/Forms</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
                             </tr>
@@ -225,6 +234,7 @@ export default function SuspendedSlab() {
                                             value={slab.quantity}
                                             onChange={(val) => handleSlabChange(slab.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-bold"
+                                            placeholder="Qty"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
@@ -232,7 +242,7 @@ export default function SuspendedSlab() {
                                             type="text"
                                             value={slab.description}
                                             onChange={(e) => handleSlabChange(slab.id, 'description', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                             placeholder="e.g., 2F Main Slab"
                                         />
                                     </td>
@@ -257,43 +267,49 @@ export default function SuspendedSlab() {
                                             value={slab.thickness}
                                             onChange={(val) => handleSlabChange(slab.id, 'thickness', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                            placeholder="0.15"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <SelectInput
-                                            value={slab.rebarSpec}
-                                            onChange={(val) => handleSlabChange(slab.id, 'rebarSpec', val)}
+                                            value={slab.mainBarSpec}
+                                            onChange={(val) => handleSlabChange(slab.id, 'mainBarSpec', val)}
                                             options={rebarOptions}
                                             focusColor="blue"
+                                            placeholder="Select Spec..."
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <MathInput
-                                            value={slab.rebar_x_spacing}
-                                            onChange={(val) => handleSlabChange(slab.id, 'rebar_x_spacing', val)}
+                                            value={slab.mainSpacing}
+                                            onChange={(val) => handleSlabChange(slab.id, 'mainSpacing', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                            placeholder="0.20"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <MathInput
-                                            value={slab.rebar_y_spacing}
-                                            onChange={(val) => handleSlabChange(slab.id, 'rebar_y_spacing', val)}
+                                            value={slab.tempSpacing}
+                                            onChange={(val) => handleSlabChange(slab.id, 'tempSpacing', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                                            placeholder="0.20"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <SelectInput
-                                            value={slab.decking_type}
-                                            onChange={(val) => handleSlabChange(slab.id, 'decking_type', val)}
+                                            value={slab.deckingType}
+                                            onChange={(val) => handleSlabChange(slab.id, 'deckingType', val)}
                                             options={DECKING_OPTIONS}
                                             focusColor="blue"
                                             className="mb-1"
+                                            placeholder="Select Decking..."
                                         />
                                         <SelectInput
-                                            value={slab.formwork_type}
-                                            onChange={(val) => handleSlabChange(slab.id, 'formwork_type', val)}
+                                            value={slab.formworkType}
+                                            onChange={(val) => handleSlabChange(slab.id, 'formworkType', val)}
                                             options={FORMWORK_OPTIONS}
                                             focusColor="blue"
+                                            placeholder="Select Formwork..."
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 text-center">
@@ -330,7 +346,7 @@ export default function SuspendedSlab() {
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Estimation Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Slab Volume: <strong className="text-gray-700">{result.stats.totalVolume.toFixed(2)} m³</strong></p>
+                                <p className="text-sm text-gray-500 mt-1">Total Slab Volume: <strong className="text-gray-700">{result.volume} m³</strong></p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className="text-left md:text-right bg-blue-50 px-5 py-3 rounded-xl border border-blue-100">

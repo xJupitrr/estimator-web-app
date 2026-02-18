@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye, Layout, Scissors, Columns } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye, Layout, Scissors } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -82,7 +82,7 @@ const availableTieSKUs = availableRebarSKUs.filter(sku => sku.diameter <= 12);
 
 const getInitialColumn = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",
     width_m: "",
     height_m: "",
@@ -268,14 +268,14 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                 <th className="px-2 py-2 border border-slate-300 text-center w-[100px]">Spacing</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200">
+                        <tbody>
                             {columns.map((col, idx) => (
                                 <tr
                                     key={col.id}
-                                    className={`group transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
                                 >
                                     <td
-                                        className="p-3 border border-slate-200 text-center text-xs text-slate-400 font-bold cursor-help relative group/cell"
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
                                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id: col.id, x: e.clientX, y: e.clientY }); }}
                                         title="Right-click for options"
                                     >
@@ -309,13 +309,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             onClick={() => setEditingCutsId(col.id)}
                                             className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold uppercase transition-all hover:border-indigo-400 hover:text-indigo-600 group/btn shadow-sm"
                                         >
-                                            <span className="truncate max-w-[120px]">
+                                            <Edit2 size={12} className="text-indigo-400" />
+                                            <span className="italic">
                                                 {(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length > 0
-                                                    ? `${(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length} REBAR SETS`
-                                                    : 'SETUP MAIN'
+                                                    ? `${(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length} Sets`
+                                                    : 'Configure'
                                                 }
                                             </span>
-                                            <Edit2 size={12} className="text-slate-400 group-hover/btn:text-indigo-400" />
                                         </button>
                                     </td>
                                     <td className="p-2 border border-slate-300 bg-emerald-50/10">
@@ -341,7 +341,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             className={`p-2 rounded-full transition-colors ${columns.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}
                                             title={columns.length === 1 ? 'Minimum one item is required' : 'Remove Item'}
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={14} />
                                         </button>
                                     </td>
                                 </tr>
@@ -349,15 +349,15 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                         </tbody>
                     </table>
                 </div>
-                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                <div className="p-4 bg-white border-none flex justify-end">
                     <button
                         onClick={handleCalculate}
-                        className="flex items-center gap-2 px-10 py-3 bg-indigo-600 text-white rounded font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 uppercase tracking-[0.1em]"
+                        className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold text-xs hover:bg-indigo-700 transition-all shadow-md active:scale-95 uppercase tracking-wider"
                     >
-                        <Calculator size={18} /> CALCULATE ESTIMATE
+                        <Calculator size={16} /> CALCULATE
                     </button>
                 </div>
-            </Card>
+            </Card >
 
             {error && (
                 <div className="bg-rose-50 border border-rose-200 p-4 rounded-lg flex items-center justify-center gap-3 animate-in fade-in slide-in-from-top-2">
@@ -369,7 +369,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             {!showResult && !error && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Columns size={32} className="text-indigo-500" />
+                        <Hammer size={32} className="text-indigo-500" />
                     </div>
                     <p className="font-medium text-center max-w-md">
                         Enter your column dimensions above, then click <span className="font-bold text-indigo-600">'CALCULATE'</span> to generate the material list.
@@ -467,296 +467,303 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             )}
 
             {/* Set Config Modal */}
-            {editingCutsId && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingCutsId(null)}></div>
-                    <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                            <div>
-                                <h3 className="font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wide text-sm leading-none">
-                                    <Edit2 size={16} className="text-indigo-600" /> Longitudinal Steel Spec
-                                </h3>
-                                <p className="text-[9px] text-slate-500 font-mono mt-1 uppercase tracking-widest leading-none">Element ID: C{(columns.findIndex(c => c.id === editingCutsId) + 1)}</p>
+            {
+                editingCutsId && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingCutsId(null)}></div>
+                        <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+                            <div className="px-6 py-4 bg-indigo-50 border-b border-indigo-200 flex justify-between items-center">
+                                <div>
+                                    <h3 className="font-bold text-indigo-800 flex items-center gap-2 uppercase tracking-wide text-sm leading-none">
+                                        <Edit2 size={16} className="text-indigo-600" /> Longitudinal Steel Spec
+                                    </h3>
+                                    <p className="text-[9px] text-slate-500 font-mono mt-1 uppercase tracking-widest leading-none">Element ID: C{(columns.findIndex(c => c.id === editingCutsId) + 1)}</p>
+                                </div>
+                                <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-indigo-100 rounded-full transition-colors text-slate-400"><X size={20} /></button>
                             </div>
-                            <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400"><X size={20} /></button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <table className="w-full border-collapse border border-slate-100 mb-2">
-                                <thead>
-                                    <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left bg-slate-50 border-b border-slate-100">
-                                        <th className="p-3">Specification</th>
-                                        <th className="p-3 text-center w-24">Length (m)</th>
-                                        <th className="p-3 text-center w-20">Count</th>
-                                        <th className="p-3 w-10"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {(activeColForCuts?.main_rebar_cuts || []).map((cut, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50/50">
-                                            <td className="p-2">
-                                                <SelectInput
-                                                    value={cut.sku}
-                                                    onChange={(val) => {
-                                                        const newCuts = [...activeColForCuts.main_rebar_cuts];
-                                                        newCuts[idx].sku = val;
-                                                        handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
-                                                    }}
-                                                    options={availableRebarSKUs.map(s => ({ value: s.id, label: s.display }))}
-                                                    className="h-8 text-[10px]"
-                                                />
-                                            </td>
-                                            <td className="p-2">
-                                                <div className="relative">
-                                                    <TableNumberInput
-                                                        value={cut.length}
+                            <div className="p-6 space-y-4">
+                                <table className="w-full border-collapse border border-slate-100 mb-2">
+                                    <thead>
+                                        <tr className="text-xs font-bold text-slate-500 uppercase tracking-widest text-left bg-slate-50 border-b border-slate-100">
+                                            <th className="p-3">Specification</th>
+                                            <th className="p-3 text-center w-32">Length (m)</th>
+                                            <th className="p-3 text-center w-24">Count</th>
+                                            <th className="p-3 w-10"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {(activeColForCuts?.main_rebar_cuts || []).map((cut, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-50/50">
+                                                <td className="p-2">
+                                                    <SelectInput
+                                                        value={cut.sku}
                                                         onChange={(val) => {
                                                             const newCuts = [...activeColForCuts.main_rebar_cuts];
-                                                            newCuts[idx].length = val;
+                                                            newCuts[idx].sku = val;
                                                             handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
                                                         }}
-                                                        placeholder={(parseFloat(activeColForCuts?.height_m) + (40 * (parseInt(cut.sku?.split('_')[0]) || 12) / 1000) || 0).toFixed(2)}
-                                                        className="h-8 font-mono"
+                                                        options={availableRebarSKUs.map(s => ({ value: s.id, label: s.display }))}
+                                                        className="h-10 text-sm"
+                                                        focusColor="indigo"
                                                     />
-                                                    <span className="absolute right-1 top-2.5 text-[8px] text-slate-300 font-mono">m</span>
-                                                </div>
-                                            </td>
-                                            <td className="p-2 text-center">
-                                                <TableNumberInput
-                                                    value={cut.quantity}
-                                                    onChange={(val) => {
-                                                        const newCuts = [...activeColForCuts.main_rebar_cuts];
-                                                        newCuts[idx].quantity = val;
-                                                        handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
-                                                    }}
-                                                    placeholder="4"
-                                                    className="h-8 font-bold"
-                                                />
-                                            </td>
-                                            <td className="p-2 text-right">
-                                                <button onClick={() => {
-                                                    const newCuts = activeColForCuts.main_rebar_cuts.filter((_, i) => i !== idx);
-                                                    handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts.length > 0 ? newCuts : [{ sku: '', length: '', quantity: '' }]);
-                                                }} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            <button onClick={() => {
-                                const newCuts = [...(activeColForCuts?.main_rebar_cuts || []), { sku: '', length: '', quantity: '' }];
-                                handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
-                            }} className="w-full py-2.5 bg-indigo-50 border border-dashed border-indigo-200 rounded text-[9px] font-bold text-indigo-600 hover:bg-indigo-100 uppercase tracking-widest transition-all shadow-sm">+ Add Reinforcement Mark</button>
-                        </div>
-                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                            <button onClick={() => setEditingCutsId(null)} className="px-10 py-2.5 bg-indigo-600 text-white rounded font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Confirm Reinforcement</button>
+                                                </td>
+                                                <td className="p-2">
+                                                    <div className="relative">
+                                                        <TableNumberInput
+                                                            value={cut.length}
+                                                            onChange={(val) => {
+                                                                const newCuts = [...activeColForCuts.main_rebar_cuts];
+                                                                newCuts[idx].length = val;
+                                                                handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
+                                                            }}
+                                                            placeholder={(parseFloat(activeColForCuts?.height_m) + (40 * (parseInt(cut.sku?.split('_')[0]) || 12) / 1000) || 0).toFixed(2)}
+                                                            className="h-10 font-mono text-sm pl-3 pr-8 w-full"
+                                                        />
+                                                        <span className="absolute right-3 top-3 text-[10px] text-slate-400 font-mono pointer-events-none">m</span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-2 text-center">
+                                                    <TableNumberInput
+                                                        value={cut.quantity}
+                                                        onChange={(val) => {
+                                                            const newCuts = [...activeColForCuts.main_rebar_cuts];
+                                                            newCuts[idx].quantity = val;
+                                                            handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
+                                                        }}
+                                                        placeholder="4"
+                                                        className="h-10 font-bold text-sm text-center w-full"
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-right">
+                                                    <button onClick={() => {
+                                                        const newCuts = activeColForCuts.main_rebar_cuts.filter((_, i) => i !== idx);
+                                                        handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts.length > 0 ? newCuts : [{ sku: '', length: '', quantity: '' }]);
+                                                    }} className="p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <button onClick={() => {
+                                    const newCuts = [...(activeColForCuts?.main_rebar_cuts || []), { sku: '', length: '', quantity: '' }];
+                                    handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
+                                }} className="w-full py-2.5 bg-indigo-50 border border-dashed border-indigo-200 rounded text-[9px] font-bold text-indigo-600 hover:bg-indigo-100 uppercase tracking-widest transition-all shadow-sm">+ Add Reinforcement Mark</button>
+                            </div>
+                            <div className="p-4 bg-indigo-50 border-t border-indigo-100 flex justify-end">
+                                <button onClick={() => setEditingCutsId(null)} className="px-10 py-2.5 bg-indigo-600 text-white rounded font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">Confirm Reinforcement</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Analysis Modal */}
-            {viewingPatterns && result && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in mb-0 no-print">
-                    <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm no-print" onClick={() => setViewingPatterns(false)}></div>
-                    <div className="relative bg-zinc-50 w-full h-full sm:h-[95vh] sm:w-[95vw] shadow-2xl overflow-hidden flex flex-col border border-zinc-200">
-                        <div className="px-8 py-5 bg-white border-b border-zinc-200 flex justify-between items-center shrink-0 no-print">
-                            <div className="flex items-center gap-4 text-left">
-                                <div className="p-2.5 bg-zinc-900 rounded-sm shadow-xl shadow-zinc-200">
-                                    <Hammer className="text-white" size={24} />
+            {
+                viewingPatterns && result && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-in mb-0 no-print">
+                        <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm no-print" onClick={() => setViewingPatterns(false)}></div>
+                        <div className="relative bg-zinc-50 w-full h-full sm:h-[95vh] sm:w-[95vw] shadow-2xl overflow-hidden flex flex-col border border-zinc-200">
+                            <div className="px-8 py-5 bg-white border-b border-zinc-200 flex justify-between items-center shrink-0 no-print">
+                                <div className="flex items-center gap-4 text-left">
+                                    <div className="p-2.5 bg-zinc-900 rounded-sm shadow-xl shadow-zinc-200">
+                                        <Hammer className="text-white" size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Fabrication Schedule</h2>
+                                        <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest leading-none mt-1 border-l-2 border-indigo-500 pl-2">Structural Rebar Optimized Yield Analysis</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-black text-zinc-900 uppercase tracking-tighter">Fabrication Schedule</h2>
-                                    <p className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest leading-none mt-1 border-l-2 border-indigo-500 pl-2">Structural Rebar Optimized Yield Analysis</p>
-                                </div>
+                                <button onClick={() => setViewingPatterns(false)} className="p-2 hover:bg-white text-zinc-400 hover:text-zinc-900 transition-colors border border-transparent hover:border-zinc-200 rounded-sm"><X size={24} /></button>
                             </div>
-                            <button onClick={() => setViewingPatterns(false)} className="p-2 hover:bg-white text-zinc-400 hover:text-zinc-900 transition-colors border border-transparent hover:border-zinc-200 rounded-sm"><X size={24} /></button>
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto p-8 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px] content-start printable-area">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                                {result.items.filter(item => item.optimization).map((item, index) => {
-                                    const groupedPatternsMap = (item?.optimization?.patterns || []).reduce((acc, bin) => {
-                                        const key = (bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`).join('||');
-                                        if (!acc[key]) acc[key] = { ...bin, count: 1 };
-                                        else acc[key].count++;
-                                        return acc;
-                                    }, {});
-                                    const groupedPatterns = Object.values(groupedPatternsMap);
-                                    const uniqueCutsInItem = Array.from(new Set((item?.optimization?.patterns || []).flatMap(p => (p?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))));
+                            <div className="flex-1 overflow-y-auto p-8 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:20px_20px] content-start printable-area">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                                    {result.items.filter(item => item.optimization).map((item, index) => {
+                                        const groupedPatternsMap = (item?.optimization?.patterns || []).reduce((acc, bin) => {
+                                            const key = (bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`).join('||');
+                                            if (!acc[key]) acc[key] = { ...bin, count: 1 };
+                                            else acc[key].count++;
+                                            return acc;
+                                        }, {});
+                                        const groupedPatterns = Object.values(groupedPatternsMap);
+                                        const uniqueCutsInItem = Array.from(new Set((item?.optimization?.patterns || []).flatMap(p => (p?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))));
 
-                                    return (
-                                        <div key={index} className="group relative bg-white border border-zinc-200 shadow-sm flex flex-col rounded-sm overflow-hidden print:break-inside-avoid">
-                                            <div className="px-5 py-4 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                                                    <div className="text-left">
-                                                        <h3 className="font-bold text-zinc-800 uppercase tracking-wide text-sm">{item.name}</h3>
-                                                        <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest leading-none">Yield Detail Analysis</p>
+                                        return (
+                                            <div key={index} className="group relative bg-white border border-zinc-200 shadow-sm flex flex-col rounded-sm overflow-hidden print:break-inside-avoid">
+                                                <div className="px-5 py-4 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                                        <div className="text-left">
+                                                            <h3 className="font-bold text-zinc-800 uppercase tracking-wide text-sm">{item.name}</h3>
+                                                            <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest leading-none">Yield Detail Analysis</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right no-print">
+                                                        <div className={`font-mono font-bold text-lg leading-none ${(item.optimization?.efficiency > 0.9) ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                                            {((item.optimization?.efficiency || 0) * 100).toFixed(1)}%
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="text-right no-print">
-                                                    <div className={`font-mono font-bold text-lg leading-none ${(item.optimization?.efficiency > 0.9) ? 'text-emerald-600' : 'text-blue-600'}`}>
-                                                        {((item.optimization?.efficiency || 0) * 100).toFixed(1)}%
-                                                    </div>
-                                                </div>
-                                            </div>
 
-                                            <div className="p-5 space-y-6 text-gray-800">
-                                                {groupedPatterns.map((bin, gIdx) => (
-                                                    <div key={gIdx} className="relative bg-zinc-50/50 p-4 border border-zinc-100 rounded-sm">
-                                                        <div className="flex justify-between items-center mb-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="bg-zinc-800 text-white text-[9px] font-mono px-2 py-0.5 rounded-sm uppercase tracking-tighter">
-                                                                    MARK {(item?.name?.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
+                                                <div className="p-5 space-y-6 text-gray-800">
+                                                    {groupedPatterns.map((bin, gIdx) => (
+                                                        <div key={gIdx} className="relative bg-zinc-50/50 p-4 border border-zinc-100 rounded-sm">
+                                                            <div className="flex justify-between items-center mb-3">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="bg-zinc-800 text-white text-[9px] font-mono px-2 py-0.5 rounded-sm uppercase tracking-tighter">
+                                                                        MARK {(item?.name?.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-zinc-400 font-bold font-mono uppercase">({bin.count} PCS)</span>
+                                                                    <span className="text-[10px] text-zinc-300 font-mono tracking-tighter uppercase ml-2 text-left">STOCK: {(bin.stockLength || 0).toFixed(2)}m</span>
+                                                                </div>
+                                                                <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tighter">
+                                                                    SCRAP: <span className={bin.freeSpace > 0.5 ? 'text-rose-500' : 'text-zinc-400'}>{(bin.freeSpace || 0).toFixed(3)}m</span>
                                                                 </span>
-                                                                <span className="text-[10px] text-zinc-400 font-bold font-mono uppercase">({bin.count} PCS)</span>
-                                                                <span className="text-[10px] text-zinc-300 font-mono tracking-tighter uppercase ml-2 text-left">STOCK: {(bin.stockLength || 0).toFixed(2)}m</span>
                                                             </div>
-                                                            <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tighter">
-                                                                SCRAP: <span className={bin.freeSpace > 0.5 ? 'text-rose-500' : 'text-zinc-400'}>{(bin.freeSpace || 0).toFixed(3)}m</span>
-                                                            </span>
-                                                        </div>
 
-                                                        <div className="h-10 w-full bg-zinc-200/50 rounded-sm relative flex overflow-hidden shadow-inner border border-zinc-200/50 mb-3">
-                                                            {(bin?.cuts || []).map((cut, cIdx) => (
-                                                                <div key={cIdx} style={{ width: `${((parseFloat(cut?.length) || 0) / (parseFloat(bin?.stockLength) || 6)) * 100}%` }} className={`h-full ${getCutColor(cut, uniqueCutsInItem)} border-r border-white/20 flex items-center justify-center group/cut transition-all relative`}>
-                                                                    <span className="text-white text-[9px] font-bold font-mono px-1 truncate drop-shadow-sm">{(parseFloat(cut?.length) || 0).toFixed(2)}m</span>
-                                                                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover/cut:block z-20 pointer-events-none no-print">
-                                                                        <div className="bg-zinc-900 text-white text-[9px] py-1 px-2 rounded-sm font-mono whitespace-nowrap shadow-xl border border-zinc-800 uppercase tracking-tighter">{cut.label} • {(parseFloat(cut.length) || 0).toFixed(3)}m</div>
-                                                                        <div className="w-1.5 h-1.5 bg-zinc-900 rotate-45 -mt-1 mx-auto border-r border-b border-zinc-800"></div>
+                                                            <div className="h-10 w-full bg-zinc-200/50 rounded-sm relative flex overflow-hidden shadow-inner border border-zinc-200/50 mb-3">
+                                                                {(bin?.cuts || []).map((cut, cIdx) => (
+                                                                    <div key={cIdx} style={{ width: `${((parseFloat(cut?.length) || 0) / (parseFloat(bin?.stockLength) || 6)) * 100}%` }} className={`h-full ${getCutColor(cut, uniqueCutsInItem)} border-r border-white/20 flex items-center justify-center group/cut transition-all relative`}>
+                                                                        <span className="text-white text-[9px] font-bold font-mono px-1 truncate drop-shadow-sm">{(parseFloat(cut?.length) || 0).toFixed(2)}m</span>
+                                                                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover/cut:block z-20 pointer-events-none no-print">
+                                                                            <div className="bg-zinc-900 text-white text-[9px] py-1 px-2 rounded-sm font-mono whitespace-nowrap shadow-xl border border-zinc-800 uppercase tracking-tighter">{cut.label} • {(parseFloat(cut.length) || 0).toFixed(3)}m</div>
+                                                                            <div className="w-1.5 h-1.5 bg-zinc-900 rotate-45 -mt-1 mx-auto border-r border-b border-zinc-800"></div>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            ))}
-                                                            {bin.freeSpace > 0 && <div className="flex-1 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(0,0,0,0.03)_5px,rgba(0,0,0,0.03)_10px)] flex items-center justify-center text-[8px] text-zinc-300 font-mono uppercase tracking-widest no-print text-center">loss</div>}
+                                                                ))}
+                                                                {bin.freeSpace > 0 && <div className="flex-1 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(0,0,0,0.03)_5px,rgba(0,0,0,0.03)_10px)] flex items-center justify-center text-[8px] text-zinc-300 font-mono uppercase tracking-widest no-print text-center">loss</div>}
+                                                            </div>
+
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {Array.from(new Set((bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))).map((cutKey, lIdx) => {
+                                                                    const [lenStr, label] = cutKey.split('|');
+                                                                    const len = parseFloat(lenStr) || 0;
+                                                                    const count = (bin?.cuts || []).filter(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}` === cutKey).length;
+                                                                    return (
+                                                                        <div key={lIdx} className="flex items-center gap-1.5 bg-white border border-zinc-200 px-2 py-0.5 rounded-sm shadow-sm ring-1 ring-zinc-50">
+                                                                            <div className={`w-2 h-2 rounded-full ${getCutColor({ length: len, label }, uniqueCutsInItem)}`}></div>
+                                                                            <span className="text-[9px] font-black text-zinc-800 font-mono">{count}x {len.toFixed(2)}m</span>
+                                                                            <span className="text-[8px] text-zinc-500 font-bold font-mono uppercase tracking-tighter truncate max-w-[80px]">{label}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         </div>
-
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {Array.from(new Set((bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))).map((cutKey, lIdx) => {
-                                                                const [lenStr, label] = cutKey.split('|');
-                                                                const len = parseFloat(lenStr) || 0;
-                                                                const count = (bin?.cuts || []).filter(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}` === cutKey).length;
-                                                                return (
-                                                                    <div key={lIdx} className="flex items-center gap-1.5 bg-white border border-zinc-200 px-2 py-0.5 rounded-sm shadow-sm ring-1 ring-zinc-50">
-                                                                        <div className={`w-2 h-2 rounded-full ${getCutColor({ length: len, label }, uniqueCutsInItem)}`}></div>
-                                                                        <span className="text-[9px] font-black text-zinc-800 font-mono">{count}x {len.toFixed(2)}m</span>
-                                                                        <span className="text-[8px] text-zinc-500 font-bold font-mono uppercase tracking-tighter truncate max-w-[80px]">{label}</span>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <div className="px-5 py-3 bg-zinc-100/30 border-t border-zinc-100 flex justify-between items-center text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest">
-                                                <span>Total required bars</span>
-                                                <span className="text-zinc-900 font-black">{item.optimization?.barsRequired || 0} PCS</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="mt-12 pt-8 border-t-2 border-dashed border-zinc-200 print:pt-0 print:mt-0 print:border-none uppercase text-left">
-                                <h3 className="text-xl font-bold mb-8 text-slate-800 tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>BOQ Material Breakout</h3>
-                                <div className="space-y-8 text-left">
-                                    {(result?.items || []).filter(item => item.optimization).map((item, idx) => (
-                                        <div key={idx} className="bg-white border border-zinc-300 rounded-sm overflow-hidden text-gray-800 text-left">
-                                            <div className="bg-zinc-50 px-6 py-3 border-b border-zinc-300 flex justify-between items-center text-left">
-                                                <div className="flex items-center gap-3 text-left">
-                                                    <span className="w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm leading-none">{(idx + 1).toString().padStart(2, '0')}</span>
-                                                    <div className="text-left">
-                                                        <h4 className="font-bold text-zinc-900 uppercase text-xs tracking-wide">{item.name}</h4>
-                                                        <p className="text-[9px] font-mono text-zinc-500 uppercase leading-none italic font-bold">Cutting List Reference</p>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="text-sm font-bold text-zinc-900 font-mono leading-none underline decoration-indigo-400 decoration-2 underline-offset-4">{item.qty} PCS</span>
-                                                </div>
-                                            </div>
-                                            <table className="w-full text-[10px] font-mono text-left border-collapse border-none">
-                                                <thead className="bg-zinc-100 border-b border-zinc-300">
-                                                    <tr>
-                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-16 text-center">Mark</th>
-                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600">Cutting Detail (Lengths in Meters)</th>
-                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Batch</th>
-                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Scrap (m)</th>
-                                                        <th className="px-6 py-2 uppercase tracking-wider font-bold text-zinc-600 w-32 text-right">Sum (m)</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-zinc-200">
-                                                    {Object.values((item?.optimization?.patterns || []).reduce((acc, bin) => {
-                                                        const key = (bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`).join('||');
-                                                        if (!acc[key]) acc[key] = { ...bin, count: 1 };
-                                                        else acc[key].count++;
-                                                        return acc;
-                                                    }, {})).map((group, gIdx) => (
-                                                        <tr key={gIdx} className="hover:bg-zinc-50 border-none">
-                                                            <td className="px-6 py-3 border-r border-zinc-200 text-center font-bold text-zinc-900 text-xs">
-                                                                RB{(item?.name?.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
-                                                            </td>
-                                                            <td className="px-6 py-3 border-r border-zinc-200 text-left">
-                                                                <div className="flex flex-wrap gap-2 items-center">
-                                                                    {Array.from(new Set((group?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))).map((cutKey, lIdx) => {
-                                                                        const [lenStr, label] = cutKey.split('|');
-                                                                        const countResult = (group?.cuts || []).filter(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}` === cutKey).length;
-                                                                        return (
-                                                                            <span key={lIdx} className="bg-zinc-50 px-2 py-0.5 border border-zinc-100 rounded shadow-sm text-[9px] font-bold">
-                                                                                <span className="text-indigo-600 underline decoration-1 underline-offset-2 italic">{countResult}x</span> {(parseFloat(lenStr) || 0).toFixed(2)}m <span className="text-[8px] text-zinc-400 font-normal">[{label}]</span>
-                                                                            </span>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-6 py-3 border-r border-zinc-200 text-center font-bold text-zinc-900">{group.count}</td>
-                                                            <td className="px-6 py-3 border-r border-zinc-200 text-center text-rose-500 font-bold italic">{(parseFloat(group.freeSpace) || 0).toFixed(3)}</td>
-                                                            <td className="px-6 py-3 text-right font-black text-zinc-900">{(group.count * (item.optimization?.stockLength || 0)).toFixed(2)}m</td>
-                                                        </tr>
                                                     ))}
-                                                </tbody>
-                                                <tfoot className="bg-zinc-900 text-white font-bold uppercase tracking-widest text-[9px]">
-                                                    <tr className="border-none">
-                                                        <td colSpan="2" className="px-6 py-2 text-right">TOTAL MATERIAL:</td>
-                                                        <td className="px-6 py-2 text-center text-sm">{item.qty} PCS</td>
-                                                        <td className="px-6 py-2 text-center text-zinc-400">{(item.optimization?.wasteTotal || 0).toFixed(3)} m</td>
-                                                        <td className="px-6 py-2 text-right text-sm">{(item.qty * (item.optimization?.stockLength || 0)).toFixed(2)}m</td>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
-                                    ))}
+                                                </div>
+
+                                                <div className="px-5 py-3 bg-zinc-100/30 border-t border-zinc-100 flex justify-between items-center text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-widest">
+                                                    <span>Total required bars</span>
+                                                    <span className="text-zinc-900 font-black">{item.optimization?.barsRequired || 0} PCS</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="mt-12 pt-8 border-t-2 border-dashed border-zinc-200 print:pt-0 print:mt-0 print:border-none uppercase text-left">
+                                    <h3 className="text-xl font-bold mb-8 text-slate-800 tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>BOQ Material Breakout</h3>
+                                    <div className="space-y-8 text-left">
+                                        {(result?.items || []).filter(item => item.optimization).map((item, idx) => (
+                                            <div key={idx} className="bg-white border border-zinc-300 rounded-sm overflow-hidden text-gray-800 text-left">
+                                                <div className="bg-zinc-50 px-6 py-3 border-b border-zinc-300 flex justify-between items-center text-left">
+                                                    <div className="flex items-center gap-3 text-left">
+                                                        <span className="w-8 h-8 bg-zinc-900 text-white flex items-center justify-center font-mono text-sm leading-none">{(idx + 1).toString().padStart(2, '0')}</span>
+                                                        <div className="text-left">
+                                                            <h4 className="font-bold text-zinc-900 uppercase text-xs tracking-wide">{item.name}</h4>
+                                                            <p className="text-[9px] font-mono text-zinc-500 uppercase leading-none italic font-bold">Cutting List Reference</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-sm font-bold text-zinc-900 font-mono leading-none underline decoration-orange-400 decoration-2 underline-offset-4">{item.qty} PCS</span>
+                                                    </div>
+                                                </div>
+                                                <table className="w-full text-[10px] font-mono text-left border-collapse border-none">
+                                                    <thead className="bg-zinc-100 border-b border-zinc-300">
+                                                        <tr>
+                                                            <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-16 text-center">Mark</th>
+                                                            <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600">Cutting Detail (Lengths in Meters)</th>
+                                                            <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Batch</th>
+                                                            <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Scrap (m)</th>
+                                                            <th className="px-6 py-2 uppercase tracking-wider font-bold text-zinc-600 w-32 text-right">Sum (m)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-zinc-200">
+                                                        {Object.values((item?.optimization?.patterns || []).reduce((acc, bin) => {
+                                                            const key = (bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`).join('||');
+                                                            if (!acc[key]) acc[key] = { ...bin, count: 1 };
+                                                            else acc[key].count++;
+                                                            return acc;
+                                                        }, {})).map((group, gIdx) => (
+                                                            <tr key={gIdx} className="hover:bg-zinc-50 border-none">
+                                                                <td className="px-6 py-3 border-r border-zinc-200 text-center font-bold text-zinc-900 text-xs">
+                                                                    RB{(item?.name?.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
+                                                                </td>
+                                                                <td className="px-6 py-3 border-r border-zinc-200 text-left">
+                                                                    <div className="flex flex-wrap gap-2 items-center">
+                                                                        {Array.from(new Set((group?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))).map((cutKey, lIdx) => {
+                                                                            const [lenStr, label] = cutKey.split('|');
+                                                                            const countResult = (group?.cuts || []).filter(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}` === cutKey).length;
+                                                                            return (
+                                                                                <span key={lIdx} className="bg-zinc-50 px-2 py-0.5 border border-zinc-100 rounded shadow-sm text-[9px] font-bold">
+                                                                                    <span className="text-indigo-600 underline decoration-1 underline-offset-2 italic">{countResult}x</span> {(parseFloat(lenStr) || 0).toFixed(2)}m <span className="text-[8px] text-zinc-400 font-normal">[{label}]</span>
+                                                                                </span>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-3 border-r border-zinc-200 text-center font-bold text-zinc-900">{group.count}</td>
+                                                                <td className="px-6 py-3 border-r border-zinc-200 text-center text-rose-500 font-bold italic">{(parseFloat(group.freeSpace) || 0).toFixed(3)}</td>
+                                                                <td className="px-6 py-3 text-right font-black text-zinc-900">{(group.count * (item.optimization?.stockLength || 0)).toFixed(2)}m</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                    <tfoot className="bg-zinc-900 text-white font-bold uppercase tracking-widest text-[9px]">
+                                                        <tr className="border-none">
+                                                            <td colSpan="2" className="px-6 py-2 text-right">TOTAL MATERIAL:</td>
+                                                            <td className="px-6 py-2 text-center text-sm">{item.qty} PCS</td>
+                                                            <td className="px-6 py-2 text-center text-zinc-400">{(item.optimization?.wasteTotal || 0).toFixed(3)} m</td>
+                                                            <td className="px-6 py-2 text-right text-sm">{(item.qty * (item.optimization?.stockLength || 0)).toFixed(2)}m</td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="px-8 py-5 border-t border-zinc-100 bg-white flex justify-end items-center shrink-0 no-print">
-                            <button onClick={() => setViewingPatterns(false)} className="px-10 py-3 bg-zinc-900 text-white rounded-sm font-bold text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-zinc-800 transition-all active:scale-95">EXIT SCHEDULE</button>
+                            <div className="px-8 py-5 border-t border-zinc-100 bg-white flex justify-end items-center shrink-0 no-print">
+                                <button onClick={() => setViewingPatterns(false)} className="px-10 py-3 bg-zinc-900 text-white rounded-sm font-bold text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-zinc-800 transition-all active:scale-95">EXIT SCHEDULE</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {contextMenu && (
-                <div
-                    className="fixed z-[70] bg-white border border-slate-200 shadow-xl rounded py-1 min-w-[200px] animate-in fade-in zoom-in-95 duration-100"
-                    style={{ left: contextMenu.x, top: contextMenu.y }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <button onClick={() => duplicateColumn(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors">
-                        <Copy size={14} className="text-slate-400" /> Duplicate Mark
-                    </button>
-                    <button onClick={() => handleAddRowAbove(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors border-b border-slate-50">
-                        <ArrowUp size={14} className="text-slate-400" /> Add Mark Above
-                    </button>
-                    <button onClick={() => handleToggleExcludeRow(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors mt-1 font-mono">
-                        {columns.find(c => c.id === contextMenu.id)?.isExcluded
-                            ? <><Eye size={14} className="text-emerald-500" /> Include in BoQ</>
-                            : <><EyeOff size={14} className="text-rose-500" /> Exclude from BoQ</>
-                        }
-                    </button>
-                </div>
-            )}
-        </div>
+            {
+                contextMenu && (
+                    <div
+                        className="fixed z-[70] bg-white border border-slate-200 shadow-xl rounded py-1 min-w-[200px] animate-in fade-in zoom-in-95 duration-100"
+                        style={{ left: contextMenu.x, top: contextMenu.y }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button onClick={() => duplicateColumn(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors">
+                            <Copy size={14} className="text-slate-400" /> Duplicate Mark
+                        </button>
+                        <button onClick={() => handleAddRowAbove(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors border-b border-slate-50">
+                            <ArrowUp size={14} className="text-slate-400" /> Add Mark Above
+                        </button>
+                        <button onClick={() => handleToggleExcludeRow(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors mt-1 font-mono">
+                            {columns.find(c => c.id === contextMenu.id)?.isExcluded
+                                ? <><Eye size={14} className="text-emerald-500" /> Include in BoQ</>
+                                : <><EyeOff size={14} className="text-rose-500" /> Exclude from BoQ</>
+                            }
+                        </button>
+                    </div>
+                )
+            }
+        </div >
     );
 });
 

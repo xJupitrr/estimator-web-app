@@ -48,7 +48,7 @@ const getInitialWall = () => ({
     id: Date.now() + Math.random(),
     length: "",
     height: "",
-    quantity: 1,
+    quantity: "",
     chbSize: "",
     plasterSides: "",
     // Note: Spacing variables reflect the direction *along which* the spacing is measured.
@@ -298,7 +298,7 @@ export default function Masonry() { // Renamed to Masonry
                                     {/* Quantity */}
                                     <td className="p-2 border border-slate-300 align-middle">
                                         <MathInput
-                                            placeholder="1"
+                                            placeholder="Qty"
                                             value={wall.quantity}
                                             onChange={(val) => handleWallChange(wall.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold bg-white text-slate-900"

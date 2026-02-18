@@ -16,7 +16,8 @@ const LIST_SECTIONS = {
     'TILES DATA': 'tiles_rows',
     'PAINTING DATA': 'painting_rows',
     'CEILING DATA': 'ceiling_rooms',
-    'DOORS & WINDOWS DATA': 'doorswindows_rows'
+    'DOORS & WINDOWS DATA': 'doorswindows_rows',
+    'RETAINING/SHEAR WALL DATA': 'concrete_walls'
 };
 
 // Mapping of Single Value/Object Keys to a generic Settings Section
@@ -74,7 +75,10 @@ const SETTINGS_KEYS = [
     'painting_total',
     'ceiling_total',
     'doors_windows_total',
-    'lintel_beam_total'
+    'lintel_beam_total',
+    'concrete_wall_total',
+    'concrete_wall_prices',
+    'concrete_wall_result'
 ];
 
 /**

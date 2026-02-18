@@ -51,11 +51,11 @@ const rebarOptions = rebarDiameters.flatMap(size =>
 
 const getInitialFooting = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     x_len: "", // Length (X) in meters
     y_len: "", // Width (Y) in meters
     z_depth: "", // Depth (Z) in meters
-    rebarSpec: "12mm x 6.0m",
+    rebarSpec: "",
     rebar_x_count: "",
     rebar_y_count: "",
     description: "",
@@ -253,6 +253,7 @@ export default function Footing() {
                                             value={footing.quantity}
                                             onChange={(val) => handleFootingChange(footing.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none font-bold"
+                                            placeholder="Qty"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
@@ -260,7 +261,7 @@ export default function Footing() {
                                             type="text"
                                             value={footing.description}
                                             onChange={(e) => handleFootingChange(footing.id, 'description', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                             placeholder="e.g., F1 Main Column Footing"
                                         />
                                     </td>
@@ -285,6 +286,7 @@ export default function Footing() {
                                             value={footing.z_depth}
                                             onChange={(val) => handleFootingChange(footing.id, 'z_depth', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none font-medium text-slate-600"
+                                            placeholder="0.00"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
@@ -294,6 +296,7 @@ export default function Footing() {
                                             options={rebarOptions.map(opt => ({ id: opt, display: opt }))}
                                             focusColor="emerald"
                                             className="text-xs"
+                                            placeholder="Select Spec..."
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
@@ -301,6 +304,7 @@ export default function Footing() {
                                             value={footing.rebar_x_count}
                                             onChange={(val) => handleFootingChange(footing.id, 'rebar_x_count', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            placeholder="Count"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
@@ -308,6 +312,7 @@ export default function Footing() {
                                             value={footing.rebar_y_count}
                                             onChange={(val) => handleFootingChange(footing.id, 'rebar_y_count', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            placeholder="Count"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 text-center">

@@ -32,7 +32,28 @@ const SelectInput = ({ value, onChange, options, placeholder = "Select Option...
         >
             <option value="" disabled hidden>{placeholder}</option>
             {options.map((opt, idx) => {
-                // Handle different option formats
+                // Support for OptGroups
+                if (opt && typeof opt === 'object' && opt.group && opt.options) {
+                    return (
+                        <optgroup
+                            key={`group-${idx}`}
+                            label={opt.group}
+                            className="bg-zinc-100 text-zinc-800 font-bold uppercase text-[11px] tracking-wider py-2"
+                        >
+                            {opt.options.map((subOpt, subIdx) => {
+                                const val = typeof subOpt === 'object' ? (subOpt.id || subOpt.value || subOpt.name) : subOpt;
+                                const label = typeof subOpt === 'object' ? (subOpt.display || subOpt.label || subOpt.name) : subOpt;
+                                return (
+                                    <option key={val || subIdx} value={val} className="text-zinc-900 font-medium not-italic">
+                                        {label}
+                                    </option>
+                                );
+                            })}
+                        </optgroup>
+                    );
+                }
+
+                // Handle standard option formats
                 const val = typeof opt === 'object' ? (opt.id || opt.value || opt.name) : opt;
                 const label = typeof opt === 'object' ? (opt.display || opt.label || opt.name) : opt;
 

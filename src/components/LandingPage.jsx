@@ -17,7 +17,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             description: "Foundations & Frame",
             color: "blue",
             icon: LayoutGrid,
-            tools: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'lintel-beam', 'steel-truss', 'roofing']
+            tools: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'retaining-wall', 'lintel-beam', 'steel-truss', 'roofing']
         },
         {
             title: "Finishes",

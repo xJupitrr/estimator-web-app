@@ -72,7 +72,7 @@ const getAlphabeticalIndex = (n) => {
 
 const getInitialElement = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",      // Width (B)
     width_m: "",       // Depth (H)
     height_m: "",      // Length (L)
@@ -473,7 +473,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                         </div>
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput value={col.quantity} onChange={(v) => handleBeamChange(col.id, 'quantity', v)} min="1" step="1" className="font-bold" />
+                                        <TableNumberInput value={col.quantity} onChange={(v) => handleBeamChange(col.id, 'quantity', v)} placeholder="Qty" className="font-bold" />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.length_m} onChange={(v) => handleBeamChange(col.id, 'length_m', v)} placeholder="0.30" /></td>
                                     <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.width_m} onChange={(v) => handleBeamChange(col.id, 'width_m', v)} placeholder="0.50" /></td>

@@ -28,13 +28,13 @@ const TablePriceInput = ({ value, onChange }) => (
 
 const getInitialSlab = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length: "",
     width: "",
-    thickness: "0.10",
-    gravelBeddingThickness: "0.05",
-    barSize: "10mm",
-    spacing: "0.20",
+    thickness: "",
+    gravelBeddingThickness: "",
+    barSize: "",
+    spacing: "",
     description: "",
     isExcluded: false,
 });
@@ -245,6 +245,7 @@ export default function SlabOnGrade() {
                                             value={slab.quantity}
                                             onChange={(val) => handleSlabChange(slab.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold"
+                                            placeholder="Qty"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
@@ -252,7 +253,7 @@ export default function SlabOnGrade() {
                                             type="text"
                                             value={slab.description}
                                             onChange={(e) => handleSlabChange(slab.id, 'description', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                             placeholder="e.g., Garage Slab"
                                         />
                                     </td>
@@ -277,6 +278,7 @@ export default function SlabOnGrade() {
                                             value={slab.thickness}
                                             onChange={(val) => handleSlabChange(slab.id, 'thickness', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+                                            placeholder="0.10"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
@@ -284,6 +286,7 @@ export default function SlabOnGrade() {
                                             value={slab.gravelBeddingThickness}
                                             onChange={(val) => handleSlabChange(slab.id, 'gravelBeddingThickness', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium text-slate-600"
+                                            placeholder="0.05"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
@@ -292,6 +295,7 @@ export default function SlabOnGrade() {
                                             onChange={(val) => handleSlabChange(slab.id, 'barSize', val)}
                                             options={["10mm", "12mm", "16mm"]}
                                             focusColor="orange"
+                                            placeholder="Select Size..."
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle">
@@ -299,6 +303,7 @@ export default function SlabOnGrade() {
                                             value={slab.spacing}
                                             onChange={(val) => handleSlabChange(slab.id, 'spacing', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+                                            placeholder="0.20"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle text-center">
