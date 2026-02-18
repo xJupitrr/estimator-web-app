@@ -90,11 +90,12 @@ const COMMON_THICKNESS = [
 
 const INITIAL_TRUSS_PART = {
     id: 'tp_1',
-    name: 'Top Chord',
-    type: 'angle_bar',
-    size: '50mm x 50mm (2" x 2")', // Matches first option of default type
-    thickness: '4.0mm',
-    cuts: [{ length: '', quantity: '' }]
+    name: '',
+    type: '',
+    size: '',
+    thickness: '',
+    cuts: [{ length: '', quantity: '' }],
+    isExcluded: false,
 };
 
 export default function SteelTruss() {
@@ -109,6 +110,47 @@ export default function SteelTruss() {
     // Modal States
     const [editingCutsId, setEditingCutsId] = useState(null);
     const [viewingPatterns, setViewingPatterns] = useState(false); // boolean now
+    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+
+    // Close context menu on click anywhere
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
+
+    const handleDuplicateRow = (id) => {
+        setTrussParts(prev => {
+            const index = prev.findIndex(p => p.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = {
+                ...JSON.parse(JSON.stringify(rowToCopy)),
+                id: Date.now() + Math.random()
+            };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+        setEstimationResults(null);
+    };
+
+    const handleAddRowAbove = (id) => {
+        setTrussParts(prev => {
+            const index = prev.findIndex(p => p.id === id);
+            const newRows = [...prev];
+            newRows.splice(index, 0, { ...INITIAL_TRUSS_PART, id: Date.now() + Math.random() });
+            return newRows;
+        });
+        setContextMenu(null);
+        setEstimationResults(null);
+    };
+
+    const handleToggleExcludeRow = (id) => {
+        setTrussParts(prev => prev.map(p => p.id === id ? { ...p, isExcluded: !p.isExcluded } : p));
+        setContextMenu(null);
+        setEstimationResults(null);
+    };
 
     // Calculate whenever inputs change (if already estimated)
     useEffect(() => {
@@ -143,6 +185,7 @@ export default function SteelTruss() {
 
         // 1. Group all cuts by material specification
         trussParts.forEach(part => {
+            if (part.isExcluded) return;
             const specKey = `${part.type}_${part.size}_${part.thickness}`;
             if (!groupedItems[specKey]) {
                 groupedItems[specKey] = {
@@ -216,10 +259,10 @@ export default function SteelTruss() {
             ...trussParts,
             {
                 id: `tp_${Date.now()}`,
-                name: 'New Part',
-                type: 'angle_bar',
-                size: '25mm x 25mm (1" x 1")',
-                thickness: '1.2mm',
+                name: '',
+                type: '',
+                size: '',
+                thickness: '',
                 cuts: [{ length: '', quantity: '' }]
             }
         ]);
@@ -580,7 +623,7 @@ export default function SteelTruss() {
                                                 <thead className="bg-zinc-100 border-b border-zinc-300">
                                                     <tr>
                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-16 text-center">Mark</th>
-                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600">Cutting Detail (Lengths in Meters)</th>
+                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 text-center">Cutting Detail (Lengths in Meters)</th>
                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Stock Count</th>
                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Waste (m)</th>
                                                         <th className="px-6 py-2 uppercase tracking-wider font-bold text-zinc-600 w-32 text-right">Running Total</th>
@@ -663,6 +706,36 @@ export default function SteelTruss() {
                     </div>
                 </div>
             )}
+            {/* CONTEXT MENU */}
+            {contextMenu && (
+                <div
+                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
+                    style={{ left: contextMenu.x, top: contextMenu.y }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        onClick={() => handleDuplicateRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    </button>
+                    <button
+                        onClick={() => handleAddRowAbove(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                    >
+                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
+                    </button>
+                    <button
+                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                        {trussParts.find(p => p.id === contextMenu.id)?.isExcluded
+                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                        }
+                    </button>
+                </div>
+            )}
 
             {/* INPUT CARD */}
             <Card className="border-t-4 border-t-blue-500 shadow-md">
@@ -685,9 +758,9 @@ export default function SteelTruss() {
                         <thead className="text-xs text-slate-700 uppercase bg-slate-100">
                             <tr>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-left w-[200px]">Part Name</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-left w-[180px]">Type</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-left w-[200px]">Size</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Part Name</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Type</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Size</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Thickness</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[140px]">Cut List</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
@@ -695,35 +768,48 @@ export default function SteelTruss() {
                         </thead>
                         <tbody>
                             {trussParts.map((part, index) => (
-                                <tr key={part.id} className="bg-white hover:bg-slate-50 transition-colors">
-                                    <td className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold">
-                                        {index + 1}
+                                <tr key={part.id} className={`transition-colors ${part.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}>
+                                    <td
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        onContextMenu={(e) => {
+                                            if (e.ctrlKey) {
+                                                e.preventDefault();
+                                                setContextMenu({ id: part.id, x: e.clientX, y: e.clientY });
+                                            }
+                                        }}
+                                        title="Ctrl + Right Click for options"
+                                    >
+                                        <div className={`transition-all ${part.isExcluded ? 'text-red-400 line-through' : ''}`}>
+                                            {index + 1}
+                                        </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className="p-2 border border-slate-300 align-middle text-center">
                                         <input
                                             type="text"
                                             value={part.name}
                                             onChange={(e) => updateTrussPart(part.id, 'name', e.target.value)}
                                             placeholder="Part Name"
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-400 outline-none font-medium bg-white text-slate-900 text-center placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className="p-2 border border-slate-300 align-middle text-center">
                                         <SelectInput
                                             value={part.type}
                                             onChange={(val) => updateTrussPart(part.id, 'type', val)}
                                             options={STEEL_TYPES.map(t => ({ id: t.id, display: t.label }))}
                                             placeholder="Select Type..."
                                             focusColor="blue"
+                                            className="text-center"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className="p-2 border border-slate-300 align-middle text-center">
                                         <SelectInput
                                             value={part.size}
                                             onChange={(val) => updateTrussPart(part.id, 'size', val)}
                                             options={(COMMON_SIZES[part.type] || []).map(s => ({ id: s, display: s }))}
                                             placeholder="Select Size..."
                                             focusColor="blue"
+                                            className="text-center"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle text-center">

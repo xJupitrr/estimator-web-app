@@ -51,7 +51,7 @@ const MathInput = ({
             onChange={(e) => setDisplayValue(e.target.value)}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
-            className={className}
+            className={`${className} placeholder:text-zinc-400 placeholder:font-normal placeholder:italic`}
         />
     );
 };

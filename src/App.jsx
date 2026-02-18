@@ -20,6 +20,7 @@ import DoorsWindows from './components/calculators/DoorsWindows';
 import Electrical from './components/calculators/Electrical';
 import Plumbing from './components/calculators/Plumbing';
 import LintelBeam from './components/calculators/LintelBeam';
+import ConcreteWall from './components/calculators/ConcreteWall';
 
 import { exportProjectToCSV, parseProjectCSV, applySessionData } from './utils/sessionManager';
 import { getSessionData } from './hooks/useLocalStorage';
@@ -27,6 +28,7 @@ import SessionImportModal from './components/modals/SessionImportModal';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
+    { id: 'retaining-wall', label: 'Retaining/Shear Wall', component: ConcreteWall, icon: Layers },
     { id: 'slab', label: 'Slab on Grade', component: SlabOnGrade, icon: Layers },
     { id: 'suspended-slab', label: 'Suspended Slab', component: SuspendedSlab, icon: SquareStack },
     { id: 'footing', label: 'RC Footing', component: Footing, icon: LayoutTemplate },
@@ -50,7 +52,7 @@ const TAB_CATEGORIES = [
         id: "structure",
         code: "STR-01",
         color: "blue",
-        tabs: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'lintel-beam', 'steel-truss', 'roofing']
+        tabs: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'retaining-wall', 'lintel-beam', 'steel-truss', 'roofing']
     },
     {
         title: "Finishes",
@@ -77,7 +79,7 @@ const TAB_CATEGORIES = [
 
 const getInitialColumn = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",
     width_m: "",
     height_m: "",
@@ -89,7 +91,7 @@ const getInitialColumn = () => ({
 
 const getInitialBeam = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",      // Width (B)
     width_m: "",       // Depth (H)
     height_m: "",      // Length (L)
@@ -144,8 +146,8 @@ export default function App() {
                 'masonry_total', 'slab_total', 'suspended_slab_total', 'footing_total',
                 'column_total', 'beam_total', 'roofing_total', 'formworks_total',
                 'tiles_total', 'painting_total', 'ceiling_total', 'electrical_total',
-                'plumbing_total', 'doors_windows_total', 'lintel_beam_total', 'steel_truss_total'
-
+                'plumbing_total', 'doors_windows_total', 'lintel_beam_total', 'steel_truss_total',
+                'concrete_wall_total'
             ];
             let total = 0;
             costKeys.forEach(key => {

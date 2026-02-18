@@ -27,46 +27,259 @@ const TablePriceInput = ({ value, onChange }) => (
 );
 
 const ELECTRICAL_CATEGORIES = [
-    { id: 'points', label: 'Electrical Points (Rough-in)' },
+    { id: 'lighting', label: 'Lighting Fixtures & Luminaires' },
+    { id: 'devices', label: 'Wiring Devices / Outlets' },
+    { id: 'rough_in', label: 'Rough-in Materials (Manual)' },
     { id: 'protection', label: 'Power Control & Protection' },
-    { id: 'devices', label: 'Wiring Devices / Fixtures' },
 ];
 
 const ELECTRICAL_ITEMS = {
-    points: [
-        { id: 'lighting', label: 'Lighting Point' },
-        { id: 'outlet_conv', label: 'Convenience Outlet Point' },
-        { id: 'outlet_ac', label: 'Aircon Outlet Point' },
-        { id: 'outlet_range', label: 'Range/Stove Outlet Point' },
+    lighting: [
+        {
+            group: 'Bulbs & Lamps',
+            options: [
+                { id: 'led_bulb_3w', label: 'LED Bulb 3W (E27)' },
+                { id: 'led_bulb_5w', label: 'LED Bulb 5W (E27)' },
+                { id: 'led_bulb_7w', label: 'LED Bulb 7W (E27)' },
+                { id: 'led_bulb_9w', label: 'LED Bulb 9W (E27)' },
+                { id: 'led_bulb_12w', label: 'LED Bulb 12W (E27)' },
+                { id: 'led_bulb_15w', label: 'LED Bulb 15W (E27)' },
+                { id: 'led_bulb_18w', label: 'LED Bulb 18W (E27)' },
+                { id: 'led_bulb_gu10_3w', label: 'LED Bulb GU10 3W' },
+                { id: 'led_bulb_gu10_5w', label: 'LED Bulb GU10 5W' },
+                { id: 'led_bulb_gu10_7w', label: 'LED Bulb GU10 7W' },
+                { id: 'gu10_socket', label: 'GU10 Socket' },
+                { id: 'led_tube_t8', label: 'LED Tube T8 18W Set' },
+                { id: 't5_led_batten', label: 'T5 LED Batten 1.2m' },
+            ]
+        },
+        {
+            group: 'Recessed Downlights (Fixture Only)',
+            options: [
+                { id: 'downlight_fixture_4', label: 'Vertical Fixture 4"' },
+                { id: 'downlight_fixture_6', label: 'Vertical Fixture 6"' },
+            ]
+        },
+        {
+            group: 'Integrated LED Downlights',
+            options: [
+                { id: 'integrated_led_3w', label: 'LED Downlight 3W' },
+                { id: 'integrated_led_6w', label: 'LED Downlight 6W' },
+                { id: 'integrated_led_9w', label: 'LED Downlight 9W' },
+                { id: 'integrated_led_12w', label: 'LED Downlight 12W' },
+                { id: 'integrated_led_15w', label: 'LED Downlight 15W' },
+                { id: 'integrated_led_18w', label: 'LED Downlight 18W' },
+                { id: 'integrated_led_24w', label: 'LED Downlight 24W' },
+                { id: 'surface_downlight_6w', label: 'Surface Type LED 6W' },
+                { id: 'surface_downlight_12w', label: 'Surface Type LED 12W' },
+                { id: 'surface_downlight_18w', label: 'Surface Type LED 18W' },
+                { id: 'surface_downlight_24w', label: 'Surface Type LED 24W' },
+                { id: 'step_light', label: 'LED Step Light' },
+            ]
+        },
+        {
+            group: 'Decorative & Commercial',
+            options: [
+                { id: 'track_rail_1m', label: 'Track Rail (1 Meter)' },
+                { id: 'track_head_12w', label: 'Track Head (12W)' },
+                { id: 'led_strip_5m', label: 'LED Strip (5m Roll)' },
+                { id: 'led_driver_12v', label: 'LED Driver (12V/60W)' },
+                { id: 'panel_light_300', label: 'Panel Light (300mm)' },
+                { id: 'panel_light_600', label: 'Panel Light (600mm)' },
+                { id: 'pendant_light', label: 'Pendant / Hanging Light' },
+                { id: 'wall_sconce', label: 'Wall Lamp / Sconce' },
+                { id: 'high_bay_light', label: 'Industrial High Bay 100W' },
+            ]
+        },
+        {
+            group: 'Outdoor & Safety',
+            options: [
+                { id: 'ceiling_receptacle', label: 'Ceiling Receptacle 4"' },
+                { id: 'emergency_light', label: 'Emergency Light' },
+                { id: 'exit_sign', label: 'Exit Sign' },
+                { id: 'flood_light_10w', label: 'LED Flood Light 10W' },
+                { id: 'flood_light_20w', label: 'LED Flood Light 20W' },
+                { id: 'flood_light_30w', label: 'LED Flood Light 30W' },
+                { id: 'flood_light_50w', label: 'LED Flood Light 50W' },
+                { id: 'flood_light_100w', label: 'LED Flood Light 100W' },
+                { id: 'flood_light_200w', label: 'LED Flood Light 200W' },
+                { id: 'post_lamp', label: 'Garden Post Lamp' },
+                { id: 'garden_spike_light', label: 'Garden Spike Light' },
+                { id: 'solar_street_light', label: 'Solar Street Light 100W' },
+                { id: 'rope_light', label: 'LED Rope Light' },
+            ]
+        }
     ],
     protection: [
-        { id: 'panel_board_4b', label: 'Panel Board (4 Branches)' },
-        { id: 'panel_board_6b', label: 'Panel Board (6 Branches)' },
-        { id: 'panel_board_8b', label: 'Panel Board (8 Branches)' },
-        { id: 'panel_board_10b', label: 'Panel Board (10 Branches)' },
-        { id: 'panel_board_12b', label: 'Panel Board (12 Branches)' },
-        { id: 'panel_board_16b', label: 'Panel Board (16 Branches)' },
-        { id: 'panel_board_20b', label: 'Panel Board (20 Branches)' },
-        { id: 'breaker_15a', label: 'Circuit Breaker (15A)' },
-        { id: 'breaker_20a', label: 'Circuit Breaker (20A)' },
-        { id: 'breaker_30a', label: 'Circuit Breaker (30A)' },
-        { id: 'breaker_40a', label: 'Circuit Breaker (40A)' },
-        { id: 'breaker_50a', label: 'Circuit Breaker (50A)' },
-        { id: 'breaker_60a', label: 'Circuit Breaker (60A)' },
-        { id: 'breaker_100a', label: 'Circuit Breaker (100A)' },
+        {
+            group: 'Panel Boards',
+            options: [
+                { id: 'panel_board_4b', label: 'Panel Board (4 Branches)' },
+                { id: 'panel_board_6b', label: 'Panel Board (6 Branches)' },
+                { id: 'panel_board_8b', label: 'Panel Board (8 Branches)' },
+                { id: 'panel_board_10b', label: 'Panel Board (10 Branches)' },
+                { id: 'panel_board_12b', label: 'Panel Board (12 Branches)' },
+                { id: 'panel_board_16b', label: 'Panel Board (16 Branches)' },
+                { id: 'panel_board_20b', label: 'Panel Board (20 Branches)' },
+            ]
+        },
+        {
+            group: 'Circuit Breakers',
+            options: [
+                { id: 'breaker_15a', label: 'Circuit Breaker (15A)' },
+                { id: 'breaker_20a', label: 'Circuit Breaker (20A)' },
+                { id: 'breaker_30a', label: 'Circuit Breaker (30A)' },
+                { id: 'breaker_40a', label: 'Circuit Breaker (40A)' },
+                { id: 'breaker_50a', label: 'Circuit Breaker (50A)' },
+                { id: 'breaker_60a', label: 'Circuit Breaker (60A)' },
+                { id: 'breaker_100a', label: 'Circuit Breaker (100A)' },
+            ]
+        },
+        {
+            group: 'Service Entrance',
+            options: [
+                { id: 'meter_base', label: 'Meter Base (Round)' },
+                { id: 'sub_meter', label: 'Electric Sub-meter' },
+                { id: 'mts_switch', label: 'Manual Transfer Switch' },
+            ]
+        }
     ],
     devices: [
-        { id: 'switch_1g', label: '1-Gang Switch' },
-        { id: 'switch_2g', label: '2-Gang Switch' },
-        { id: 'switch_3g', label: '3-Gang Switch' },
+        {
+            group: 'Switches & Controls',
+            options: [
+                { id: 'switch_1g', label: '1-Gang Switch' },
+                { id: 'switch_2g', label: '2-Gang Switch' },
+                { id: 'switch_3g', label: '3-Gang Switch' },
+                { id: 'switch_3way', label: '3-Way Switch' },
+                { id: 'dimmer_switch', label: 'Dimmer Switch' },
+                { id: 'fan_control', label: 'Fan Control Switch' },
+            ]
+        },
+        {
+            group: 'Convenience Outlets',
+            options: [
+                { id: 'outlet_duplex', label: 'Duplex Conv. Outlet' },
+                { id: 'outlet_universal', label: 'Universal Duplex Outlet' },
+                { id: 'outlet_single', label: 'Single Conv. Outlet' },
+                { id: 'outlet_gfci', label: 'GFCI Duplex Outlet' },
+                { id: 'outlet_weatherproof', label: 'Weatherproof Outlet' },
+                { id: 'weatherproof_enclosure', label: 'Weatherproof Enclosure' },
+            ]
+        },
+        {
+            group: 'Specialty Outlets & Safety',
+            options: [
+                { id: 'outlet_ac', label: 'Aircon Outlet' },
+                { id: 'outlet_range', label: 'Range Outlet' },
+                { id: 'water_heater_switch_20a', label: 'Water Heater Safety Switch 20A' },
+                { id: 'water_heater_switch_30a', label: 'Water Heater Safety Switch 30A' },
+                { id: 'data_outlet', label: 'LAN/Data Outlet' },
+                { id: 'tel_outlet', label: 'Telephone Outlet' },
+                { id: 'smoke_detector', label: 'Smoke Detector' },
+                { id: 'doorbell', label: 'Doorbell Kit' },
+            ]
+        }
+    ],
+    rough_in: [
+        {
+            group: 'Wires (150m Roll)',
+            options: [
+                { id: 'thhn_2_0', label: 'THHN 2.0mm²' },
+                { id: 'thhn_3_5', label: 'THHN 3.5mm²' },
+                { id: 'thhn_5_5', label: 'THHN 5.5mm²' },
+                { id: 'thhn_8_0', label: 'THHN 8.0mm²' },
+                { id: 'thhn_14_0', label: 'THHN 14.0mm²' },
+                { id: 'thhn_22_0', label: 'THHN 22.0mm²' },
+                { id: 'thhn_30_0', label: 'THHN 30.0mm²' },
+            ]
+        },
+        {
+            group: 'PVC Conduit (3m)',
+            options: [
+                { id: 'pvc_pipe_20mm', label: 'PVC Pipe 20mm' },
+                { id: 'pvc_pipe_25mm', label: 'PVC Pipe 25mm' },
+                { id: 'pvc_pipe_32mm', label: 'PVC Pipe 32mm' },
+                { id: 'pvc_adapter_20mm', label: 'PVC Adapter 20mm' },
+                { id: 'pvc_adapter_25mm', label: 'PVC Adapter 25mm' },
+                { id: 'pvc_adapter_32mm', label: 'PVC Adapter 32mm' },
+                { id: 'pvc_locknut_20mm', label: 'PVC Locknut 20mm' },
+                { id: 'pvc_locknut_25mm', label: 'PVC Locknut 25mm' },
+                { id: 'pvc_locknut_32mm', label: 'PVC Locknut 32mm' },
+            ]
+        },
+        {
+            group: 'RSC Conduit (3m)',
+            options: [
+                { id: 'rsc_pipe_1_2', label: 'RSC Pipe 1/2"' },
+                { id: 'rsc_pipe_3_4', label: 'RSC Pipe 3/4"' },
+                { id: 'rsc_pipe_1', label: 'RSC Pipe 1"' },
+                { id: 'rsc_elbow_1_2', label: 'RSC Elbow 1/2"' },
+                { id: 'rsc_elbow_3_4', label: 'RSC Elbow 3/4"' },
+                { id: 'rsc_elbow_1', label: 'RSC Elbow 1"' },
+                { id: 'rsc_coupling_1_2', label: 'RSC Coupling 1/2"' },
+                { id: 'rsc_coupling_3_4', label: 'RSC Coupling 3/4"' },
+                { id: 'rsc_coupling_1', label: 'RSC Coupling 1"' },
+                { id: 'rsc_locknut_bushing_1_2', label: 'RSC Locknut 1/2"' },
+                { id: 'rsc_locknut_bushing_3_4', label: 'RSC Locknut 3/4"' },
+                { id: 'rsc_locknut_bushing_1', label: 'RSC Locknut 1"' },
+            ]
+        },
+        {
+            group: 'Boxes & Accessories',
+            options: [
+                { id: 'utility_box_pvc', label: 'Utility Box (PVC)' },
+                { id: 'utility_box_metal', label: 'Utility Box (Metal)' },
+                { id: 'junction_box_pvc', label: 'Junction Box (PVC)' },
+                { id: 'junction_box_metal', label: 'Junction Box (Metal)' },
+                { id: 'square_box_metal', label: 'Square Box (Metal)' },
+                { id: 'octagonal_box_pvc', label: 'Octagonal Box (PVC)' },
+                { id: 'octagonal_box_metal', label: 'Octagonal Box (Metal)' },
+                { id: 'box_cover_utility', label: 'Utility Cover' },
+                { id: 'box_cover_square', label: 'Square Cover' },
+            ]
+        },
+        {
+            group: 'Flexible & Hardware',
+            options: [
+                { id: 'flex_hose_1_2', label: 'Flex Conduit 1/2"' },
+                { id: 'flex_hose_3_4', label: 'Flex Conduit 3/4"' },
+                { id: 'flex_connector_1_2', label: 'Flex Connector 1/2"' },
+                { id: 'flex_connector_3_4', label: 'Flex Connector 3/4"' },
+                { id: 'molding_3_4', label: 'Plastic Molding 3/4"' },
+                { id: 'molding_1', label: 'Plastic Molding 1"' },
+                { id: 'entrance_cap_1_2', label: 'Entrance Cap 1/2"' },
+                { id: 'entrance_cap_3_4', label: 'Entrance Cap 3/4"' },
+                { id: 'entrance_cap_1', label: 'Entrance Cap 1"' },
+                { id: 'pipe_strap_1_2', label: 'Pipe Strap 1/2"' },
+                { id: 'pipe_strap_3_4', label: 'Pipe Strap 3/4"' },
+                { id: 'pipe_strap_1', label: 'Pipe Strap 1"' },
+                { id: 'tox_screw', label: 'Tox & Screws' },
+                { id: 'expansion_bolt', label: 'Expansion Bolt' },
+                { id: 'pvc_solvent', label: 'PVC Solvent' },
+                { id: 'electrical_tape', label: 'Electrical Tape' },
+            ]
+        },
+        {
+            group: 'Grounding & Solar',
+            options: [
+                { id: 'ground_rod', label: 'Ground Rod 5/8x8' },
+                { id: 'ground_clamp', label: 'Ground Rod Clamp' },
+                { id: 'bare_copper', label: 'Bare Copper Wire' },
+                { id: 'cat6_cable', label: 'UTP CAT6 Cable' },
+                { id: 'coax_cable', label: 'Coaxial Cable' },
+                { id: 'pv_cable_4', label: 'Solar PV Cable' },
+                { id: 'mc4_connector', label: 'MC4 Connector' },
+            ]
+        }
     ],
 };
 
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
-    category: 'points',
-    type: 'lighting',
+    quantity: "",
+    category: 'lighting',
+    type: 'led_bulb_9w',
     description: '',
     isExcluded: false,
 });
@@ -85,13 +298,28 @@ export default function Electrical() {
         return () => window.removeEventListener('click', handleClick);
     }, []);
 
+    // Migration: Fix legacy 'points' category if present in local storage
+    useEffect(() => {
+        setRows(prev => prev.map(r => {
+            if (r.category === 'points' || !ELECTRICAL_ITEMS[r.category]) {
+                return {
+                    ...r,
+                    category: 'devices',
+                    type: ELECTRICAL_ITEMS['devices'][0].options[0].id
+                };
+            }
+            return r;
+        }));
+    }, []);
+
     const handleRowChange = (id, field, value) => {
         setRows(prev => prev.map(r => {
             if (r.id === id) {
                 const updatedRow = { ...r, [field]: value };
                 // If category changed, reset type (item) to first available in new category
                 if (field === 'category') {
-                    updatedRow.type = ELECTRICAL_ITEMS[value][0].id;
+                    // Access the first option of the first group
+                    updatedRow.type = ELECTRICAL_ITEMS[value][0].options[0].id;
                 }
                 return updatedRow;
             }
@@ -257,7 +485,7 @@ export default function Electrical() {
                                         </div>
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-2 text-center border-gray-300 rounded text-sm font-bold" />
+                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-2 text-center border-gray-300 rounded text-sm font-bold" placeholder="Qty" />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <SelectInput
@@ -272,7 +500,7 @@ export default function Electrical() {
                                         <SelectInput
                                             value={row.type}
                                             onChange={(val) => handleRowChange(row.id, 'type', val)}
-                                            options={ELECTRICAL_ITEMS[row.category].map(t => ({ id: t.id, display: t.label }))}
+                                            options={ELECTRICAL_ITEMS[row.category] || []}
                                             focusColor="yellow"
                                             className="text-xs"
                                         />
@@ -282,7 +510,7 @@ export default function Electrical() {
                                             type="text"
                                             value={row.description}
                                             onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded text-sm"
+                                            className="w-full p-2 border border-gray-300 rounded text-sm placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                             placeholder="e.g. Master's Bedroom"
                                         />
                                     </td>
@@ -311,7 +539,7 @@ export default function Electrical() {
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Electrical Result</h3>
                                 <p className="text-sm text-gray-500 mt-1 italic flex items-center gap-1">
-                                    <Info size={14} /> Rough-in estimates included (conduits & wires)
+                                    <Info size={14} /> Estimates reflect selected items only (excludes automatic rough-ins)
                                 </p>
                             </div>
                             <div className="text-left md:text-right bg-yellow-50 px-5 py-3 rounded-xl border border-yellow-100">

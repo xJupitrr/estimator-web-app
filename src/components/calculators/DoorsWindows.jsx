@@ -46,7 +46,7 @@ import { calculateDoorsWindows, itemTypes, frameMaterials, leafMaterials } from 
 
 const getInitialItem = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     itemType: "",
     width_m: "",
     height_m: "",
@@ -280,8 +280,7 @@ export default function DoorsWindows() {
                                         <TableNumberInput
                                             value={item.quantity}
                                             onChange={(value) => handleItemChange(item.id, 'quantity', value)}
-                                            min="1"
-                                            step="1"
+                                            placeholder="Qty"
                                             className="font-bold"
                                         />
                                     </td>
@@ -335,7 +334,7 @@ export default function DoorsWindows() {
                                             value={item.description || ""}
                                             onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
                                             placeholder="e.g. Living Room"
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-amber-400 outline-none text-slate-800"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-amber-400 outline-none text-slate-800 placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300 align-middle text-center">

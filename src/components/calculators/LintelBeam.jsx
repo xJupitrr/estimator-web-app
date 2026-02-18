@@ -23,12 +23,12 @@ const DEFAULT_PRICES = {
 };
 
 const DEFAULT_SPECS = {
-    lintelDepth: 0.15, // 150mm standard depth (wall thickness)
-    lintelHeight: 0.20, // 200mm standard height
+    lintelDepth: "", // 150mm standard depth (wall thickness)
+    lintelHeight: "", // 200mm standard height
     mainBarSku: '',
-    mainBarCount: 2,
+    mainBarCount: "",
     tieSku: '',
-    tieSpacing: 150, // mm
+    tieSpacing: "", // mm
 };
 
 const AVAILABLE_REBAR_SKUS = [
@@ -94,12 +94,12 @@ export default function LintelBeam() {
 
     // Config: Main Bars & Ties (Persisted for Global Calc)
     const [specs, setSpecs] = useLocalStorage('lintelbeam_specs', {
-        lintelDepth: 0.15, // 150mm standard depth (wall thickness)
-        lintelHeight: 0.20, // 200mm standard height
+        lintelDepth: "", // 150mm standard depth (wall thickness)
+        lintelHeight: "", // 200mm standard height
         mainBarSku: '',  // e.g. '12_6.0'
-        mainBarCount: 2,
+        mainBarCount: "",
         tieSku: '',      // e.g. '10_6.0'
-        tieSpacing: 150, // mm
+        tieSpacing: "", // mm
     });
 
     const [prices, setPrices] = useLocalStorage('lintelbeam_prices', {

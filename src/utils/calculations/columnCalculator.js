@@ -14,7 +14,7 @@ const getSkuDetails = (skuId) => {
     };
 };
 
-export const calculateColumn = (columns, prices, wastePct = 5) => {
+export const calculateColumn = (columns, prices) => {
     if (!columns || columns.length === 0) return null;
 
     let totalVolConcrete = 0;
@@ -26,6 +26,7 @@ export const calculateColumn = (columns, prices, wastePct = 5) => {
     const rebarRequirements = {};
     const concreteCover = 0.04;
     const wireMetersPerKg = 53;
+    const CONCRETE_WASTE_FACTOR = 1.05;
 
     // Helpers within calculation scope
     const addRebarReq = (skuId, length, quantity, label) => {
@@ -62,10 +63,9 @@ export const calculateColumn = (columns, prices, wastePct = 5) => {
         // 1. Concrete Volume
         const volume = L * W * H * qty;
         totalVolConcrete += volume;
-        const wasteMult = 1 + (parseFloat(wastePct) || 0) / 100;
-        totalCementBags += volume * 9.0 * wasteMult;
-        totalSandCum += volume * 0.5 * wasteMult;
-        totalGravelCum += volume * 1.0 * wasteMult;
+        totalCementBags += volume * 9.0 * CONCRETE_WASTE_FACTOR;
+        totalSandCum += volume * 0.5 * CONCRETE_WASTE_FACTOR;
+        totalGravelCum += volume * 1.0 * CONCRETE_WASTE_FACTOR;
 
         // 2. Main Reinforcement
         let mainCount = 0;

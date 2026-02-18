@@ -7,13 +7,13 @@ import { calculateFormworks, DEFAULT_PRICES, PLYWOOD_OPTIONS, LUMBER_OPTIONS } f
 
 const getInitialRow = (data = {}) => ({
     id: Date.now() + Math.random(),
-    quantity: data.quantity || 1,
+    quantity: data.quantity || "",
     length_m: data.length_m || "",
     width_m: data.width_m || "",
     height_m: data.height_m || "",
     description: data.description || "",
-    plywood_type: data.plywood_type || 'phenolic_1_2',
-    lumber_size: data.lumber_size || 'lumber_2x2',
+    plywood_type: data.plywood_type || "",
+    lumber_size: data.lumber_size || "",
     isExcluded: false,
 });
 
@@ -264,10 +264,10 @@ export default function Formworks({ columns = [], beams = [] }) {
                                         </div>
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" />
+                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" placeholder="Qty" />
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full p-1.5 border-gray-300 rounded text-sm" placeholder="e.g. Stair Formwork" />
+                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full p-1.5 border-gray-300 rounded text-sm placeholder:text-zinc-400 placeholder:font-normal placeholder:italic" placeholder="e.g. Stair Formwork" />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />

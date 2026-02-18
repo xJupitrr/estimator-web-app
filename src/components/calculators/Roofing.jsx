@@ -48,8 +48,8 @@ ROOFING_TYPES.forEach(t => {
 
 const getInitialRow = (data = {}) => ({
     id: Date.now() + Math.random(),
-    quantity: data.quantity || 1,
-    type: 'rib_type',
+    quantity: data.quantity || "",
+    type: "",
     length_m: data.length_m || "",
     width_m: data.width_m || "",
     description: data.description || "",
@@ -247,6 +247,7 @@ export default function Roofing() {
                                             value={row.quantity}
                                             onChange={(val) => handleRowChange(row.id, 'quantity', val)}
                                             className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-red-400 outline-none font-bold"
+                                            placeholder="Qty"
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">
@@ -254,7 +255,7 @@ export default function Roofing() {
                                             type="text"
                                             value={row.description}
                                             onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-red-400 outline-none"
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-red-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                             placeholder="e.g., Main Roof"
                                         />
                                     </td>
@@ -264,6 +265,7 @@ export default function Roofing() {
                                             onChange={(val) => handleRowChange(row.id, 'type', val)}
                                             options={ROOFING_TYPES.map(t => ({ id: t.id, display: t.label }))}
                                             focusColor="red"
+                                            placeholder="Select Type..."
                                         />
                                     </td>
                                     <td className="p-2 border border-slate-300">

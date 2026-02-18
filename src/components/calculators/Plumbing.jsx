@@ -133,7 +133,7 @@ const PLUMBING_ITEMS = {
 
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     category: 'fixtures',
     type: 'wc',
     description: '',
@@ -327,7 +327,7 @@ export default function Plumbing() {
                                         </div>
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-2 text-center border-gray-300 rounded text-sm font-bold" />
+                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-2 text-center border-gray-300 rounded text-sm font-bold" placeholder="Qty" />
                                     </td>
                                     <td className="p-2 border border-slate-300">
                                         <SelectInput
@@ -352,7 +352,7 @@ export default function Plumbing() {
                                             type="text"
                                             value={row.description}
                                             onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
-                                            className="w-full p-2 border border-gray-300 rounded text-sm"
+                                            className="w-full p-2 border border-gray-300 rounded text-sm placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
                                             placeholder="e.g. Ground Floor T&B"
                                         />
                                     </td>

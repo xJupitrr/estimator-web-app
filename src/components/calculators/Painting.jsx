@@ -28,11 +28,11 @@ const TablePriceInput = ({ value, onChange }) => (
 
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",
     height_m: "",
     area_sqm: "",
-    sides: "2",
+    sides: "",
     description: "",
     isExcluded: false,
 });
@@ -215,29 +215,65 @@ export default function Painting() {
                                             {index + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.quantity}
+                                            onChange={(val) => handleRowChange(row.id, 'quantity', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-teal-400 outline-none font-bold bg-white text-slate-900"
+                                            placeholder="Qty"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full p-1.5 border-gray-300 rounded text-sm" placeholder="e.g. Partition Walls" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <input
+                                            type="text"
+                                            value={row.description}
+                                            onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-teal-400 outline-none text-slate-800 placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
+                                            placeholder="e.g. Partition Walls"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.length_m}
+                                            onChange={(val) => handleRowChange(row.id, 'length_m', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-teal-400 outline-none font-bold bg-white text-slate-900"
+                                            placeholder="0.00"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.height_m} onChange={(val) => handleRowChange(row.id, 'height_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.height_m}
+                                            onChange={(val) => handleRowChange(row.id, 'height_m', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-teal-400 outline-none font-bold bg-white text-slate-900"
+                                            placeholder="0.00"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.area_sqm} onChange={(val) => handleRowChange(row.id, 'area_sqm', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold text-teal-700 bg-teal-50/30" placeholder="Auto" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.area_sqm}
+                                            onChange={(val) => handleRowChange(row.id, 'area_sqm', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm font-bold text-teal-700 bg-teal-50/30 focus:ring-2 focus:ring-teal-400 outline-none"
+                                            placeholder="Auto"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <select value={row.sides} onChange={(e) => handleRowChange(row.id, 'sides', e.target.value)} className="w-full p-1 border-gray-300 rounded text-sm bg-white">
-                                            <option value="1">1 Side</option>
-                                            <option value="2">2 Sides</option>
-                                        </select>
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <SelectInput
+                                            value={row.sides}
+                                            onChange={(val) => handleRowChange(row.id, 'sides', val)}
+                                            options={[
+                                                { id: '1', display: '1 Side' },
+                                                { id: '2', display: '2 Sides' }
+                                            ]}
+                                            focusColor="teal"
+                                            placeholder="Select Sides..."
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300 text-center">
-                                        <button onClick={() => handleRemoveRow(row.id)} disabled={rows.length === 1} className="p-2 text-red-400 hover:text-red-600 disabled:text-gray-200">
+                                    <td className="p-2 border border-slate-300 align-middle text-center">
+                                        <button
+                                            onClick={() => handleRemoveRow(row.id)}
+                                            disabled={rows.length === 1}
+                                            className={`p-2 rounded-full transition-colors ${rows.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}
+                                        >
                                             <Trash2 size={16} />
                                         </button>
                                     </td>

@@ -165,8 +165,7 @@ export const runGlobalRecalculation = () => {
                 result = mod.calculator(data, prices, settings);
             }
             else if (mod.name === 'Column') {
-                // Default waste 5% if not persisted
-                result = mod.calculator(data, prices, 5);
+                result = mod.calculator(data, prices);
             }
             else if (mod.name === 'Lintel Beam') {
                 // Needs specs

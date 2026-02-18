@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye, Layout, Scissors, Columns } from 'lucide-react';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye, Layout, Scissors } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -81,7 +81,7 @@ const availableTieSKUs = availableRebarSKUs.filter(sku => sku.diameter <= 12);
 
 const getInitialColumn = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",
     width_m: "",
     height_m: "",
@@ -97,7 +97,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     // Logic to prefer props if provided (from App globally) or local storage
     const columns = propColumns || localColumns;
     const setColumns = propSetColumns || setLocalColumns;
-    const [wastePct, setWastePct] = useState(5);
+
 
     const [prices, setPrices] = useLocalStorage('column_prices', {
         cement: 240,
@@ -214,13 +214,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     const result = useMemo(() => {
         if (!showResult) return null;
         try {
-            return calculateColumn(columns, prices, wastePct);
+            return calculateColumn(columns, prices);
         } catch (err) {
             console.error(err);
             setError("Calculation error. Check inputs.");
             return null;
         }
-    }, [columns, prices, wastePct, showResult]);
+    }, [columns, prices, showResult]);
 
     useEffect(() => {
         if (result) setSessionData('column_total', result.grandTotal);
@@ -239,39 +239,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 
     return (
         <div className="space-y-6 relative animate-in fade-in duration-700">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <div className="flex items-center gap-4">
-                    <div className="bg-indigo-600 p-3 rounded-lg shadow-lg shadow-indigo-100">
-                        <Columns className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight uppercase" style={{ fontFamily: "'Anton', sans-serif" }}>RC Column</h2>
-                        <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mt-0.5">Structural Estimation System STR-COL-03</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-end border-r pr-6 border-slate-100">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Concrete Waste</span>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="number"
-                                value={wastePct}
-                                onChange={(e) => {
-                                    setWastePct(parseFloat(e.target.value) || 0);
-                                    setShowResult(false);
-                                }}
-                                className="w-12 text-right font-bold text-indigo-600 bg-transparent outline-none focus:ring-0"
-                            />
-                            <span className="text-sm font-bold text-slate-400 font-mono">%</span>
-                        </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Generated</span>
-                        <span className="text-xs font-mono font-bold text-slate-900">{new Date().toLocaleDateString()}</span>
-                    </div>
-                </div>
-            </div>
+
 
             <Card className="border-t-4 border-t-indigo-600 shadow-md">
                 <div className="px-4 py-3 bg-white border-b border-slate-100 flex justify-between items-center">
@@ -285,31 +253,27 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full border-collapse border border-slate-200 rounded-lg min-w-[800px]">
-                        <thead>
-                            <tr className="bg-slate-50 uppercase text-[9px] font-bold text-indigo-900">
-                                <th className="p-3 text-center border border-slate-200 w-12" rowSpan="2">#</th>
-                                <th className="p-3 text-center border border-slate-200 w-20" rowSpan="2">Qty</th>
-                                <th className="p-2 text-center border border-slate-200 bg-blue-50/70" colSpan="3">Dimensions (m)</th>
-                                <th className="p-2 text-center border border-slate-200 w-[180px] bg-orange-50/70" rowSpan="2">Main Rebar</th>
-                                <th className="p-2 text-center border border-slate-200 bg-emerald-50/50" colSpan="2">Ties</th>
-                                <th className="p-3 text-center border border-slate-200 w-12" rowSpan="2"></th>
-                            </tr>
-                            <tr className="bg-slate-50 uppercase text-[8px] font-bold text-slate-500">
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">L</th>
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">W</th>
-                                <th className="p-2 border border-slate-200 text-center w-[80px]">H</th>
-                                <th className="p-2 border border-slate-200 text-center w-[160px]">Size & Length</th>
-                                <th className="p-2 border border-slate-200 text-center w-[100px]">Space (mm)</th>
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                            <tr>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Length (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Width (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Height (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[160px]">Main Rebar Spec</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Tie Bar Spec</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Tie Spacing (mm)</th>
+                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200">
+                        <tbody>
                             {columns.map((col, idx) => (
                                 <tr
                                     key={col.id}
-                                    className={`group transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
                                 >
                                     <td
-                                        className="p-3 border border-slate-200 text-center text-xs text-slate-400 font-bold cursor-help relative group/cell"
+                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
                                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id: col.id, x: e.clientX, y: e.clientY }); }}
                                         title="Right-click for options"
                                     >
@@ -317,45 +281,77 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             {idx + 1}
                                         </div>
                                     </td>
-                                    <td className="p-3 border border-slate-200">
-                                        <TableNumberInput value={col.quantity} onChange={(val) => handleColumnChange(col.id, 'quantity', val)} placeholder="1" className="font-bold" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={col.quantity}
+                                            onChange={(val) => handleColumnChange(col.id, 'quantity', val)}
+                                            placeholder="Qty"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-bold bg-white text-slate-900"
+                                        />
                                     </td>
-                                    <td className="p-3 border border-slate-200"><TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" /></td>
-                                    <td className="p-3 border border-slate-200"><TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" /></td>
-                                    <td className="p-3 border border-slate-200"><TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" /></td>
-                                    <td className="p-3 border border-slate-200 bg-orange-50/5">
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={col.length_m}
+                                            onChange={(val) => handleColumnChange(col.id, 'length_m', val)}
+                                            placeholder="0.40"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-bold bg-white text-slate-900"
+                                        />
+                                    </td>
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={col.width_m}
+                                            onChange={(val) => handleColumnChange(col.id, 'width_m', val)}
+                                            placeholder="0.40"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-bold bg-white text-slate-900"
+                                        />
+                                    </td>
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={col.height_m}
+                                            onChange={(val) => handleColumnChange(col.id, 'height_m', val)}
+                                            placeholder="3.00"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-bold bg-white text-slate-900"
+                                        />
+                                    </td>
+                                    <td className="p-2 border border-slate-300 align-middle">
                                         <button
                                             onClick={() => setEditingCutsId(col.id)}
-                                            className="w-full h-9 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-orange-200 rounded text-[10px] font-bold text-orange-600 transition-all hover:bg-orange-50 group/btn"
+                                            className="w-full h-8 flex items-center justify-center gap-2 px-3 py-1 bg-white border border-gray-300 rounded text-[10px] font-bold text-indigo-600 transition-all hover:bg-indigo-50 hover:border-indigo-300 group/btn shadow-sm"
                                         >
-                                            <Edit2 size={12} className="text-orange-400" />
+                                            <Edit2 size={12} className="text-indigo-400" />
                                             <span className="italic">
                                                 {(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length > 0
                                                     ? `${(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length} Sets`
-                                                    : 'Sets'
+                                                    : 'Configure'
                                                 }
                                             </span>
                                         </button>
                                     </td>
-                                    <td className="p-3 border border-slate-200">
+                                    <td className="p-2 border border-slate-300 align-middle">
                                         <SelectInput
                                             value={col.tie_bar_sku}
                                             onChange={(val) => handleColumnChange(col.id, 'tie_bar_sku', val)}
                                             options={availableTieSKUs.map(sku => ({ value: sku.id, label: sku.display }))}
                                             placeholder="Select SKU..."
-                                            className="text-[10px] h-9"
+                                            className="text-xs h-8 font-bold text-slate-900"
+                                            focusColor="indigo"
                                         />
                                     </td>
-                                    <td className="p-3 border border-slate-200">
-                                        <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="200" className="h-9 font-medium" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={col.tie_spacing_mm}
+                                            onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)}
+                                            placeholder="200"
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-bold bg-white text-slate-900"
+                                        />
                                     </td>
-                                    <td className="p-3 border border-slate-200 text-center">
+                                    <td className="p-2 border border-slate-300 align-middle text-center">
                                         <button
                                             onClick={() => removeColumn(col.id)}
                                             disabled={columns.length === 1}
-                                            className={`p-2 transition-colors ${columns.length > 1 ? 'text-slate-300 hover:text-red-500' : 'text-slate-100 cursor-not-allowed'}`}
+                                            className={`p-1.5 transition-colors rounded ${columns.length > 1 ? 'text-slate-400 hover:text-rose-500 hover:bg-rose-50' : 'text-slate-200 cursor-not-allowed'}`}
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={14} />
                                         </button>
                                     </td>
                                 </tr>
@@ -399,7 +395,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                             <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
                                 Estimation Result
                             </h3>
-                            <p className="text-sm text-gray-500 mt-1">Based on <strong className="text-gray-700">{columns.filter(c => !c.isExcluded).length}</strong> column configurations.</p>
+                            <p className="text-sm text-gray-500 mt-1">Total Concrete Volume: <strong className="text-gray-700">{result.volume} m³</strong></p>
                         </div>
                         <div className="flex flex-col items-end gap-3">
                             <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
@@ -438,34 +434,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-2 opacity-5">
-                                <Box size={48} />
-                            </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Concrete Vol.</span>
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-black text-slate-900 tracking-tighter italic">{result.volume}</span>
-                                <span className="text-xs font-bold text-slate-400 font-mono italic">cu.m</span>
-                            </div>
-                        </div>
-                        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm md:col-span-2 relative overflow-hidden group border-l-4 border-l-emerald-500">
-                            <div className="absolute top-0 right-0 p-2 opacity-5 text-emerald-600">
-                                <Calculator size={64} />
-                            </div>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 font-mono">BoQ Generation Status</span>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-slate-400 font-mono italic">Verified</span>
-                                <span className="text-4xl font-black text-emerald-600 tracking-tighter" style={{ fontFamily: "'Anton', sans-serif" }}>LATEST</span>
-                            </div>
-                        </div>
-                        <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100 flex flex-col justify-center items-center shadow-inner group">
-                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-1">Status</span>
-                            <span className="text-xs font-black text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> ESTIMATED
-                            </span>
-                        </div>
-                    </div>
+
 
                     <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
                         <table className="w-full text-sm text-left">
@@ -527,10 +496,10 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                         <div className="p-6 space-y-4">
                             <table className="w-full border-collapse border border-slate-100 mb-2">
                                 <thead>
-                                    <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-left bg-slate-50 border-b border-slate-100">
+                                    <tr className="text-xs font-bold text-slate-500 uppercase tracking-widest text-left bg-slate-50 border-b border-slate-100">
                                         <th className="p-3">Specification</th>
-                                        <th className="p-3 text-center w-24">Length (m)</th>
-                                        <th className="p-3 text-center w-20">Count</th>
+                                        <th className="p-3 text-center w-32">Length (m)</th>
+                                        <th className="p-3 text-center w-24">Count</th>
                                         <th className="p-3 w-10"></th>
                                     </tr>
                                 </thead>
@@ -546,7 +515,8 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                         handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
                                                     }}
                                                     options={availableRebarSKUs.map(s => ({ value: s.id, label: s.display }))}
-                                                    className="h-8 text-[10px]"
+                                                    className="h-10 text-sm"
+                                                    focusColor="indigo"
                                                 />
                                             </td>
                                             <td className="p-2">
@@ -559,9 +529,9 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                             handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
                                                         }}
                                                         placeholder={(parseFloat(activeColForCuts?.height_m) + (40 * (parseInt(cut.sku?.split('_')[0]) || 12) / 1000) || 0).toFixed(2)}
-                                                        className="h-8 font-mono"
+                                                        className="h-10 font-mono text-sm pl-3 pr-8 w-full"
                                                     />
-                                                    <span className="absolute right-1 top-2.5 text-[8px] text-slate-300 font-mono">m</span>
+                                                    <span className="absolute right-3 top-3 text-[10px] text-slate-400 font-mono pointer-events-none">m</span>
                                                 </div>
                                             </td>
                                             <td className="p-2 text-center">
@@ -573,14 +543,14 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                         handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
                                                     }}
                                                     placeholder="4"
-                                                    className="h-8 font-bold"
+                                                    className="h-10 font-bold text-sm text-center w-full"
                                                 />
                                             </td>
                                             <td className="p-2 text-right">
                                                 <button onClick={() => {
                                                     const newCuts = activeColForCuts.main_rebar_cuts.filter((_, i) => i !== idx);
                                                     handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts.length > 0 ? newCuts : [{ sku: '', length: '', quantity: '' }]);
-                                                }} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+                                                }} className="p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
                                             </td>
                                         </tr>
                                     ))}

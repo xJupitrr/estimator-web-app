@@ -28,10 +28,10 @@ const TablePriceInput = ({ value, onChange }) => (
 
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
-    quantity: 1,
+    quantity: "",
     length_m: "",
     width_m: "",
-    ceiling_type: "gypsum_board",
+    ceiling_type: "",
     description: "",
     isExcluded: false,
 });
@@ -213,28 +213,55 @@ export default function Ceiling() {
                                             {index + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.quantity}
+                                            onChange={(val) => handleRowChange(row.id, 'quantity', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none font-bold bg-white text-slate-900"
+                                            placeholder="Qty"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full p-1.5 border-gray-300 rounded text-sm" placeholder="e.g. Master Bedroom" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <input
+                                            type="text"
+                                            value={row.description}
+                                            onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
+                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none text-slate-800 placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
+                                            placeholder="e.g. Master Bedroom"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.length_m}
+                                            onChange={(val) => handleRowChange(row.id, 'length_m', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none font-bold bg-white text-slate-900"
+                                            placeholder="0.00"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.width_m} onChange={(val) => handleRowChange(row.id, 'width_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className="p-2 border border-slate-300 align-middle">
+                                        <MathInput
+                                            value={row.width_m}
+                                            onChange={(val) => handleRowChange(row.id, 'width_m', val)}
+                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none font-bold bg-white text-slate-900"
+                                            placeholder="0.00"
+                                        />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className="p-2 border border-slate-300 align-middle">
                                         <SelectInput
                                             value={row.ceiling_type}
                                             onChange={(val) => handleRowChange(row.id, 'ceiling_type', val)}
                                             options={CEILING_TYPES.map(t => ({ id: t.id, display: t.label }))}
                                             focusColor="purple"
+                                            className="text-xs"
+                                            placeholder="Select Type..."
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 text-center">
-                                        <button onClick={() => handleRemoveRow(row.id)} disabled={rows.length === 1} className="p-2 text-red-400 hover:text-red-600 disabled:text-gray-200">
+                                    <td className="p-2 border border-slate-300 align-middle text-center">
+                                        <button
+                                            onClick={() => handleRemoveRow(row.id)}
+                                            disabled={rows.length === 1}
+                                            className={`p-2 rounded-full transition-colors ${rows.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}
+                                        >
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
