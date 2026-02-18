@@ -1,4 +1,5 @@
 import { optimizeCuts } from '../optimization/cuttingStock';
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
 // Constants
 const CONCRETE_WASTE_PCT = 5;
@@ -210,9 +211,9 @@ export const calculateBeam = (beams, prices) => {
     };
 
     // Concrete
-    addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement", 240);
-    addItem("Wash Sand (S1)", totalSandCum, "cu.m", "sand", 1200);
-    addItem("Crushed Gravel (3/4)", totalGravelCum, "cu.m", "gravel", 1400);
+    addItem(MATERIAL_DEFAULTS.cement_40kg.name, Math.ceil(totalCementBags), "bags", "cement", 240);
+    addItem(MATERIAL_DEFAULTS.sand_wash.name, totalSandCum, "cu.m", "sand", 1200);
+    addItem(MATERIAL_DEFAULTS.gravel_3_4.name, totalGravelCum, "cu.m", "gravel", 1400);
 
     // Formworks hidden from results as per user request
 
@@ -244,7 +245,7 @@ export const calculateBeam = (beams, prices) => {
         }
     });
 
-    addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
+    addItem(MATERIAL_DEFAULTS.tie_wire_kg.name, Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
 
     return { volume: totalVolConcrete.toFixed(2), areaFormwork: totalAreaFormwork.toFixed(2), items, grandTotal: subTotal };
 };

@@ -14,6 +14,7 @@ const SelectInput = ({ value, onChange, options, placeholder = "Select Option...
         purple: "focus:ring-2 focus:ring-purple-400 focus:border-purple-400",
         cyan: "focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400",
         emerald: "focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400",
+        teal: "focus:ring-2 focus:ring-teal-400 focus:border-teal-400",
         zinc: "focus:ring-2 focus:ring-zinc-400 focus:border-zinc-400",
     };
 

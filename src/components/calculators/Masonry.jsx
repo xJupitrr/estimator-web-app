@@ -2,33 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
+import { getDefaultPrices } from '../../constants/materials';
+import { THEME_COLORS } from '../../constants/theme';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
 
-// --- Components ---
-
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-);
-
-// Helper component for currency inputs (Adapted for Orange Theme)
-const TablePriceInput = ({ value, onChange }) => (
-    <div className="flex items-center justify-end">
-        {/* Peso Sign Segment */}
-        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
-            ₱
-        </div>
-        {/* Input Field Segment */}
-        <input
-            type="number"
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-gray-300 rounded-r-lg bg-white focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
-        />
-    </div>
-);
+const THEME = THEME_COLORS.masonry;
 
 // Format number to Philippine Peso (₱)
 const formatPrice = (value) => {
@@ -67,15 +50,7 @@ export default function Masonry() { // Renamed to Masonry
     const [walls, setWalls] = useLocalStorage('masonry_walls', [getInitialWall()]);
 
     // Material Prices
-    const [wallPrices, setWallPrices] = useLocalStorage('masonry_prices', {
-        chb: 15,
-        cement: 240,
-        sand: 1200,
-        gravel: 1000,
-        rebar10mmPrice: 180,
-        rebar12mmPrice: 240,
-        tieWire: 30,
-    });
+    const [wallPrices, setWallPrices] = useLocalStorage('masonry_prices', getDefaultPrices());
 
     const [wallResult, setWallResult] = useLocalStorage('masonry_result', null);
     // Track if an estimate has been run at least once to enable auto-recalc
@@ -239,21 +214,21 @@ export default function Masonry() { // Renamed to Masonry
             )}
 
             {/* INPUT CARD */}
-            <Card className="border-t-4 border-t-orange-500 shadow-md">
-                <div className="p-4 bg-orange-50 border-b border-orange-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-orange-900 flex items-center gap-2">
-                        <Settings size={18} /> Wall Configuration ({walls.length} Total)
-                    </h2>
-                    <div className="flex gap-2">
-                        <button
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+                <SectionHeader
+                    title={`Wall Configuration (${walls.length} Total)`}
+                    icon={Settings}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
                             onClick={handleAddWall}
-                            className="flex items-center gap-1 px-4 py-2 bg-orange-600 text-white rounded-md text-xs font-bold hover:bg-orange-700 transition-colors active:scale-95 shadow-sm"
+                            label="Add Row"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
                             title="Add another wall configuration row"
-                        >
-                            <PlusCircle size={14} /> Add Row
-                        </button>
-                    </div>
-                </div>
+                        />
+                    }
+                />
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
@@ -427,15 +402,19 @@ export default function Masonry() { // Renamed to Masonry
                 )}
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={calculateWall} className="w-full md:w-auto px-8 py-3 bg-orange-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-orange-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> CALCULATE
-                    </button>
+                    <ActionButton
+                        onClick={calculateWall}
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="w-full md:w-auto px-8 py-3 uppercase tracking-wider text-sm min-w-[200px]"
+                    />
                 </div>
             </Card>
 
             {/* RESULT CARD */}
             {wallResult && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-orange-500">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -445,9 +424,9 @@ export default function Masonry() { // Renamed to Masonry
                                 <p className="text-sm text-gray-500 mt-1">Based on <strong className="text-gray-700">{wallResult.quantity}</strong> wall configurations totaling <strong className="text-gray-700">{wallResult.area} m²</strong> area.</p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className="text-left md:text-right bg-orange-50 px-5 py-3 rounded-xl border border-orange-100">
-                                    <p className="text-xs text-orange-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                    <p className="font-bold text-4xl text-orange-700 tracking-tight">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {wallResult.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -498,6 +477,7 @@ export default function Masonry() { // Renamed to Masonry
                                                 <TablePriceInput
                                                     value={item.price}
                                                     onChange={(newValue) => handlePriceChange(item.priceKey, newValue)}
+                                                    colorTheme={THEME}
                                                 />
                                             </td>
                                             <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
@@ -516,10 +496,10 @@ export default function Masonry() { // Renamed to Masonry
             {!wallResult && !error && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Calculator size={32} className="text-orange-500" />
+                        <Calculator size={32} className={`text-${THEME}-500`} />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Enter your wall dimensions above, then click <span className="font-bold text-orange-600">'CALCULATE'</span> to generate the material list.
+                        Enter your wall dimensions above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span> to generate the material list.
                     </p>
                 </div>
             )}

@@ -1,5 +1,6 @@
 
 import { processSingleRun } from '../rebarUtils';
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
 export const calculateSlabOnGrade = (slabs, prices) => {
     if (!slabs || slabs.length === 0) return null;
@@ -118,12 +119,12 @@ export const calculateSlabOnGrade = (slabs, prices) => {
     const totalOverallCost = costCement + costSand + costGravel + costGravelBedding + totalRebarCost + costTieWire;
 
     const items = [
-        { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: prices.cement, priceKey: 'cement', total: costCement },
-        { name: 'Wash Sand (S1)', qty: finalSand, unit: 'cu.m', price: prices.sand, priceKey: 'sand', total: costSand },
-        { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: prices.gravel, priceKey: 'gravel', total: costGravel },
-        { name: 'Gravel Bedding / Sub-base', qty: finalGravelBedding, unit: 'cu.m', price: prices.gravelBeddingPrice, priceKey: 'gravelBeddingPrice', total: costGravelBedding },
+        { name: MATERIAL_DEFAULTS.cement_40kg.name, qty: finalCement, unit: 'bags', price: prices.cement, priceKey: 'cement', total: costCement },
+        { name: MATERIAL_DEFAULTS.sand_wash.name, qty: finalSand, unit: 'cu.m', price: prices.sand, priceKey: 'sand', total: costSand },
+        { name: MATERIAL_DEFAULTS.gravel_3_4.name, qty: finalGravel, unit: 'cu.m', price: prices.gravel, priceKey: 'gravel', total: costGravel },
+        { name: MATERIAL_DEFAULTS.gravel_bedding.name, qty: finalGravelBedding, unit: 'cu.m', price: prices.gravelBeddingPrice, priceKey: 'gravelBeddingPrice', total: costGravelBedding },
         ...finalRebarItems,
-        { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: prices.tieWire, priceKey: 'tieWire', total: costTieWire },
+        { name: MATERIAL_DEFAULTS.tie_wire_kg.name, qty: finalKGPurchase, unit: 'kg', price: prices.tieWire, priceKey: 'tieWire', total: costTieWire },
     ];
 
     return {

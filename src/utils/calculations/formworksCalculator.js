@@ -1,12 +1,14 @@
 
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
+
 export const DEFAULT_PRICES = {
-    phenolic_1_2: 2400,
-    phenolic_3_4: 2800,
-    plywood_1_2: 1250,
-    lumber_2x2: 35,
-    lumber_2x3: 45,
-    lumber_2x4: 65,
-    nails_kg: 85,
+    phenolic_1_2: MATERIAL_DEFAULTS.plywood_phenolic_1_2.price,
+    phenolic_3_4: MATERIAL_DEFAULTS.plywood_phenolic_3_4.price,
+    plywood_1_2: MATERIAL_DEFAULTS.plywood_marine_1_2.price,
+    lumber_2x2: MATERIAL_DEFAULTS.lumber_2x2.price,
+    lumber_2x3: MATERIAL_DEFAULTS.lumber_2x3.price,
+    lumber_2x4: MATERIAL_DEFAULTS.lumber_2x4.price,
+    nails_kg: MATERIAL_DEFAULTS.common_nails_kg.price,
 };
 
 export const PLYWOOD_OPTIONS = [
@@ -124,27 +126,45 @@ export const calculateFormworks = (rows, config, prices) => {
         const { area, spec } = plywoodByType[pId];
         if (!spec) return;
         const sheets = Math.ceil((area / spec.area_sqm) * pWasteFactor);
-        const price = prices[pId] || DEFAULT_PRICES[pId];
+
+        // Map local pId to standard key if possible, or fallback
+        let standardKey;
+        if (pId === 'phenolic_1_2') standardKey = 'plywood_phenolic_1_2';
+        else if (pId === 'phenolic_3_4') standardKey = 'plywood_phenolic_3_4';
+        else if (pId === 'plywood_1_2') standardKey = 'plywood_marine_1_2';
+
+        const price = prices[pId] || (standardKey ? MATERIAL_DEFAULTS[standardKey].price : 0);
+        const name = standardKey ? MATERIAL_DEFAULTS[standardKey].name : spec.label;
+
         const total = sheets * price;
         grandTotal += total;
-        finalItems.push({ name: spec.label, qty: sheets, unit: "sheets", priceKey: pId, price, total });
+        finalItems.push({ name, qty: sheets, unit: "sheets", priceKey: pId, price, total });
     });
 
     Object.keys(lumberByType).forEach(lId => {
         const { linear, spec } = lumberByType[lId];
         if (!spec) return;
         const bf = Math.ceil(linear * spec.bf_per_meter * lWasteFactor);
-        const price = prices[lId] || DEFAULT_PRICES[lId];
+
+        let standardKey;
+        if (lId === 'lumber_2x2') standardKey = 'lumber_2x2';
+        else if (lId === 'lumber_2x3') standardKey = 'lumber_2x3';
+        else if (lId === 'lumber_2x4') standardKey = 'lumber_2x4';
+
+        const price = prices[lId] || (standardKey ? MATERIAL_DEFAULTS[standardKey].price : 0);
+        const name = standardKey ? MATERIAL_DEFAULTS[standardKey].name : `Lumber (${spec.label})`;
+
         const total = bf * price;
         grandTotal += total;
-        finalItems.push({ name: `Lumber (${spec.label})`, qty: bf, unit: "BF", priceKey: lId, price, total });
+        finalItems.push({ name, qty: bf, unit: "BF", priceKey: lId, price, total });
     });
 
     const nailsKg = Math.ceil(totalAreaAccumulator * 0.15 * lWasteFactor);
-    const nailPrice = prices.nails_kg || DEFAULT_PRICES.nails_kg;
+    const nailKey = 'common_nails_kg';
+    const nailPrice = prices.nails_kg || MATERIAL_DEFAULTS[nailKey].price;
     const nailTotal = nailsKg * nailPrice;
     grandTotal += nailTotal;
-    finalItems.push({ name: "Common Nails (Assorted)", qty: nailsKg, unit: "kg", priceKey: "nails_kg", price: nailPrice, total: nailTotal });
+    finalItems.push({ name: MATERIAL_DEFAULTS[nailKey].name, qty: nailsKg, unit: "kg", priceKey: "nails_kg", price: nailPrice, total: nailTotal });
 
     return {
         totalArea: totalAreaAccumulator,

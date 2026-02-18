@@ -2,8 +2,16 @@ import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
-import MathInput from '../common/MathInput';
 import { calculateFormworks, DEFAULT_PRICES, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
+import { THEME_COLORS } from '../../constants/theme';
+import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
+
+const THEME = THEME_COLORS.formworks;
 
 const getInitialRow = (data = {}) => ({
     id: Date.now() + Math.random(),
@@ -126,9 +134,10 @@ export default function Formworks({ columns = [], beams = [] }) {
     return (
         <div className="space-y-6">
             {/* AUTOMATED IMPORT BARD */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 border-l-4 border-l-purple-600 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* AUTOMATED IMPORT BARD */}
+            <Card className={`p-4 border-l-4 border-l-${THEME}-600 flex flex-col md:flex-row md:items-center justify-between gap-4`}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                    <h2 className="font-bold text-purple-900 flex items-center gap-2 text-sm whitespace-nowrap">
+                    <h2 className={`font-bold text-${THEME}-900 flex items-center gap-2 text-sm whitespace-nowrap`}>
                         <LayoutTemplate size={18} /> Automated Import
                     </h2>
 
@@ -138,7 +147,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                                 type="checkbox"
                                 checked={includeColumns}
                                 onChange={(e) => setIncludeColumns(e.target.checked)}
-                                className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300"
+                                className={`w-4 h-4 rounded text-${THEME}-600 focus:ring-${THEME}-500 border-gray-300`}
                             />
                             <span className="text-sm font-medium text-gray-700">Include Columns <span className="text-xs text-gray-400 font-normal">({columns.length})</span></span>
                         </label>
@@ -148,7 +157,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                                 type="checkbox"
                                 checked={includeBeams}
                                 onChange={(e) => setIncludeBeams(e.target.checked)}
-                                className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300"
+                                className={`w-4 h-4 rounded text-${THEME}-600 focus:ring-${THEME}-500 border-gray-300`}
                             />
                             <span className="text-sm font-medium text-gray-700">Include Beams <span className="text-xs text-gray-400 font-normal">({beams.length})</span></span>
                         </label>
@@ -163,7 +172,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                         <select
                             value={importPlywood}
                             onChange={(e) => setImportPlywood(e.target.value)}
-                            className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full pl-16 p-2 font-medium hover:bg-white transition-colors cursor-pointer"
+                            className={`bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-${THEME}-500 focus:border-${THEME}-500 block w-full pl-16 p-2 font-medium hover:bg-white transition-colors cursor-pointer`}
                         >
                             {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                         </select>
@@ -176,13 +185,13 @@ export default function Formworks({ columns = [], beams = [] }) {
                         <select
                             value={importLumber}
                             onChange={(e) => setImportLumber(e.target.value)}
-                            className="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-purple-500 focus:border-purple-500 block w-full pl-14 p-2 font-medium hover:bg-white transition-colors cursor-pointer"
+                            className={`bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-${THEME}-500 focus:border-${THEME}-500 block w-full pl-14 p-2 font-medium hover:bg-white transition-colors cursor-pointer`}
                         >
                             {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                         </select>
                     </div>
                 </div>
-            </div>
+            </Card>
 
             {/* CONTEXT MENU */}
             {contextMenu && (
@@ -215,18 +224,20 @@ export default function Formworks({ columns = [], beams = [] }) {
                 </div>
             )}
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden border-t-4 border-t-slate-700">
-                <div className="p-4 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-slate-900 flex items-center gap-2">
-                        <Hammer size={18} /> Manual Formwork Entry
-                    </h2>
-                    <button
-                        onClick={handleAddRow}
-                        className="flex items-center gap-1 px-4 py-2 bg-slate-700 text-white rounded-md text-xs font-bold hover:bg-slate-800 transition-all active:scale-95 shadow-sm justify-center"
-                    >
-                        <PlusCircle size={14} /> Add Manual Row
-                    </button>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-600`}>
+                <SectionHeader
+                    title="Manual Formwork Entry"
+                    icon={Hammer}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
+                            onClick={handleAddRow}
+                            label="Add Manual Row"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
+                        />
+                    }
+                />
 
                 <div className="p-4 overflow-x-auto">
                     <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[900px]">
@@ -235,9 +246,9 @@ export default function Formworks({ columns = [], beams = [] }) {
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">L (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">W (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">H (m)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Length(M)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Width(M)</th>
+                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Height(M)</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Plywood</th>
                                 <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Lumber</th>
                                 <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
@@ -279,14 +290,24 @@ export default function Formworks({ columns = [], beams = [] }) {
                                         <MathInput value={row.height_m} onChange={(val) => handleRowChange(row.id, 'height_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <select value={row.plywood_type} onChange={(e) => handleRowChange(row.id, 'plywood_type', e.target.value)} className="w-full p-1 border-gray-300 rounded text-xs bg-white">
-                                            {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                                        </select>
+                                        <SelectInput
+                                            value={row.plywood_type}
+                                            onChange={(val) => handleRowChange(row.id, 'plywood_type', val)}
+                                            options={PLYWOOD_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+                                            placeholder="Select Plywood..."
+                                            className="text-[10px] h-8"
+                                            focusColor="zinc"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300">
-                                        <select value={row.lumber_size} onChange={(e) => handleRowChange(row.id, 'lumber_size', e.target.value)} className="w-full p-1 border-gray-300 rounded text-xs bg-white">
-                                            {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                                        </select>
+                                        <SelectInput
+                                            value={row.lumber_size}
+                                            onChange={(val) => handleRowChange(row.id, 'lumber_size', val)}
+                                            options={LUMBER_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+                                            placeholder="Select Lumber..."
+                                            className="text-[10px] h-8"
+                                            focusColor="zinc"
+                                        />
                                     </td>
                                     <td className="p-2 border border-slate-300 text-center">
                                         <button onClick={() => handleRemoveRow(row.id)} disabled={rows.length === 1} className="p-2 text-red-400 hover:text-red-600 disabled:text-gray-200">
@@ -310,23 +331,27 @@ export default function Formworks({ columns = [], beams = [] }) {
                             <input type="number" value={wasteLumber} onChange={(e) => setWasteLumber(parseInt(e.target.value) || 0)} className="w-16 p-1 border rounded" />
                         </label>
                     </div>
-                    <button onClick={performCalculation} className="px-8 py-3 bg-slate-800 text-white rounded-lg font-bold shadow-lg hover:bg-slate-900 transition-all active:scale-95 flex items-center gap-2 uppercase tracking-wide text-xs">
-                        <Calculator size={18} /> CALCULATE
-                    </button>
+                    <ActionButton
+                        onClick={performCalculation}
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="px-8 py-3 uppercase tracking-wide text-xs"
+                    />
                 </div>
-            </div>
+            </Card>
 
             {result && (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-slate-700">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-${THEME}-600`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Formwork Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
                             </div>
-                            <div className="text-left md:text-right bg-slate-50 px-5 py-3 rounded-xl border border-slate-100">
-                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                <p className="font-bold text-4xl text-slate-700 tracking-tight">₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
+                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
                             </div>
                         </div>
 
@@ -347,11 +372,12 @@ export default function Formworks({ columns = [], beams = [] }) {
                                             <td className="px-4 py-3 text-slate-800">{item.name}</td>
                                             <td className="px-4 py-3 text-right">{item.qty}</td>
                                             <td className="px-4 py-3 text-center"><span className="bg-slate-100 px-2 py-1 rounded text-[10px] text-slate-500 uppercase">{item.unit}</span></td>
-                                            <td className="px-4 py-2 text-right">
-                                                <div className="flex items-center justify-end">
-                                                    <span className="text-gray-400 text-[10px] mr-1">₱</span>
-                                                    <input type="number" value={prices[item.priceKey] || 0} onChange={(e) => updatePrice(item.priceKey, e.target.value)} className="w-20 px-1 py-0.5 text-right border-slate-200 rounded text-xs" />
-                                                </div>
+                                            <td className="px-4 py-2">
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] || 0}
+                                                    onChange={(val) => updatePrice(item.priceKey, val)}
+                                                    colorTheme={THEME}
+                                                />
                                             </td>
                                             <td className="px-4 py-3 text-right text-slate-900 font-bold bg-slate-50/50">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
@@ -360,7 +386,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                             </table>
                         </div>
                     </div>
-                </div>
+                </Card>
             )}
         </div>
     );

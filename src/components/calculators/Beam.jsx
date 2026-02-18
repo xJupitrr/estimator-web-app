@@ -2,8 +2,15 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import { THEME_COLORS } from '../../constants/theme';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
+
+const THEME = THEME_COLORS.beam;
 
 // --- 1. CONSTANTS & CONFIGURATION ---
 
@@ -11,19 +18,21 @@ import SelectInput from '../common/SelectInput';
 // Calculation constants removed as they are now handled by utility.
 
 
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
+
 const DEFAULT_PRICES = {
-    cement: 240,
-    sand: 1200,
-    gravel: 1400,
-    rebar_10: 180,
-    rebar_12: 260,
-    rebar_16: 480,
-    rebar_20: 750,
-    rebar_25: 1150,
-    tie_wire: 85,
-    phenolic_1_2: 2000,
-    lumber_2x3: 45,
-    nails_kg: 70,
+    cement: MATERIAL_DEFAULTS.cement_40kg.price,
+    sand: MATERIAL_DEFAULTS.sand_wash.price,
+    gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
+    rebar_10: MATERIAL_DEFAULTS.rebar_10mm.price,
+    rebar_12: MATERIAL_DEFAULTS.rebar_12mm.price,
+    rebar_16: MATERIAL_DEFAULTS.rebar_16mm.price,
+    rebar_20: MATERIAL_DEFAULTS.rebar_20mm.price,
+    rebar_25: MATERIAL_DEFAULTS.rebar_25mm.price,
+    tie_wire: MATERIAL_DEFAULTS.tie_wire_kg.price,
+    phenolic_1_2: MATERIAL_DEFAULTS.plywood_phenolic_1_2.price,
+    lumber_2x3: MATERIAL_DEFAULTS.lumber_2x3.price,
+    nails_kg: MATERIAL_DEFAULTS.common_nails_kg.price,
 };
 
 const AVAILABLE_REBAR_SKUS = [
@@ -86,35 +95,18 @@ const getInitialElement = () => ({
 
 // --- 3. UI COMPONENTS ---
 
-const Card = React.memo(({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-));
+// --- 3. UI COMPONENTS ---
 
 const TableNumberInput = React.memo(({ value, onChange, placeholder, className = "" }) => (
     <MathInput
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-teal-400 outline-none font-medium bg-white text-slate-900 ${className}`}
+        className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-medium bg-white text-slate-900 ${className}`}
     />
 ));
 
-const TablePriceInput = React.memo(({ value, onChange, placeholder = "0.00" }) => (
-    <div className="flex items-center justify-end relative">
-        <span className="absolute left-2 text-gray-400 font-bold text-[10px] pointer-events-none">₱</span>
-        <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder={placeholder}
-            value={value === null || value === undefined ? '' : value}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full pl-6 pr-2 py-1 text-right text-sm border border-slate-300 rounded bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors"
-        />
-    </div>
-));
+
 
 // --- 4. MAIN COMPONENT ---
 
@@ -416,13 +408,20 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 </div>
             )}
 
-            <Card className="border-t-4 border-t-teal-600 shadow-md">
-                <div className="p-4 bg-slate-100 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-slate-800 flex items-center gap-2"><Settings size={18} /> Beam Configuration ({beams.length} Total)</h2>
-                    <button onClick={handleAddRow} className="flex items-center gap-1 px-4 py-2 bg-teal-600 text-white rounded-md text-xs font-bold hover:bg-teal-700 transition-colors active:scale-95 shadow-sm">
-                        <PlusCircle size={14} /> Add Element
-                    </button>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+                <SectionHeader
+                    title={`Beam Configuration (${beams.length} Items)`}
+                    icon={Layout}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
+                            onClick={handleAddRow}
+                            label="Add Beam"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
+                        />
+                    }
+                />
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1300px]">
@@ -557,30 +556,30 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 )}
 
                 <div className="flex justify-end p-4 bg-slate-50 border-t border-gray-200">
-                    <button
+                    <ActionButton
                         onClick={handleCalculate}
-                        className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-all transform hover:scale-105 active:scale-95"
-                    >
-                        <Calculator size={20} />
-                        CALCULATE
-                    </button>
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="py-3 px-8"
+                    />
                 </div>
             </Card>
 
             {!showResult && !error && (
                 <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Layout size={40} className="text-teal-400" />
+                        <Layout size={40} className={`text-${THEME}-400`} />
                     </div>
                     <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
                     <p className="max-w-md mx-auto text-sm">
-                        Enter your beam dimensions, rebar specifications (main, ties, cut bars), and spacing above, then click <span className="font-bold text-teal-600">'CALCULATE'</span>.
+                        Enter your beam dimensions, rebar specifications (main, ties, cut bars), and spacing above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
                     </p>
                 </div>
             )}
 
             {showResult && result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-emerald-500">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-600`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -594,9 +593,9 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
-                                <p className="text-xs text-emerald-800 font-bold uppercase tracking-wide mb-1">Estimated Cost</p>
-                                <p className="font-bold text-4xl text-emerald-700 tracking-tight">₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Cost</p>
+                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                             </div>
                         </div>
 

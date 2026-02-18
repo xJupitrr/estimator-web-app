@@ -117,9 +117,9 @@ export const calculateMasonry = (walls, wallPrices) => {
 
     // --- Cost Calculation ---
     const costCHB = totalChbCount * wallPrices.chb;
-    const costCement = finalCement * wallPrices.cement;
-    const costSand = parseFloat(finalSand) * wallPrices.sand;
-    const costGravel = parseFloat(finalGravel) * wallPrices.gravel;
+    const costCement = finalCement * wallPrices.cement_40kg;
+    const costSand = parseFloat(finalSand) * wallPrices.sand_wash;
+    const costGravel = parseFloat(finalGravel) * wallPrices.gravel_3_4;
     const totalCementitiousCost = costCement + costSand + costGravel;
 
     let finalRebarItems = [];
@@ -130,14 +130,23 @@ export const calculateMasonry = (walls, wallPrices) => {
         const finalQtyPurchase = Math.ceil(stock.purchased * 1.05); // Added 5% waste buffer
         const is10mm = parseFloat(size.replace('mm', '')) === 10;
 
-        const price = is10mm ? wallPrices.rebar10mmPrice : wallPrices.rebar12mmPrice;
-        const priceKey = is10mm ? 'rebar10mmPrice' : 'rebar12mmPrice';
+        let priceKey, price, name;
+
+        if (is10mm) {
+            priceKey = 'rebar_10mm';
+            price = wallPrices[priceKey] || 180;
+            name = `Corrugated Rebar (10mm x ${lengthStr})`;
+        } else {
+            priceKey = 'rebar_12mm';
+            price = wallPrices[priceKey] || 260;
+            name = `Corrugated Rebar (12mm x ${lengthStr})`;
+        }
 
         const total = finalQtyPurchase * price;
         totalRebarCost += total;
 
         finalRebarItems.push({
-            name: `Corrugated Rebar (${size} x ${lengthStr})`,
+            name: name,
             qty: finalQtyPurchase,
             unit: 'pcs',
             price: price,
@@ -152,7 +161,7 @@ export const calculateMasonry = (walls, wallPrices) => {
     const totalLMTieWire = totalTiePoints * TIE_WIRE_PER_INTERSECTION;
     const totalKGRequired = totalLMTieWire * KG_PER_LM;
     const finalKGPurchase = Math.ceil(totalKGRequired * 1.05); // 5% allowance
-    const costTieWire = finalKGPurchase * wallPrices.tieWire;
+    const costTieWire = finalKGPurchase * wallPrices.tie_wire_kg;
 
     const totalOverallCost = costCHB + totalCementitiousCost + totalRebarCost + costTieWire;
 
@@ -163,13 +172,13 @@ export const calculateMasonry = (walls, wallPrices) => {
 
     const items = [
         { name: chbName, qty: totalChbCount, unit: 'pcs', price: wallPrices.chb, priceKey: 'chb', total: costCHB },
-        { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: wallPrices.cement, priceKey: 'cement', total: costCement },
-        { name: 'Wash Sand (S1)', qty: finalSand, unit: 'cu.m', price: wallPrices.sand, priceKey: 'sand', total: costSand },
-        { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: wallPrices.gravel, priceKey: 'gravel', total: costGravel },
+        { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: wallPrices.cement_40kg, priceKey: 'cement_40kg', total: costCement },
+        { name: 'Wash Sand (S1)', qty: finalSand, unit: 'cu.m', price: wallPrices.sand_wash, priceKey: 'sand_wash', total: costSand },
+        { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: wallPrices.gravel_3_4, priceKey: 'gravel_3_4', total: costGravel },
 
         ...finalRebarItems,
 
-        { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: wallPrices.tieWire, priceKey: 'tieWire', total: costTieWire },
+        { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: wallPrices.tie_wire_kg, priceKey: 'tie_wire_kg', total: costTieWire },
     ];
 
     return {

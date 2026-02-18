@@ -5,6 +5,15 @@ import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateColumn } from '../../utils/calculations/columnCalculator';
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
+
+import { THEME_COLORS } from '../../constants/theme';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
+
+const THEME = THEME_COLORS.column;
 
 // --- Components ---
 
@@ -22,35 +31,13 @@ const getAlphabeticalIndex = (n) => {
     return result;
 };
 
-const Card = React.memo(({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-));
-
 const TableNumberInput = React.memo(({ value, onChange, placeholder, className = "" }) => (
     <MathInput
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-medium bg-white text-slate-900 ${className}`}
+        className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-medium bg-white text-slate-900 ${className}`}
     />
-));
-
-const TablePriceInput = React.memo(({ value, onChange }) => (
-    <div className="flex items-center justify-end">
-        {/* Peso Sign Segment */}
-        <div className="bg-slate-100/50 px-2 py-1.5 text-slate-600 text-sm font-bold flex items-center border border-slate-300 rounded-l border-r-0 h-full">
-            ₱
-        </div>
-        {/* Input Field Segment */}
-        <input
-            type="number"
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-24 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r bg-white focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
-        />
-    </div>
 ));
 
 // --- Constants & Defaults ---
@@ -100,15 +87,15 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     const setColumns = propSetColumns || setLocalColumns;
 
     const [prices, setPrices] = useLocalStorage('column_prices', {
-        cement: 240,
-        sand: 1200,
-        gravel: 1400,
-        rebar_10: 180,
-        rebar_12: 260,
-        rebar_16: 480,
-        rebar_20: 750,
-        rebar_25: 1150,
-        tie_wire: 85,
+        cement: MATERIAL_DEFAULTS.cement_40kg.price,
+        sand: MATERIAL_DEFAULTS.sand_wash.price,
+        gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
+        rebar_10: MATERIAL_DEFAULTS.rebar_10mm.price,
+        rebar_12: MATERIAL_DEFAULTS.rebar_12mm.price,
+        rebar_16: MATERIAL_DEFAULTS.rebar_16mm.price,
+        rebar_20: MATERIAL_DEFAULTS.rebar_20mm.price,
+        rebar_25: MATERIAL_DEFAULTS.rebar_25mm.price,
+        tie_wire: MATERIAL_DEFAULTS.tie_wire_kg.price,
     });
 
     const [showResult, setShowResult] = useLocalStorage('column_show_result', false);
@@ -239,15 +226,20 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 
     return (
         <div className="space-y-6 relative animate-in fade-in duration-700">
-            <Card className="border-t-4 border-t-indigo-600 shadow-md">
-                <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-indigo-900 flex items-center gap-2">
-                        <Settings size={18} /> Column Configuration ({columns.length} Total)
-                    </h2>
-                    <button onClick={addColumn} className="flex items-center gap-1 px-4 py-2 bg-indigo-600 text-white rounded-md text-xs font-bold hover:bg-indigo-700 transition-colors active:scale-95 shadow-sm">
-                        <PlusCircle size={14} /> Add Row
-                    </button>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+                <SectionHeader
+                    title={`Column Configuration (${columns.length} Items)`}
+                    icon={Settings}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
+                            onClick={addColumn}
+                            label="Add Row"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
+                        />
+                    }
+                />
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
@@ -350,12 +342,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                     </table>
                 </div>
                 <div className="p-4 bg-white border-none flex justify-end">
-                    <button
+                    <ActionButton
                         onClick={handleCalculate}
-                        className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg font-bold text-xs hover:bg-indigo-700 transition-all shadow-md active:scale-95 uppercase tracking-wider"
-                    >
-                        <Calculator size={16} /> CALCULATE
-                    </button>
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="py-3 px-8"
+                    />
                 </div>
             </Card >
 
@@ -369,16 +362,16 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             {!showResult && !error && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Hammer size={32} className="text-indigo-500" />
+                        <Hammer size={32} className={`text-${THEME}-500`} />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Enter your column dimensions above, then click <span className="font-bold text-indigo-600">'CALCULATE'</span> to generate the material list.
+                        Enter your column dimensions above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span> to generate the material list.
                     </p>
                 </div>
             )}
 
             {showResult && result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-indigo-500">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -388,9 +381,9 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                 <p className="text-sm text-gray-500 mt-1 italic">Based on <strong className="text-gray-700">{columns.filter(c => !c.isExcluded).length}</strong> column marks totaling <strong className="text-gray-700">{result.volume} m³</strong> concrete.</p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className="text-left md:text-right bg-indigo-50 px-5 py-3 rounded-xl border border-indigo-100 min-w-[300px]">
-                                    <p className="text-xs text-indigo-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                    <p className="font-bold text-4xl text-indigo-700 tracking-tight">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -414,7 +407,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                     </button>
                                     <button
                                         onClick={() => setViewingPatterns(true)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white border border-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
                                     >
                                         <Scissors size={14} /> Cutting Analysis
                                     </button>
@@ -447,6 +440,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
                                                     onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: parseFloat(val) || 0 }))}
+                                                    colorTheme={THEME}
                                                 />
                                             </td>
                                             <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50 font-mono">

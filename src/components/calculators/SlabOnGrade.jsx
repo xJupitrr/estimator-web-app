@@ -5,26 +5,15 @@ import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateSlabOnGrade } from '../../utils/calculations/slabOnGradeCalculator';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-);
+import { THEME_COLORS } from '../../constants/theme';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
 
-const TablePriceInput = ({ value, onChange }) => (
-    <div className="flex items-center justify-end">
-        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
-            ₱
-        </div>
-        <input
-            type="number"
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
-        />
-    </div>
-);
+const THEME = THEME_COLORS.slab;
 
 const getInitialSlab = () => ({
     id: Date.now() + Math.random(),
@@ -42,11 +31,12 @@ const getInitialSlab = () => ({
 export default function SlabOnGrade() {
     const [slabs, setSlabs] = useLocalStorage('slab_rows', [getInitialSlab()]);
     const [prices, setPrices] = useLocalStorage('slab_prices', {
-        cement: 240,
-        sand: 1200,
-        gravel: 1400,
-        rebar: 180,
-        tieWire: 110,
+        cement: MATERIAL_DEFAULTS.cement_40kg.price,
+        sand: MATERIAL_DEFAULTS.sand_wash.price,
+        gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
+        rebar: MATERIAL_DEFAULTS.rebar_10mm.price, // Base fallback
+        tieWire: MATERIAL_DEFAULTS.tie_wire_kg.price,
+        gravelBeddingPrice: MATERIAL_DEFAULTS.gravel_bedding.price, // Adding this as it was missing or hardcoded
     });
     const [result, setResult] = useLocalStorage('slab_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('slab_has_estimated', false);
@@ -191,18 +181,20 @@ export default function SlabOnGrade() {
                 </div>
             )}
 
-            <Card className="border-t-4 border-t-orange-500 shadow-md">
-                <div className="p-4 bg-orange-50 border-b border-orange-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-orange-900 flex items-center gap-2">
-                        <Settings size={18} /> Slab Configurations
-                    </h2>
-                    <button
-                        onClick={handleAddSlab}
-                        className="flex items-center gap-1 px-4 py-2 bg-orange-600 text-white rounded-md text-xs font-bold hover:bg-orange-700 transition-all active:scale-95 shadow-sm w-full sm:w-auto justify-center"
-                    >
-                        <PlusCircle size={14} /> Add Slab Row
-                    </button>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+                <SectionHeader
+                    title="Slab Configurations"
+                    icon={Settings}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
+                            onClick={handleAddSlab}
+                            label="Add Slab Row"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
+                        />
+                    }
+                />
 
                 <div className="overflow-x-auto p-4">
                     <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[900px]">
@@ -244,7 +236,7 @@ export default function SlabOnGrade() {
                                         <MathInput
                                             value={slab.quantity}
                                             onChange={(val) => handleSlabChange(slab.id, 'quantity', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold"
+                                            className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-bold`}
                                             placeholder="Qty"
                                         />
                                     </td>
@@ -253,7 +245,7 @@ export default function SlabOnGrade() {
                                             type="text"
                                             value={slab.description}
                                             onChange={(e) => handleSlabChange(slab.id, 'description', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
+                                            className={`w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic`}
                                             placeholder="e.g., Garage Slab"
                                         />
                                     </td>
@@ -285,7 +277,7 @@ export default function SlabOnGrade() {
                                         <MathInput
                                             value={slab.gravelBeddingThickness}
                                             onChange={(val) => handleSlabChange(slab.id, 'gravelBeddingThickness', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium text-slate-600"
+                                            className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-medium text-slate-600`}
                                             placeholder="0.05"
                                         />
                                     </td>
@@ -294,7 +286,7 @@ export default function SlabOnGrade() {
                                             value={slab.barSize}
                                             onChange={(val) => handleSlabChange(slab.id, 'barSize', val)}
                                             options={["10mm", "12mm", "16mm"]}
-                                            focusColor="orange"
+                                            focusColor={THEME}
                                             placeholder="Select Size..."
                                         />
                                     </td>
@@ -302,7 +294,7 @@ export default function SlabOnGrade() {
                                         <MathInput
                                             value={slab.spacing}
                                             onChange={(val) => handleSlabChange(slab.id, 'spacing', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+                                            className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none`}
                                             placeholder="0.20"
                                         />
                                     </td>
@@ -328,14 +320,18 @@ export default function SlabOnGrade() {
                 )}
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={calculateSlab} className="w-full sm:w-auto px-8 py-3 bg-orange-600 text-white rounded-lg font-bold shadow-lg hover:bg-orange-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Calculator size={18} /> CALCULATE
-                    </button>
+                    <ActionButton
+                        onClick={calculateSlab}
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="w-full sm:w-auto px-8 py-3"
+                    />
                 </div>
             </Card>
 
             {result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-orange-500 mt-6">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500 mt-6`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -343,9 +339,9 @@ export default function SlabOnGrade() {
                                 <p className="text-sm text-gray-500 mt-1">Total Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong> | Total Volume: <strong className="text-gray-700">{result.totalVolume.toFixed(2)} m³</strong></p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className="text-left md:text-right bg-orange-50 px-5 py-3 rounded-xl border border-orange-100">
-                                    <p className="text-xs text-orange-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                    <p className="font-bold text-4xl text-orange-700 tracking-tight">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
@@ -389,6 +385,7 @@ export default function SlabOnGrade() {
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] || 0}
                                                     onChange={(val) => handlePriceChange(item.priceKey, val)}
+                                                    colorTheme={THEME}
                                                 />
                                             </td>
                                             <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
