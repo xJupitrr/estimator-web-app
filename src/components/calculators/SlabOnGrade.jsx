@@ -7,7 +7,7 @@ import { calculateSlabOnGrade } from '../../utils/calculations/slabOnGradeCalcul
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
-import { THEME_COLORS } from '../../constants/theme';
+import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
@@ -15,15 +15,21 @@ import TablePriceInput from '../common/TablePriceInput';
 
 const THEME = THEME_COLORS.slab;
 
+const rebarDiameters = [10, 12, 16];
+const commonLengths = [6.0, 7.5, 9.0, 10.5, 12.0];
+const rebarOptions = rebarDiameters.flatMap(size =>
+    commonLengths.map(length => `${size}mm x ${length.toFixed(1)}m`)
+);
+
 const getInitialSlab = () => ({
     id: Date.now() + Math.random(),
-    quantity: "",
+    quantity: "1",
     length: "",
     width: "",
-    thickness: "",
-    gravelBeddingThickness: "",
-    barSize: "",
-    spacing: "",
+    thickness: "0.10",
+    gravelBeddingThickness: "0.05",
+    barSize: "10mm x 6.0m",
+    spacing: "0.20",
     description: "",
     isExcluded: false,
 });
@@ -34,37 +40,46 @@ export default function SlabOnGrade() {
         cement: MATERIAL_DEFAULTS.cement_40kg.price,
         sand: MATERIAL_DEFAULTS.sand_wash.price,
         gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
-        rebar: MATERIAL_DEFAULTS.rebar_10mm.price, // Base fallback
+        rebar: MATERIAL_DEFAULTS.rebar_10mm.price,
+        rebar10mmPrice: 185,
+        rebar12mmPrice: 285,
+        rebar16mmPrice: 515,
         tieWire: MATERIAL_DEFAULTS.tie_wire_kg.price,
-        gravelBeddingPrice: MATERIAL_DEFAULTS.gravel_bedding.price, // Adding this as it was missing or hardcoded
+        gravelBeddingPrice: MATERIAL_DEFAULTS.gravel_bedding.price,
     });
     const [result, setResult] = useLocalStorage('slab_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('slab_has_estimated', false);
     const [error, setError] = useState(null);
+    const [contextMenu, setContextMenu] = useState(null);
 
     const handleSlabChange = (id, field, value) => {
-        setSlabs(prevSlabs =>
-            prevSlabs.map(slab => (
-                slab.id === id ? { ...slab, [field]: value } : slab
-            ))
-        );
-        setError(null);
+        setSlabs(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+        if (hasEstimated) setError(null);
     };
 
     const handleAddSlab = () => {
         setSlabs(prev => [...prev, getInitialSlab()]);
-        setHasEstimated(false);
-        setResult(null);
     };
 
-    const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+    const handleRemoveRow = (id) => {
+        if (slabs.length > 1) {
+            setSlabs(prev => prev.filter(s => s.id !== id));
+        } else {
+            setSlabs([getInitialSlab()]);
+        }
+    };
 
-    // Close context menu on click anywhere
-    useEffect(() => {
-        const handleClick = () => setContextMenu(null);
-        window.addEventListener('click', handleClick);
-        return () => window.removeEventListener('click', handleClick);
-    }, []);
+    const handleDuplicateRow = (id) => {
+        setSlabs(prev => {
+            const index = prev.findIndex(s => s.id === id);
+            const rowToCopy = prev[index];
+            const duplicated = { ...JSON.parse(JSON.stringify(rowToCopy)), id: Date.now() + Math.random() };
+            const newRows = [...prev];
+            newRows.splice(index + 1, 0, duplicated);
+            return newRows;
+        });
+        setContextMenu(null);
+    };
 
     const handleAddRowAbove = (id) => {
         setSlabs(prev => {
@@ -74,62 +89,40 @@ export default function SlabOnGrade() {
             return newRows;
         });
         setContextMenu(null);
-        setResult(null);
-    };
-
-    const handleDuplicateRow = (id) => {
-        setSlabs(prev => {
-            const index = prev.findIndex(s => s.id === id);
-            const rowToCopy = prev[index];
-            const duplicated = {
-                ...JSON.parse(JSON.stringify(rowToCopy)),
-                id: Date.now() + Math.random()
-            };
-            const newRows = [...prev];
-            newRows.splice(index + 1, 0, duplicated);
-            return newRows;
-        });
-        setContextMenu(null);
-        setResult(null);
     };
 
     const handleToggleExcludeRow = (id) => {
         setSlabs(prev => prev.map(s => s.id === id ? { ...s, isExcluded: !s.isExcluded } : s));
         setContextMenu(null);
-        setResult(null);
     };
 
-    useEffect(() => {
-        if (hasEstimated) {
-            calculateSlab();
-        }
-    }, [prices]);
-
-    const calculateSlab = () => {
-        // Validation Check
-        const hasEmptyFields = slabs.some(slab =>
-            slab.length === "" || slab.width === "" || slab.thickness === "" || slab.gravelBeddingThickness === "" || slab.barSize === ""
-        );
-
+    const handleCalculate = () => {
+        const hasEmptyFields = slabs.some(s => !s.isExcluded && (!s.length || !s.width || !s.thickness));
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Dimensions, Bedding, and Bar Size) before calculating.");
+            setError("Please fill in length, width, and thickness for all included slabs.");
             setResult(null);
             setHasEstimated(false);
             return;
         }
         setError(null);
 
-        const calculationResult = calculateSlabOnGrade(slabs, prices);
-
-        if (!calculationResult) {
+        const res = calculateSlabOnGrade(slabs, prices);
+        if (res) {
+            setResult(res);
+            setHasEstimated(true);
+        } else {
             setResult(null);
             setHasEstimated(false);
-            return;
         }
-
-        setResult(calculationResult);
-        setHasEstimated(true);
     };
+
+    // Auto-recalculate
+    useEffect(() => {
+        if (hasEstimated) {
+            const res = calculateSlabOnGrade(slabs, prices);
+            setResult(res);
+        }
+    }, [slabs, prices, hasEstimated]);
 
     // Global Cost Sync
     useEffect(() => {
@@ -142,11 +135,15 @@ export default function SlabOnGrade() {
     }, [result]);
 
     const handlePriceChange = (key, value) => {
-        setPrices(prev => ({
-            ...prev,
-            [key]: parseFloat(value) || 0
-        }));
+        setPrices(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
     };
+
+    // Close context menu
+    useEffect(() => {
+        const handleClick = () => setContextMenu(null);
+        window.addEventListener('click', handleClick);
+        return () => window.removeEventListener('click', handleClick);
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -157,25 +154,16 @@ export default function SlabOnGrade() {
                     style={{ left: contextMenu.x, top: contextMenu.y }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <button
-                        onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    <button onClick={() => handleDuplicateRow(contextMenu.id)} className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                        <Copy size={14} className="text-slate-400" /> Duplicate Row
                     </button>
-                    <button
-                        onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
-                    >
+                    <button onClick={() => handleAddRowAbove(contextMenu.id)} className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50">
                         <ArrowUp size={14} className="text-slate-400" /> Add Row Above
                     </button>
-                    <button
-                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
+                    <button onClick={() => handleToggleExcludeRow(contextMenu.id)} className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors">
                         {slabs.find(s => s.id === contextMenu.id)?.isExcluded
-                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
-                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                            ? <><Eye size={14} className="text-emerald-500" /> Include Row</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude Row</>
                         }
                     </button>
                 </div>
@@ -197,29 +185,26 @@ export default function SlabOnGrade() {
                 />
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[900px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Length (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Width (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Thkns (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Gravel (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Bar Size</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Spacing (m)</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Gravel (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[150px]`}>Bar Spec</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Spacing (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {slabs.map((slab, index) => (
-                                <tr
-                                    key={slab.id}
-                                    className={`transition-colors ${slab.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
-                                >
+                                <tr key={slab.id} className={`${TABLE_UI.INPUT_ROW} ${slab.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                                     <td
-                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-slate-500 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -228,82 +213,34 @@ export default function SlabOnGrade() {
                                         }}
                                         title="Ctrl + Right Click for options"
                                     >
-                                        <div className={`transition-all ${slab.isExcluded ? 'text-red-400 line-through' : ''}`}>
-                                            {index + 1}
-                                        </div>
+                                        <span className={slab.isExcluded ? 'line-through' : ''}>{index + 1}</span>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <MathInput
-                                            value={slab.quantity}
-                                            onChange={(val) => handleSlabChange(slab.id, 'quantity', val)}
-                                            className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-bold`}
-                                            placeholder="Qty"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={slab.quantity} onChange={(v) => handleSlabChange(slab.id, 'quantity', v)} className={INPUT_UI.TABLE_INPUT} placeholder="1" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <input
-                                            type="text"
-                                            value={slab.description}
-                                            onChange={(e) => handleSlabChange(slab.id, 'description', e.target.value)}
-                                            className={`w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic`}
-                                            placeholder="e.g., Garage Slab"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <input type="text" value={slab.description} onChange={(e) => handleSlabChange(slab.id, 'description', e.target.value)} className={INPUT_UI.TABLE_INPUT} placeholder="e.g., Garage Slab" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <MathInput
-                                            value={slab.length}
-                                            onChange={(val) => handleSlabChange(slab.id, 'length', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
-                                            placeholder="0.00"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={slab.length} onChange={(v) => handleSlabChange(slab.id, 'length', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.00" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <MathInput
-                                            value={slab.width}
-                                            onChange={(val) => handleSlabChange(slab.id, 'width', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
-                                            placeholder="0.00"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={slab.width} onChange={(v) => handleSlabChange(slab.id, 'width', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.00" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <MathInput
-                                            value={slab.thickness}
-                                            onChange={(val) => handleSlabChange(slab.id, 'thickness', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none"
-                                            placeholder="0.10"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={slab.thickness} onChange={(v) => handleSlabChange(slab.id, 'thickness', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.10" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <MathInput
-                                            value={slab.gravelBeddingThickness}
-                                            onChange={(val) => handleSlabChange(slab.id, 'gravelBeddingThickness', val)}
-                                            className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-medium text-slate-600`}
-                                            placeholder="0.05"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={slab.gravelBeddingThickness} onChange={(v) => handleSlabChange(slab.id, 'gravelBeddingThickness', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.05" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <SelectInput
-                                            value={slab.barSize}
-                                            onChange={(val) => handleSlabChange(slab.id, 'barSize', val)}
-                                            options={["10mm", "12mm", "16mm"]}
-                                            focusColor={THEME}
-                                            placeholder="Select Size..."
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput value={slab.barSize} onChange={(v) => handleSlabChange(slab.id, 'barSize', v)} options={rebarOptions} focusColor={THEME} placeholder="Select Spec..." />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <MathInput
-                                            value={slab.spacing}
-                                            onChange={(val) => handleSlabChange(slab.id, 'spacing', val)}
-                                            className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none`}
-                                            placeholder="0.20"
-                                        />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={slab.spacing} onChange={(v) => handleSlabChange(slab.id, 'spacing', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.20" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle text-center">
-                                        <button
-                                            onClick={() => handleRemoveSlab(slab.id)}
-                                            disabled={slabs.length === 1}
-                                            className={`p-2 rounded-full transition-colors ${slabs.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}
-                                        >
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <button onClick={() => handleRemoveRow(slab.id)} disabled={slabs.length === 1} className={`p-2 rounded-full transition-colors ${slabs.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}>
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
@@ -321,76 +258,71 @@ export default function SlabOnGrade() {
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <ActionButton
-                        onClick={calculateSlab}
-                        label="CALCULATE"
+                        onClick={handleCalculate}
+                        label="RUN CALCULATION"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto px-8 py-3"
+                        className="w-full sm:w-auto px-10 py-3"
                     />
                 </div>
             </Card>
 
             {result && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500 mt-6`}>
-                    <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                    <div className="p-8">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800">Estimation Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong> | Total Volume: <strong className="text-gray-700">{result.totalVolume.toFixed(2)} m³</strong></p>
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">Estimation Summary</h3>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">Total Area: <strong className="text-gray-900">{result.totalArea.toFixed(2)} m²</strong></p>
+                                    <p className="text-sm text-gray-500">Total Volume: <strong className="text-gray-900">{result.totalVolume.toFixed(2)} m³</strong></p>
+                                </div>
                             </div>
-                            <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
-                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div className="flex flex-col items-end gap-3 text-right">
+                                <div className={`bg-${THEME}-50 px-8 py-4 rounded-xl border border-${THEME}-100 shadow-sm`}>
+                                    <p className={`text-[10px] text-${THEME}-600 font-bold uppercase tracking-[0.2em] mb-1`}>Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tabular-nums`}>
+                                        ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={() => copyToClipboard(result.items)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy Table
+                                    <button onClick={() => copyToClipboard(result.items)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                                        <ClipboardCopy size={14} /> Copy Results
                                     </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'slab_on_grade_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-                                    >
-                                        <Download size={14} /> Download CSV
+                                    <button onClick={() => downloadCSV(result.items, 'slab_estimate.csv')} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                                        <Download size={14} /> Download PDF
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
                                     <tr>
-                                        <th className="px-4 py-3">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right">Unit Price</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
+                                        <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Unit Price</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-slate-50/50`}>Total</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-slate-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">{item.qty}</td>
-                                            <td className="px-4 py-3 text-center text-gray-600">
-                                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={`${TABLE_UI.CELL} font-semibold text-slate-800`}>{item.name}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} tabular-nums`}>{item.qty}</td>
+                                            <td className={TABLE_UI.CELL_CENTER}>
+                                                <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase bg-slate-100 text-slate-500`}>{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 <TablePriceInput
-                                                    value={prices[item.priceKey] || 0}
+                                                    value={prices[item.priceKey] || item.price || 0}
                                                     onChange={(val) => handlePriceChange(item.priceKey, val)}
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
-                                                ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-slate-900 bg-slate-50/30 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>

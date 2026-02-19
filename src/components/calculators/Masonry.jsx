@@ -3,7 +3,7 @@ import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, D
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
 import { getDefaultPrices } from '../../constants/materials';
-import { THEME_COLORS } from '../../constants/theme';
+import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import Card from '../common/Card';
@@ -231,33 +231,33 @@ export default function Masonry() { // Renamed to Masonry
                 />
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Length (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Height (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">CMU Size</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">Plaster</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Length (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Height (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>CMU Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Plaster</th>
 
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">V. Rebar Spacing</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Horiz. Rebar Spec</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[80px]">H. Rebar Spacing</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Vert. Rebar Spec</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>V. Rebar Spacing</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Horiz. Rebar Spec</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>H. Rebar Spacing</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Vert. Rebar Spec</th>
 
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {walls.map((wall, index) => (
                                 <tr
                                     key={wall.id}
-                                    className={`transition-colors ${wall.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`${TABLE_UI.INPUT_ROW} ${wall.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                 >
                                     {/* Index */}
                                     <td
-                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help relative group`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -270,41 +270,38 @@ export default function Masonry() { // Renamed to Masonry
                                             {index + 1}
                                         </div>
                                     </td>
-                                    {/* Quantity */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             placeholder="Qty"
                                             value={wall.quantity}
                                             onChange={(val) => handleWallChange(wall.id, 'quantity', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-bold bg-white text-slate-900"
+                                            className={INPUT_UI.TABLE_INPUT}
                                         />
                                     </td>
-                                    {/* Length */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <MathInput
                                                 placeholder="3.00"
                                                 value={wall.length}
                                                 onChange={(val) => handleWallChange(wall.id, 'length', val)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
+                                                className={INPUT_UI.TABLE_INPUT}
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
                                     </td>
-                                    {/* Height */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <MathInput
                                                 placeholder="2.70"
                                                 value={wall.height}
                                                 onChange={(val) => handleWallChange(wall.id, 'height', val)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
+                                                className={INPUT_UI.TABLE_INPUT}
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
                                     </td>
                                     {/* CMU Size */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={wall.chbSize}
                                             onChange={(val) => handleWallChange(wall.id, 'chbSize', val)}
@@ -317,7 +314,7 @@ export default function Masonry() { // Renamed to Masonry
                                         />
                                     </td>
                                     {/* Plaster Sides */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={wall.plasterSides}
                                             onChange={(val) => handleWallChange(wall.id, 'plasterSides', val)}
@@ -332,20 +329,20 @@ export default function Masonry() { // Renamed to Masonry
                                     </td>
 
                                     {/* V. Rebar Spacing */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <MathInput
                                                 placeholder="0.60"
                                                 value={wall.vertSpacing}
                                                 onChange={(val) => handleWallChange(wall.id, 'vertSpacing', val)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
+                                                className={INPUT_UI.TABLE_INPUT}
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
                                     </td>
 
                                     {/* Horizontal Rebar Spec */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={wall.horizRebarSpec}
                                             onChange={(val) => handleWallChange(wall.id, 'horizRebarSpec', val)}
@@ -356,20 +353,20 @@ export default function Masonry() { // Renamed to Masonry
                                     </td>
 
                                     {/* H. Rebar Spacing */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <MathInput
                                                 placeholder="0.60"
                                                 value={wall.horizSpacing}
                                                 onChange={(val) => handleWallChange(wall.id, 'horizSpacing', val)}
-                                                className="w-full p-1.5 pr-6 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-orange-400 outline-none font-medium bg-white text-slate-900"
+                                                className={INPUT_UI.TABLE_INPUT}
                                             />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
                                     </td>
 
                                     {/* Vertical Rebar Spec */}
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={wall.vertRebarSpec}
                                             onChange={(val) => handleWallChange(wall.id, 'vertRebarSpec', val)}
@@ -379,7 +376,7 @@ export default function Masonry() { // Renamed to Masonry
                                         />
                                     </td>
                                     {/* Delete Button */}
-                                    <td className="p-2 border border-slate-300 align-middle text-center">
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button
                                             onClick={() => handleRemoveWall(wall.id)}
                                             disabled={walls.length === 1}
@@ -452,35 +449,35 @@ export default function Masonry() { // Renamed to Masonry
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-                                    <tr><th className="px-4 py-3">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
+                                    <tr><th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[140px]`}>Unit Price (Editable)</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {wallResult.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={`${TABLE_UI.CELL} font-medium`}>{item.name}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-medium`}>
                                                 {item.qty}
                                             </td>
-                                            <td className="px-4 py-3 text-center text-gray-600">
+                                            <td className={`${TABLE_UI.CELL_CENTER} text-gray-600`}>
                                                 <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                             </td>
                                             {/* Editable Price Column using TablePriceInput */}
-                                            <td className="px-4 py-2">
+                                            <td className="px-4 py-2 border-r border-gray-100">
                                                 <TablePriceInput
                                                     value={item.price}
                                                     onChange={(newValue) => handlePriceChange(item.priceKey, newValue)}
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
                                                 {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                         </tr>

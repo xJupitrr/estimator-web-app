@@ -1,10 +1,17 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { Settings, Info, Calculator, DoorOpen, ClipboardCopy, Download } from 'lucide-react';
 import { calculateLintelBeam } from '../../utils/calculations/lintelBeamCalculator';
-import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Settings, Calculator, Box, AlertCircle, ClipboardCopy, Download, Info, DoorOpen } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
+
+const THEME = THEME_COLORS.lintel;
 
 // --- CONSTANTS ---
 
@@ -53,32 +60,14 @@ const getSkuDetails = (skuId) => {
 
 // --- UI COMPONENTS ---
 
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-);
-
-const TablePriceInput = ({ value, onChange }) => (
-    <div className="flex items-center justify-end">
-        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
-            ₱
-        </div>
-        <input
-            type="number"
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-24 pl-2 pr-2 py-1.5 text-right text-sm border border-gray-300 rounded-r-lg bg-white focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
-        />
-    </div>
-);
+// Local Card and TablePriceInput removed in favor of common versions.
 
 const NumberInput = ({ value, onChange, placeholder, className = "" }) => (
     <MathInput
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-400 outline-none font-medium bg-white ${className}`}
+        className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 ${className}`}
     />
 );
 
@@ -186,32 +175,32 @@ export default function LintelBeam() {
 
     return (
         <div className="space-y-6">
-            <Card className="border-t-4 border-t-purple-600 shadow-md">
-                <div className="p-4 bg-slate-100 border-b border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-slate-800 flex items-center gap-2">
-                        <Settings size={18} /> Lintel Beam General Specifications
-                    </h2>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+                <SectionHeader
+                    title="Lintel Beam General Specifications"
+                    icon={Settings}
+                    colorTheme={THEME}
+                />
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[800px]">
-                        <thead className="text-[11px] text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-cyan-50 text-cyan-900" colSpan="2">Dimensions (m)</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-orange-50 text-orange-900" colSpan="2">Main Reinforcement</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-emerald-50 text-emerald-900" colSpan="2">Ties / Stirrups</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50 text-cyan-900`} colSpan="2">Dimensions (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50 text-orange-900`} colSpan="2">Main Reinforcement</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50 text-emerald-900`} colSpan="2">Ties / Stirrups</th>
                             </tr>
                             <tr>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center bg-cyan-50/50">Depth (W)</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center bg-cyan-50/50">Height (H)</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center bg-orange-50/50">Bar Size</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center bg-orange-50/50">Count</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center bg-emerald-50/50">Tie Size</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center bg-emerald-50/50">Spacing (mm)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50/50`}>Depth (W)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50/50`}>Height (H)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50/50`}>Bar Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50/50`}>Count</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50/50`}>Tie Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50/50`}>Spacing (mm)</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="bg-white">
-                                <td className="p-2 border border-slate-200 align-middle">
+                            <tr className={TABLE_UI.INPUT_ROW}>
+                                <td className={TABLE_UI.INPUT_CELL}>
                                     <NumberInput
                                         value={specs.lintelDepth}
                                         onChange={(v) => handleSpecChange('lintelDepth', v)}
@@ -219,7 +208,7 @@ export default function LintelBeam() {
                                         className="text-center"
                                     />
                                 </td>
-                                <td className="p-2 border border-slate-200 align-middle">
+                                <td className={TABLE_UI.INPUT_CELL}>
                                     <NumberInput
                                         value={specs.lintelHeight}
                                         onChange={(v) => handleSpecChange('lintelHeight', v)}
@@ -227,17 +216,17 @@ export default function LintelBeam() {
                                         className="text-center"
                                     />
                                 </td>
-                                <td className="p-2 border border-slate-200 align-middle bg-orange-50/10">
+                                <td className={`${TABLE_UI.INPUT_CELL} bg-orange-50/10`}>
                                     <SelectInput
                                         value={specs.mainBarSku}
                                         onChange={(v) => handleSpecChange('mainBarSku', v)}
                                         options={AVAILABLE_REBAR_SKUS}
                                         placeholder="Select Main Bar..."
-                                        focusColor="purple"
+                                        focusColor={THEME}
                                         className="text-center"
                                     />
                                 </td>
-                                <td className="p-2 border border-slate-200 align-middle bg-orange-50/10">
+                                <td className={`${TABLE_UI.INPUT_CELL} bg-orange-50/10`}>
                                     <NumberInput
                                         value={specs.mainBarCount}
                                         onChange={(v) => handleSpecChange('mainBarCount', v)}
@@ -247,17 +236,17 @@ export default function LintelBeam() {
                                         className="text-center"
                                     />
                                 </td>
-                                <td className="p-2 border border-slate-200 align-middle bg-emerald-50/10">
+                                <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/10`}>
                                     <SelectInput
                                         value={specs.tieSku}
                                         onChange={(v) => handleSpecChange('tieSku', v)}
                                         options={AVAILABLE_TIE_SKUS}
                                         placeholder="Select Tie..."
-                                        focusColor="purple"
+                                        focusColor={THEME}
                                         className="text-center"
                                     />
                                 </td>
-                                <td className="p-2 border border-slate-200 align-middle bg-emerald-50/10">
+                                <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/10`}>
                                     <NumberInput
                                         value={specs.tieSpacing}
                                         onChange={(v) => handleSpecChange('tieSpacing', v)}
@@ -276,17 +265,13 @@ export default function LintelBeam() {
                 </div>
             </Card>
 
-            <Card className="border-t-4 border-t-purple-600 shadow-md">
-                <div className="p-4 bg-purple-50 border-b border-purple-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <div>
-                        <h2 className="font-bold text-purple-900 flex items-center gap-2">
-                            <DoorOpen size={18} /> Opening Detection
-                        </h2>
-                        <p className="text-xs text-purple-600 mt-1">
-                            {lintelBeams.length} opening{lintelBeams.length !== 1 ? 's' : ''} detected from Doors & Windows tab
-                        </p>
-                    </div>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+                <SectionHeader
+                    title="Opening Detection"
+                    icon={DoorOpen}
+                    colorTheme={THEME}
+                    description={`${lintelBeams.length} opening${lintelBeams.length !== 1 ? 's' : ''} detected from Doors & Windows tab`}
+                />
 
                 {lintelBeams.length === 0 ? (
                     <div className="p-8 text-center text-gray-400">
@@ -295,29 +280,29 @@ export default function LintelBeam() {
                         <p className="text-xs">Add openings there to see them here.</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left border-collapse">
-                            <thead className="text-[11px] text-gray-500 uppercase bg-gray-50/50 border-b border-gray-100">
+                    <div className={TABLE_UI.CONTAINER}>
+                        <table className={TABLE_UI.TABLE}>
+                            <thead className={TABLE_UI.HEADER_ROW}>
                                 <tr>
-                                    <th className="px-4 py-3 font-semibold text-center w-[50px]">#</th>
-                                    <th className="px-4 py-3 font-semibold">Opening Type</th>
-                                    <th className="px-4 py-3 font-semibold text-center">Qty</th>
-                                    <th className="px-4 py-3 font-semibold text-center bg-purple-50/30">Opening Width</th>
-                                    <th className="px-4 py-3 font-semibold text-center text-purple-700 bg-purple-50/50">Lintel Length</th>
-                                    <th className="px-4 py-3 font-semibold text-center">Depth</th>
-                                    <th className="px-4 py-3 font-semibold text-center">Height</th>
+                                    <th className={TABLE_UI.HEADER_CELL}>#</th>
+                                    <th className={TABLE_UI.HEADER_CELL_LEFT}>Opening Type</th>
+                                    <th className={TABLE_UI.HEADER_CELL}>Qty</th>
+                                    <th className={`${TABLE_UI.HEADER_CELL} bg-${THEME}-50/30`}>Opening Width</th>
+                                    <th className={`${TABLE_UI.HEADER_CELL} text-${THEME}-700 bg-${THEME}-50/50`}>Lintel Length</th>
+                                    <th className={TABLE_UI.HEADER_CELL}>Depth</th>
+                                    <th className={TABLE_UI.HEADER_CELL}>Height</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {lintelBeams.map((beam, idx) => (
-                                    <tr key={beam.id} className="hover:bg-purple-50/20 transition-colors">
-                                        <td className="px-4 py-3 text-center text-gray-400 font-medium">{idx + 1}</td>
-                                        <td className="px-4 py-3 font-bold text-gray-700">{beam.openingType}</td>
-                                        <td className="px-4 py-3 text-center font-bold text-gray-600">{beam.quantity}</td>
-                                        <td className="px-4 py-3 text-center bg-purple-50/10 tabular-nums">{beam.openingWidth.toFixed(2)}m</td>
-                                        <td className="px-4 py-3 text-center bg-purple-50/30 font-bold text-purple-700 tabular-nums">{beam.lintelWidth.toFixed(2)}m</td>
-                                        <td className="px-4 py-3 text-center text-gray-500 text-xs">{specs.mainBarCount} - {getSkuDetails(specs.mainBarSku).diameter}mm</td>
-                                        <td className="px-4 py-3 text-center text-gray-500 text-xs">{getSkuDetails(specs.tieSku).diameter}mm @ {specs.tieSpacing}mm</td>
+                                    <tr key={beam.id} className={TABLE_UI.BODY_ROW}>
+                                        <td className={TABLE_UI.CELL_CENTER}>{idx + 1}</td>
+                                        <td className={`${TABLE_UI.CELL} font-bold`}>{beam.openingType}</td>
+                                        <td className={TABLE_UI.CELL_CENTER}>{beam.quantity}</td>
+                                        <td className={`${TABLE_UI.CELL_CENTER} bg-${THEME}-50/10 tabular-nums`}>{beam.openingWidth.toFixed(2)}m</td>
+                                        <td className={`${TABLE_UI.CELL_CENTER} bg-${THEME}-50/30 font-bold text-${THEME}-700 tabular-nums`}>{beam.lintelWidth.toFixed(2)}m</td>
+                                        <td className={`${TABLE_UI.CELL_CENTER} text-xs`}>{specs.mainBarCount} - {getSkuDetails(specs.mainBarSku).diameter}mm</td>
+                                        <td className={`${TABLE_UI.CELL_CENTER} text-xs`}>{getSkuDetails(specs.tieSku).diameter}mm @ {specs.tieSpacing}mm</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -326,18 +311,19 @@ export default function LintelBeam() {
                 )}
 
                 <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-                    <button
+                    <ActionButton
                         onClick={handleCalculate}
                         disabled={lintelBeams.length === 0}
-                        className="flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-lg font-bold shadow-lg hover:bg-purple-700 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 uppercase tracking-widest text-xs"
-                    >
-                        <Calculator size={16} /> CALCULATE
-                    </button>
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="py-3 px-8"
+                    />
                 </div>
             </Card>
 
             {showResult && result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-purple-500">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -349,9 +335,9 @@ export default function LintelBeam() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3 text-right">
-                                <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                                    <p className="text-[10px] text-purple-600 font-bold uppercase tracking-widest mb-1">Total Estimated Cost</p>
-                                    <p className="font-bold text-4xl text-purple-700 tabular-nums">₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <div className={`bg-${THEME}-50 p-4 rounded-xl border border-${THEME}-100`}>
+                                    <p className={`text-[10px] text-${THEME}-600 font-bold uppercase tracking-widest mb-1`}>Total Estimated Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tabular-nums`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     <button onClick={() => copyToClipboard(result.items)} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-gray-500 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors">
@@ -364,32 +350,33 @@ export default function LintelBeam() {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-[11px] text-gray-400 uppercase bg-gray-50/50 border-b border-gray-100">
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
                                     <tr>
-                                        <th className="px-4 py-3 w-[35%]">Material Description</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center w-[80px]">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[150px]">Unit Price (Editable)</th>
-                                        <th className="px-4 py-3 text-right bg-gray-50/50">Total</th>
+                                        <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Description</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[150px]`}>Unit Price (Editable)</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-50/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-700">{item.name}</td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900">{item.qty.toLocaleString()}</td>
-                                            <td className="px-4 py-3 text-center">
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={TABLE_UI.CELL}>{item.name}</td>
+                                            <td className={TABLE_UI.CELL_RIGHT}>{item.qty.toLocaleString()}</td>
+                                            <td className={TABLE_UI.CELL_CENTER}>
                                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-[10px] font-bold text-gray-500 uppercase">{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
                                                     onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: val }))}
+                                                    colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-purple-700 bg-purple-50/10 tabular-nums">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-${THEME}-700 bg-${THEME}-50/10 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>

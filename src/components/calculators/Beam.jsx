@@ -2,23 +2,19 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, PlusCircle, Trash2, Box, Package, Layers, Layout, Scissors, Calculator, ArrowRight, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
-import { THEME_COLORS } from '../../constants/theme';
-import MathInput from '../common/MathInput';
-import SelectInput from '../common/SelectInput';
+import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import MathInput from '../common/MathInput';
+import SelectInput from '../common/SelectInput';
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { calculateBeam, calculateLumberVolumeBF } from '../../utils/calculations/beamCalculator';
 
 const THEME = THEME_COLORS.beam;
 
-// --- 1. CONSTANTS & CONFIGURATION ---
-
-// --- 1. CONSTANTS & CONFIGURATION ---
-// Calculation constants removed as they are now handled by utility.
-
-
-import { MATERIAL_DEFAULTS } from '../../constants/materials';
+// --- CONSTANTS & CONFIGURATION ---
 
 const DEFAULT_PRICES = {
     cement: MATERIAL_DEFAULTS.cement_40kg.price,
@@ -60,9 +56,7 @@ const AVAILABLE_REBAR_SKUS = [
 
 const AVAILABLE_TIE_SKUS = AVAILABLE_REBAR_SKUS.filter(sku => sku.diameter <= 12);
 
-import { calculateBeam, calculateLumberVolumeBF } from '../../utils/calculations/beamCalculator';
-
-// --- 2. HELPER FUNCTIONS (PURE LOGIC) ---
+// --- HELPER FUNCTIONS (PURE LOGIC) ---
 
 /**
  * Converts a 0-indexed number to an alphabetical sequence like Excel columns.
@@ -102,7 +96,7 @@ const TableNumberInput = React.memo(({ value, onChange, placeholder, className =
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-medium bg-white text-slate-900 ${className}`}
+        className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 ${className}`}
     />
 ));
 
@@ -377,37 +371,6 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 </div>
             )}
 
-            {/* CONTEXT MENU */}
-            {contextMenu && (
-                <div
-                    className="fixed z-[100] bg-white border border-slate-200 rounded-lg shadow-xl py-1 min-w-[180px] animate-in fade-in zoom-in-95 duration-100"
-                    style={{ left: contextMenu.x, top: contextMenu.y }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <button
-                        onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
-                    </button>
-                    <button
-                        onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
-                    >
-                        <ArrowUp size={14} className="text-slate-400" /> Add Row Above
-                    </button>
-                    <button
-                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                        {beams.find(b => b.id === contextMenu.id)?.isExcluded
-                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
-                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
-                        }
-                    </button>
-                </div>
-            )}
-
             <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
                 <SectionHeader
                     title={`Beam Configuration (${beams.length} Items)`}
@@ -424,41 +387,41 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 />
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1300px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]" rowSpan="3">#</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[70px]" rowSpan="3">Qty</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-cyan-50 text-cyan-900" colSpan="3">Dimensions (m)</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-orange-50 text-orange-900 w-[160px]" rowSpan="3">Main Rebar</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-emerald-50 text-emerald-900" colSpan="2">Ties/Stirrups</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center bg-fuchsia-50 text-fuchsia-900" colSpan="4">Cut Bars</th>
-                                <th className="px-1 py-2 font-bold border border-slate-300 text-center w-[50px]" rowSpan="3"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`} rowSpan="3">#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[70px]`} rowSpan="3">Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50 text-cyan-900`} colSpan="3">Dimensions (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50 text-orange-900 w-[160px]`} rowSpan="3">Main Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50 text-emerald-900`} colSpan="2">Ties/Stirrups</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-fuchsia-50 text-fuchsia-900`} colSpan="4">Cut Bars</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`} rowSpan="3"></th>
                             </tr>
                             <tr>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[85px] bg-cyan-50/50" rowSpan="2">Width (B)</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[85px] bg-cyan-50/50" rowSpan="2">Depth (H)</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[85px] bg-cyan-50/50" rowSpan="2">Length (L)</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[140px] bg-emerald-50/50" rowSpan="2">Size & Length</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[90px] bg-emerald-50/50" rowSpan="2">Space (mm)</th>
-                                <th className="px-2 py-1 font-bold border border-slate-300 text-center bg-fuchsia-100/50" colSpan="2">At Support (Top)</th>
-                                <th className="px-2 py-1 font-bold border border-slate-300 text-center bg-fuchsia-100/50" colSpan="2">At Midspan (Bottom)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[85px] bg-cyan-50/50`} rowSpan="2">Width (B)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[85px] bg-cyan-50/50`} rowSpan="2">Depth (H)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[85px] bg-cyan-50/50`} rowSpan="2">Length (L)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px] bg-emerald-50/50`} rowSpan="2">Size & Length</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px] bg-emerald-50/50`} rowSpan="2">Space (mm)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-fuchsia-100/50`} colSpan="2">At Support (Top)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-fuchsia-100/50`} colSpan="2">At Midspan (Bottom)</th>
                             </tr>
                             <tr>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[130px] bg-fuchsia-50/50">Size</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[60px] bg-fuchsia-50/50">Count</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[130px] bg-fuchsia-50/50">Size</th>
-                                <th className="px-2 py-2 font-semibold border border-slate-300 text-center w-[60px] bg-fuchsia-50/50">Count</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[130px] bg-fuchsia-50/50`}>Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px] bg-fuchsia-50/50`}>Count</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[130px] bg-fuchsia-50/50`}>Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px] bg-fuchsia-50/50`}>Count</th>
                             </tr>
                         </thead>
                         <tbody>
                             {beams.map((col, index) => (
                                 <tr
                                     key={col.id}
-                                    className={`transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`${TABLE_UI.INPUT_ROW} ${col.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                 >
                                     <td
-                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help relative group`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -471,13 +434,13 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             {index + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <TableNumberInput value={col.quantity} onChange={(v) => handleBeamChange(col.id, 'quantity', v)} placeholder="Qty" className="font-bold" />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.length_m} onChange={(v) => handleBeamChange(col.id, 'length_m', v)} placeholder="0.30" /></td>
-                                    <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.width_m} onChange={(v) => handleBeamChange(col.id, 'width_m', v)} placeholder="0.50" /></td>
-                                    <td className="p-2 border border-slate-300 align-middle"><TableNumberInput value={col.height_m} onChange={(v) => handleBeamChange(col.id, 'height_m', v)} placeholder="6.00" /></td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-orange-50/20 text-center">
+                                    <td className={TABLE_UI.INPUT_CELL}><TableNumberInput value={col.length_m} onChange={(v) => handleBeamChange(col.id, 'length_m', v)} placeholder="0.30" /></td>
+                                    <td className={TABLE_UI.INPUT_CELL}><TableNumberInput value={col.width_m} onChange={(v) => handleBeamChange(col.id, 'width_m', v)} placeholder="0.50" /></td>
+                                    <td className={TABLE_UI.INPUT_CELL}><TableNumberInput value={col.height_m} onChange={(v) => handleBeamChange(col.id, 'height_m', v)} placeholder="6.00" /></td>
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-orange-50/20 text-center`}>
                                         <button
                                             onClick={() => setEditingCutsConfig({ id: col.id, field: 'main_rebar_cuts', title: 'Manage Main Rebar' })}
                                             className="px-3 py-1.5 bg-white hover:bg-orange-100 text-orange-600 hover:text-orange-700 rounded border border-orange-200 hover:border-orange-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]"
@@ -494,7 +457,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             </span>
                                         </button>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20">
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/20`}>
                                         <SelectInput
                                             value={col.tie_bar_sku}
                                             onChange={(val) => handleBeamChange(col.id, 'tie_bar_sku', val)}
@@ -503,8 +466,8 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             focusColor="teal"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-emerald-50/20"><TableNumberInput value={col.tie_spacing_mm} onChange={(v) => handleBeamChange(col.id, 'tie_spacing_mm', v)} placeholder="150" step="10" /></td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-fuchsia-100/20 text-center" colSpan="2">
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/20`}><TableNumberInput value={col.tie_spacing_mm} onChange={(v) => handleBeamChange(col.id, 'tie_spacing_mm', v)} placeholder="150" step="10" /></td>
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-fuchsia-100/20 text-center`} colSpan="2">
                                         <button
                                             onClick={() => setEditingCutsConfig({ id: col.id, field: 'cut_support_cuts', title: 'Manage Support Rebar (Top)' })}
                                             className="px-3 py-1.5 bg-white hover:bg-fuchsia-100 text-fuchsia-600 hover:text-fuchsia-700 rounded border border-fuchsia-200 hover:border-fuchsia-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]"
@@ -521,7 +484,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             </span>
                                         </button>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-fuchsia-100/20 text-center" colSpan="2">
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-fuchsia-100/20 text-center`} colSpan="2">
                                         <button
                                             onClick={() => setEditingCutsConfig({ id: col.id, field: 'cut_midspan_cuts', title: 'Manage Midspan Rebar (Bottom)' })}
                                             className="px-3 py-1.5 bg-white hover:bg-fuchsia-100 text-fuchsia-600 hover:text-fuchsia-700 rounded border border-fuchsia-200 hover:border-fuchsia-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]"
@@ -538,7 +501,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             </span>
                                         </button>
                                     </td>
-                                    <td className="p-1 border border-slate-300 align-middle text-center">
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button onClick={() => handleRemoveRow(col.id)} disabled={beams.length === 1} className={`p-1.5 rounded-full transition-colors ${beams.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}>
                                             <Trash2 size={14} />
                                         </button>
@@ -624,26 +587,35 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                             </button>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
-                                    <tr><th className="px-4 py-3">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
+                                    <tr>
+                                        <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[140px]`}>Unit Price</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-bold">{item.qty.toLocaleString()}</td>
-                                            <td className="px-4 py-3 text-center text-gray-600"><span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span></td>
-                                            <td className="px-4 py-2">
-                                                <TablePriceInput value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price.toFixed(2)} onChange={(newValue) => setPrices(prev => ({ ...prev, [item.priceKey]: newValue }))} />
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={TABLE_UI.CELL}>{item.name}</td>
+                                            <td className={TABLE_UI.CELL_RIGHT}>{item.qty.toLocaleString()}</td>
+                                            <td className={TABLE_UI.CELL_CENTER}>
+                                                <span className={`bg-${THEME}-100 px-2 py-1 rounded text-xs font-bold uppercase text-${THEME}-700`}>{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
+                                                <TablePriceInput
+                                                    value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price.toFixed(2)}
+                                                    onChange={(newValue) => setPrices(prev => ({ ...prev, [item.priceKey]: newValue }))}
+                                                    colorTheme={THEME}
+                                                />
+                                            </td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
+                                                ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

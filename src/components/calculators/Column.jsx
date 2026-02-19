@@ -7,7 +7,7 @@ import SelectInput from '../common/SelectInput';
 import { calculateColumn } from '../../utils/calculations/columnCalculator';
 import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
-import { THEME_COLORS } from '../../constants/theme';
+import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
@@ -36,7 +36,7 @@ const TableNumberInput = React.memo(({ value, onChange, placeholder, className =
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full p-1.5 text-center border border-slate-300 rounded text-sm focus:ring-2 focus:ring-${THEME}-400 outline-none font-medium bg-white text-slate-900 ${className}`}
+        className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 ${className}`}
     />
 ));
 
@@ -242,32 +242,32 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                 />
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]" rowSpan="2">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]" rowSpan="2">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-indigo-50/50" colSpan="3">Dimensions (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px] bg-indigo-50/50" rowSpan="2">Main Rebar</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center bg-indigo-50/50" colSpan="2">Lateral Ties Spec</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]" rowSpan="2"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`} rowSpan="2">#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`} rowSpan="2">Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-indigo-50/50`} colSpan="3">Dimensions (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px] bg-indigo-50/50`} rowSpan="2">Main Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-indigo-50/50`} colSpan="2">Lateral Ties Spec</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`} rowSpan="2"></th>
                             </tr>
-                            <tr className="bg-slate-50 text-[10px]">
-                                <th className="px-2 py-2 border border-slate-300 text-center w-[80px]">Length</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center w-[80px]">Width</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center w-[80px]">Height</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center w-[160px]">Bar SKU</th>
-                                <th className="px-2 py-2 border border-slate-300 text-center w-[100px]">Spacing</th>
+                            <tr className="bg-slate-100">
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Length</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Width</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Height</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Bar SKU</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Spacing</th>
                             </tr>
                         </thead>
                         <tbody>
                             {columns.map((col, idx) => (
                                 <tr
                                     key={col.id}
-                                    className={`transition-colors ${col.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`${TABLE_UI.INPUT_ROW} ${col.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                 >
                                     <td
-                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help relative group`}
                                         onContextMenu={(e) => { e.preventDefault(); setContextMenu({ id: col.id, x: e.clientX, y: e.clientY }); }}
                                         title="Right-click for options"
                                     >
@@ -275,28 +275,28 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             {idx + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <TableNumberInput value={col.quantity} onChange={(val) => handleColumnChange(col.id, 'quantity', val)} placeholder="1" className="font-bold focus:ring-indigo-400" />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" className="pr-6 focus:ring-indigo-400" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" className="pr-6 focus:ring-indigo-400" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
                                             <TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" className="pr-6 focus:ring-indigo-400" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300 bg-indigo-50/10">
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-indigo-50/10`}>
                                         <button
                                             onClick={() => setEditingCutsId(col.id)}
                                             className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold uppercase transition-all hover:border-indigo-400 hover:text-indigo-600 group/btn shadow-sm"
@@ -310,7 +310,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             </span>
                                         </button>
                                     </td>
-                                    <td className="p-2 border border-slate-300 bg-emerald-50/10">
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/10`}>
                                         <SelectInput
                                             value={col.tie_bar_sku}
                                             onChange={(val) => handleColumnChange(col.id, 'tie_bar_sku', val)}
@@ -320,13 +320,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             focusColor="indigo"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 bg-emerald-50/10">
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/10`}>
                                         <div className="relative">
                                             <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="150" className="h-9 font-bold pr-6 focus:ring-indigo-400 shadow-sm" />
                                             <span className="absolute right-2 top-2.5 text-[10px] text-gray-400 pointer-events-none font-sans">mm</span>
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300 text-center">
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button
                                             onClick={() => removeColumn(col.id)}
                                             disabled={columns.length === 1}
@@ -415,35 +415,35 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
                                     <tr>
-                                        <th className="px-4 py-3 font-bold">Material Item</th>
-                                        <th className="px-4 py-3 text-right font-bold">Quantity</th>
-                                        <th className="px-4 py-3 text-center font-bold">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[160px] font-bold">Unit Price (Editable)</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50 font-bold">Total</th>
+                                        <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[160px]`}>Unit Price (Editable)</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800 uppercase tracking-tight">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-bold font-mono">
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={`${TABLE_UI.CELL} font-medium text-gray-800 uppercase tracking-tight`}>{item.name}</td>
+                                            <td className={TABLE_UI.CELL_RIGHT}>
                                                 {item.qty.toLocaleString()}
                                             </td>
-                                            <td className="px-4 py-3 text-center text-gray-600">
-                                                <span className="bg-gray-100 px-2 py-1 rounded text-[10px] font-bold uppercase text-gray-500">{item.unit}</span>
+                                            <td className={TABLE_UI.CELL_CENTER}>
+                                                <span className={`bg-${THEME}-100 px-2 py-1 rounded text-[10px] font-bold uppercase text-${THEME}-700`}>{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
                                                     onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: parseFloat(val) || 0 }))}
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50 font-mono">
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50 font-mono`}>
                                                 {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                         </tr>

@@ -161,7 +161,7 @@ const csvToArray = (csvText) => {
 
 
 
-import { getSessionData, setSessionData } from '../hooks/useLocalStorage';
+import { getSessionData, setSessionData } from './sessionCache';
 
 // ... (KEEP CONSTANTS SAME) ...
 

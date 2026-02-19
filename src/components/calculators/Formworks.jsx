@@ -3,7 +3,7 @@ import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateFormworks, DEFAULT_PRICES, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
-import { THEME_COLORS } from '../../constants/theme';
+import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import Card from '../common/Card';
@@ -240,28 +240,28 @@ export default function Formworks({ columns = [], beams = [] }) {
                 />
 
                 <div className="p-4 overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[900px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Length(M)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Width(M)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Height(M)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Plywood</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Lumber</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
+                                <th className={TABLE_UI.INPUT_HEADER}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length(M)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width(M)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height(M)</th>
+                                <th className={TABLE_UI.INPUT_HEADER}>Plywood</th>
+                                <th className={TABLE_UI.INPUT_HEADER}>Lumber</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {rows.map((row, index) => (
                                 <tr
                                     key={row.id}
-                                    className={`transition-colors ${row.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`${TABLE_UI.INPUT_ROW} ${row.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                 >
                                     <td
-                                        className="p-2 border border-slate-300 text-center text-xs text-slate-400 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} align-middle text-center text-xs text-slate-400 font-bold cursor-help relative group`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -274,42 +274,42 @@ export default function Formworks({ columns = [], beams = [] }) {
                                             {index + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm font-bold" placeholder="Qty" />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 text-center font-bold`} placeholder="Qty" />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className="w-full p-1.5 border-gray-300 rounded text-sm placeholder:text-zinc-400 placeholder:font-normal placeholder:italic" placeholder="e.g. Stair Formwork" />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 placeholder:text-zinc-400 placeholder:font-normal placeholder:italic`} placeholder="e.g. Stair Formwork" />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 text-center`} placeholder="0.00" />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.width_m} onChange={(val) => handleRowChange(row.id, 'width_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={row.width_m} onChange={(val) => handleRowChange(row.id, 'width_m', val)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 text-center`} placeholder="0.00" />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
-                                        <MathInput value={row.height_m} onChange={(val) => handleRowChange(row.id, 'height_m', val)} className="w-full p-1.5 text-center border-gray-300 rounded text-sm" placeholder="0.00" />
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={row.height_m} onChange={(val) => handleRowChange(row.id, 'height_m', val)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 text-center`} placeholder="0.00" />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={row.plywood_type}
                                             onChange={(val) => handleRowChange(row.id, 'plywood_type', val)}
-                                            options={PLYWOOD_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+                                            options={PLYWOOD_OPTIONS.map(opt => ({ id: opt.id, display: opt.label }))}
                                             placeholder="Select Plywood..."
                                             className="text-[10px] h-8"
-                                            focusColor="zinc"
+                                            focusColor={THEME}
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={row.lumber_size}
                                             onChange={(val) => handleRowChange(row.id, 'lumber_size', val)}
-                                            options={LUMBER_OPTIONS.map(opt => ({ value: opt.id, label: opt.label }))}
+                                            options={LUMBER_OPTIONS.map(opt => ({ id: opt.id, display: opt.label }))}
                                             placeholder="Select Lumber..."
                                             className="text-[10px] h-8"
-                                            focusColor="zinc"
+                                            focusColor={THEME}
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 text-center">
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button onClick={() => handleRemoveRow(row.id)} disabled={rows.length === 1} className="p-2 text-red-400 hover:text-red-600 disabled:text-gray-200">
                                             <Trash2 size={16} />
                                         </button>
@@ -321,14 +321,14 @@ export default function Formworks({ columns = [], beams = [] }) {
                 </div>
 
                 <div className="p-6 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-4 justify-between items-center">
-                    <div className="flex gap-4">
-                        <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                    <div className="flex gap-4 font-mono font-bold text-slate-600">
+                        <label className="flex items-center gap-2 text-xs">
                             Plywood Waste %
-                            <input type="number" value={wastePlywood} onChange={(e) => setWastePlywood(parseInt(e.target.value) || 0)} className="w-16 p-1 border rounded" />
+                            <input type="number" value={wastePlywood} onChange={(e) => setWastePlywood(parseInt(e.target.value) || 0)} className="w-16 p-1 border rounded text-center focus:ring-2 focus:ring-emerald-500 outline-none" />
                         </label>
-                        <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                        <label className="flex items-center gap-2 text-xs">
                             Lumber Waste %
-                            <input type="number" value={wasteLumber} onChange={(e) => setWasteLumber(parseInt(e.target.value) || 0)} className="w-16 p-1 border rounded" />
+                            <input type="number" value={wasteLumber} onChange={(e) => setWasteLumber(parseInt(e.target.value) || 0)} className="w-16 p-1 border rounded text-center focus:ring-2 focus:ring-emerald-500 outline-none" />
                         </label>
                     </div>
                     <ActionButton
@@ -336,7 +336,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                         label="CALCULATE"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="px-8 py-3 uppercase tracking-wide text-xs"
+                        className="px-8 py-3"
                     />
                 </div>
             </Card>
@@ -355,31 +355,31 @@ export default function Formworks({ columns = [], beams = [] }) {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50">
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
                                     <tr>
-                                        <th className="px-4 py-3 w-[35%]">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right">Unit Price</th>
-                                        <th className="px-4 py-3 text-right bg-slate-100/50">Total</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_LEFT} w-[35%]`}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Unit Price</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-slate-100/50`}>Total</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 font-medium">
+                                <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-slate-50">
-                                            <td className="px-4 py-3 text-slate-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right">{item.qty}</td>
-                                            <td className="px-4 py-3 text-center"><span className="bg-slate-100 px-2 py-1 rounded text-[10px] text-slate-500 uppercase">{item.unit}</span></td>
-                                            <td className="px-4 py-2">
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={`${TABLE_UI.CELL} text-slate-800 font-medium`}>{item.name}</td>
+                                            <td className={TABLE_UI.CELL_RIGHT}>{item.qty}</td>
+                                            <td className={TABLE_UI.CELL_CENTER}><span className="bg-slate-100 px-2 py-1 rounded text-[10px] text-slate-500 uppercase font-bold">{item.unit}</span></td>
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] || 0}
                                                     onChange={(val) => updatePrice(item.priceKey, val)}
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right text-slate-900 font-bold bg-slate-50/50">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} text-slate-900 font-extrabold bg-slate-50/50`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>

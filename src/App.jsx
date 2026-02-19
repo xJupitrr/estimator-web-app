@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction, Scissors } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
@@ -21,9 +21,10 @@ import Electrical from './components/calculators/Electrical';
 import Plumbing from './components/calculators/Plumbing';
 import LintelBeam from './components/calculators/LintelBeam';
 import ConcreteWall from './components/calculators/ConcreteWall';
+import RebarSchedule from './components/calculators/RebarSchedule';
 
 import { exportProjectToCSV, parseProjectCSV, applySessionData } from './utils/sessionManager';
-import { getSessionData } from './hooks/useLocalStorage';
+import { getSessionData } from './utils/sessionCache';
 import SessionImportModal from './components/modals/SessionImportModal';
 
 const TABS = [
@@ -44,6 +45,7 @@ const TABS = [
     { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
     { id: 'steel-truss', label: 'Steel Truss', component: SteelTruss, icon: Construction },
     { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
+    { id: 'rebar-schedule', label: 'Rebar Schedule (BBS)', component: RebarSchedule, icon: Scissors },
 ];
 
 const TAB_CATEGORIES = [
@@ -52,7 +54,7 @@ const TAB_CATEGORIES = [
         id: "structure",
         code: "STR-01",
         color: "blue",
-        tabs: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'retaining-wall', 'lintel-beam', 'steel-truss', 'roofing']
+        tabs: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'retaining-wall', 'lintel-beam', 'steel-truss', 'roofing', 'rebar-schedule']
     },
     {
         title: "Finishes",

@@ -6,11 +6,15 @@ import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import SelectInput from '../common/SelectInput';
 import { calculateFooting, DEFAULT_PRICES } from '../../utils/calculations/footingCalculator';
 import { optimizeCuts } from '../../utils/optimization/cuttingStock';
+import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
-/**
- * Converts a 0-indexed number to an alphabetical sequence like Excel columns.
- * 0 -> A, 1 -> B, ..., 25 -> Z, 26 -> AA, 27 -> AB
- */
+import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
+
+const THEME = THEME_COLORS.footing;
 const getAlphabeticalIndex = (n) => {
     let result = '';
     n = n + 1; // Convert to 1-based for the logic
@@ -21,26 +25,6 @@ const getAlphabeticalIndex = (n) => {
     }
     return result;
 };
-
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-);
-
-const TablePriceInput = ({ value, onChange }) => (
-    <div className="flex items-center justify-end">
-        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
-            ₱
-        </div>
-        <input
-            type="number"
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-20 pl-2 pr-2 py-1.5 text-right text-sm border border-slate-300 rounded-r-lg bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
-        />
-    </div>
-);
 
 // Constants for rebar and concrete
 const rebarDiameters = ["10mm", "12mm", "16mm", "20mm", "25mm"];
@@ -199,43 +183,45 @@ export default function Footing() {
                 </div>
             )}
 
-            <Card className="border-t-4 border-t-emerald-600 shadow-md">
-                <div className="p-4 bg-emerald-50 border-b border-emerald-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-emerald-900 flex items-center gap-2">
-                        <Columns size={18} /> Footing Configuration
-                    </h2>
-                    <button
-                        onClick={handleAddFooting}
-                        className="flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white rounded-md text-xs font-bold hover:bg-emerald-700 transition-all active:scale-95 shadow-sm justify-center"
-                    >
-                        <PlusCircle size={14} /> Add Row
-                    </button>
-                </div>
+            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+                <SectionHeader
+                    title="Footing Configuration"
+                    icon={Columns}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
+                            onClick={handleAddFooting}
+                            label="Add Row"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
+                        />
+                    }
+                />
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1000px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[200px]">Description</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">X-Len (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Y-Wid (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[100px]">Z-Dep (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px]">Rebar Spec</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Rebars along X</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[120px]">Rebars along Y</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>X-Len (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Y-Wid (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Z-Dep (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Rebar Spec</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Rebars along X</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Rebars along Y</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {footings.map((footing, index) => (
                                 <tr
                                     key={footing.id}
-                                    className={`transition-colors ${footing.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`${TABLE_UI.INPUT_ROW} ${footing.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                 >
                                     <td
-                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help relative group`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -248,74 +234,74 @@ export default function Footing() {
                                             {index + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={footing.quantity}
                                             onChange={(val) => handleFootingChange(footing.id, 'quantity', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none font-bold"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="Qty"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <input
                                             type="text"
                                             value={footing.description}
                                             onChange={(e) => handleFootingChange(footing.id, 'description', e.target.value)}
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="e.g., F1 Main Column Footing"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={footing.x_len}
                                             onChange={(val) => handleFootingChange(footing.id, 'x_len', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.00"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={footing.y_len}
                                             onChange={(val) => handleFootingChange(footing.id, 'y_len', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.00"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={footing.z_depth}
                                             onChange={(val) => handleFootingChange(footing.id, 'z_depth', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none font-medium text-slate-600"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.00"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={footing.rebarSpec}
                                             onChange={(val) => handleFootingChange(footing.id, 'rebarSpec', val)}
                                             options={rebarOptions.map(opt => ({ id: opt, display: opt }))}
-                                            focusColor="emerald"
+                                            focusColor={THEME}
                                             className="text-xs"
                                             placeholder="Select Spec..."
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={footing.rebar_x_count}
                                             onChange={(val) => handleFootingChange(footing.id, 'rebar_x_count', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="Count"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={footing.rebar_y_count}
                                             onChange={(val) => handleFootingChange(footing.id, 'rebar_y_count', val)}
-                                            className="w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-emerald-400 outline-none"
+                                            className={INPUT_UI.TABLE_INPUT}
                                             placeholder="Count"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 text-center">
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button
                                             onClick={() => handleRemoveFooting(footing.id)}
                                             disabled={footings.length === 1}
@@ -337,14 +323,18 @@ export default function Footing() {
                 )}
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={calculateFootings} className="w-full sm:w-auto px-8 py-3 bg-emerald-600 text-white rounded-lg font-bold shadow-lg hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <Calculator size={18} /> CALCULATE
-                    </button>
+                    <ActionButton
+                        onClick={calculateFootings}
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="w-full sm:w-auto px-8 py-3"
+                    />
                 </div>
             </Card>
 
             {footingResult && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-emerald-600 mt-6">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-600 mt-6`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -352,18 +342,19 @@ export default function Footing() {
                                 <p className="text-sm text-gray-500 mt-1">Total Concrete Volume: <strong className="text-gray-700">{footingResult.volume} m³</strong></p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className="text-left md:text-right bg-emerald-50 px-5 py-3 rounded-xl border border-emerald-100">
-                                    <p className="text-xs text-emerald-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                    <p className="font-bold text-4xl text-emerald-700 tracking-tight">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         ₱{footingResult.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <button
+                                <ActionButton
                                     onClick={() => setShowAnalysis(true)}
-                                    className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95 hover:bg-emerald-700"
-                                >
-                                    <Scissors size={14} /> VIEW CUTTING ANALYSIS
-                                </button>
+                                    label="VIEW CUTTING ANALYSIS"
+                                    icon={Scissors}
+                                    colorTheme={THEME}
+                                    className="px-6 py-2 text-xs"
+                                />
                                 <div className="flex gap-2">
                                     <button
                                         onClick={async () => {
@@ -386,32 +377,33 @@ export default function Footing() {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
                                     <tr>
-                                        <th className="px-4 py-3">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right">Unit Price</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
+                                        <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Unit Price</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {footingResult.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">{item.qty}</td>
-                                            <td className="px-4 py-3 text-center text-gray-600">
-                                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={`${TABLE_UI.CELL} font-medium text-gray-800`}>{item.name}</td>
+                                            <td className={TABLE_UI.CELL_RIGHT}>{item.qty}</td>
+                                            <td className={TABLE_UI.CELL_CENTER}>
+                                                <span className={`bg-${THEME}-100 px-2 py-1 rounded text-xs font-bold uppercase text-${THEME}-700`}>{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-2 text-right">
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 <TablePriceInput
                                                     value={footingPrices[item.priceKey] || 0}
                                                     onChange={(val) => handlePriceChange(item.priceKey, val)}
+                                                    colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
                                                 ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                         </tr>

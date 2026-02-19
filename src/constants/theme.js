@@ -1,27 +1,9 @@
-export const THEME_COLORS = {
-    masonry: 'indigo',
-    column: 'violet',
-    beam: 'blue',
-    slab: 'orange',
-    formworks: 'amber',
-    painting: 'teal',
-    truss: 'cyan'
-};
+// This file is now a compatibility layer over designSystem.js
+// Ideally, import directly from designSystem.js in future refactors.
 
-export const CARD_STYLE = "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden";
-export const INPUT_STYLE = "border border-slate-300 rounded text-sm outline-none focus:ring-2 transition-all";
-export const BUTTON_PRIMARY_STYLE = "text-white rounded-lg font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2";
+import { CARD_UI, getThemeClasses as getThemeClassesFromDS, THEME_COLORS as THEME_COLORS_DS } from './designSystem';
 
-export const getThemeClasses = (color) => ({
-    bgLight: `bg-${color}-50`,
-    bgMedium: `bg-${color}-100`,
-    bgDark: `bg-${color}-600`,
-    bgDarker: `bg-${color}-700`,
-    textLight: `text-${color}-500`,
-    textMedium: `text-${color}-700`,
-    textDark: `text-${color}-900`,
-    borderLight: `border-${color}-100`,
-    borderMedium: `border-${color}-200`,
-    ring: `focus:ring-${color}-400`,
-    borderFocus: `focus:border-${color}-400`,
-});
+export const THEME_COLORS = THEME_COLORS_DS;
+export const CARD_STYLE = CARD_UI.CONTAINER;
+export const BUTTON_PRIMARY_STYLE = 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-white font-bold text-xs transition-all shadow-sm active:scale-95';
+export const getThemeClasses = getThemeClassesFromDS;

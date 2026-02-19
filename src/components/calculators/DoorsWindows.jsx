@@ -1,42 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, DoorOpen, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
-import MathInput from '../common/MathInput';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, DoorOpen } from 'lucide-react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 import SelectInput from '../common/SelectInput';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import ActionButton from '../common/ActionButton';
+import TablePriceInput from '../common/TablePriceInput';
+import MathInput from '../common/MathInput';
+import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
-// --- Components ---
+const THEME = THEME_COLORS.doors;
 
-const Card = ({ children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
-        {children}
-    </div>
-);
 
-// Helper component for currency inputs (Mirrored from Masonry layout with Amber theme)
-const TablePriceInput = ({ value, onChange }) => (
-    <div className="flex items-center justify-end">
-        <div className="bg-gray-100/50 px-2 py-1.5 text-gray-600 text-sm font-bold flex items-center border border-gray-300 rounded-l-lg border-r-0 h-full">
-            ₱
-        </div>
-        <input
-            type="number"
-            value={value === null || value === undefined ? '' : String(value)}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-24 pl-2 pr-2 py-1.5 text-right text-sm border border-gray-300 rounded-r-lg bg-white focus:ring-2 focus:ring-amber-400 focus:border-amber-400 outline-none text-gray-800 font-medium transition-colors border-l-0"
-        />
-    </div>
-);
-
-// Helper component for generic number inputs
-const TableNumberInput = ({ value, onChange, placeholder, className = "" }) => (
-    <MathInput
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className={`w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-amber-400 outline-none font-medium bg-white text-slate-900 ${className}`}
-    />
-);
 
 
 import { calculateDoorsWindows, itemTypes, frameMaterials, leafMaterials } from '../../utils/calculations/doorsWindowsCalculator';
@@ -226,44 +202,44 @@ export default function DoorsWindows() {
                 </div>
             )}
 
-            <Card className="border-t-4 border-t-amber-600 shadow-md">
-                <div className="p-4 bg-amber-50 border-b border-amber-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <h2 className="font-bold text-amber-900 flex items-center gap-2">
-                        <DoorOpen size={18} /> Door & Window Specification ({items.length} Total)
-                    </h2>
-                    <div className="flex gap-2">
-                        <button
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+                <SectionHeader
+                    title={`Door & Window Specification (${items.length} Total)`}
+                    icon={DoorOpen}
+                    colorTheme={THEME}
+                    actions={
+                        <ActionButton
                             onClick={handleAddRow}
-                            className="flex items-center gap-1 px-4 py-2 bg-amber-600 text-white rounded-md text-xs font-bold hover:bg-amber-700 transition-colors active:scale-95 shadow-sm"
-                        >
-                            <PlusCircle size={14} /> Add Row
-                        </button>
-                    </div>
-                </div>
+                            label="Add Row"
+                            icon={PlusCircle}
+                            colorTheme={THEME}
+                        />
+                    }
+                />
 
                 <div className="overflow-x-auto p-4">
-                    <table className="w-full text-sm text-left border-collapse border border-slate-200 rounded-lg min-w-[1100px]">
-                        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+                    <table className={TABLE_UI.INPUT_TABLE}>
+                        <thead className="bg-slate-100">
                             <tr>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[40px]">#</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[60px]">Qty</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[160px] bg-amber-100 text-amber-900">Opening Type</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[90px]">Width (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[90px]">Height (m)</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px] bg-amber-100 text-amber-900">Frame Material</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[180px] bg-sky-100 text-sky-900">Leaf/Glass Type</th>
-                                <th className="px-3 py-2 font-bold border border-slate-300 text-center w-[140px]">Description</th>
-                                <th className="px-2 py-2 font-bold border border-slate-300 text-center w-[50px]"></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Opening Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Width (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Height (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Frame Material</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Leaf/Glass Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {items.map((item, index) => (
                                 <tr
                                     key={item.id}
-                                    className={`transition-colors ${item.isExcluded ? 'bg-slate-50/50 opacity-60 grayscale-[0.5]' : 'bg-white hover:bg-slate-50'}`}
+                                    className={`${TABLE_UI.INPUT_ROW} ${item.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                 >
                                     <td
-                                        className="p-2 border border-slate-300 align-middle text-center text-xs text-gray-500 font-bold cursor-help relative group"
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help relative group`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -276,68 +252,70 @@ export default function DoorsWindows() {
                                             {index + 1}
                                         </div>
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput
                                             value={item.quantity}
                                             onChange={(value) => handleItemChange(item.id, 'quantity', value)}
                                             placeholder="Qty"
-                                            className="font-bold"
+                                            className={`${INPUT_UI.TABLE_INPUT} font-bold`}
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-amber-50">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={item.itemType}
                                             onChange={(val) => handleItemChange(item.id, 'itemType', val)}
                                             options={itemTypes}
                                             placeholder="Select Type..."
-                                            focusColor="amber"
+                                            focusColor={THEME}
                                             className="text-xs"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput
                                             value={item.width_m}
                                             onChange={(value) => handleItemChange(item.id, 'width_m', value)}
                                             placeholder="1.20"
+                                            className={INPUT_UI.TABLE_INPUT}
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
-                                        <TableNumberInput
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput
                                             value={item.height_m}
                                             onChange={(value) => handleItemChange(item.id, 'height_m', value)}
                                             placeholder="1.50"
+                                            className={INPUT_UI.TABLE_INPUT}
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-amber-50">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={item.frameMaterial}
                                             onChange={(val) => handleItemChange(item.id, 'frameMaterial', val)}
                                             options={frameMaterials.map(mat => ({ id: mat.name, display: `${mat.name} (₱${mat.pricePerLM.toLocaleString()}/LM)` }))}
                                             placeholder="Select Frame..."
-                                            focusColor="amber"
+                                            focusColor={THEME}
                                             className="text-xs"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle bg-sky-50">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={item.leafMaterial}
                                             onChange={(val) => handleItemChange(item.id, 'leafMaterial', val)}
                                             options={leafMaterials.map(mat => ({ id: mat.name, display: `${mat.name} (₱${mat.pricePerSqm.toLocaleString()}/sqm)` }))}
                                             placeholder="Select Leaf..."
-                                            focusColor="amber"
+                                            focusColor={THEME}
                                             className="text-xs"
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle">
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <input
                                             type="text"
                                             value={item.description || ""}
                                             onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
                                             placeholder="e.g. Living Room"
-                                            className="w-full p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-amber-400 outline-none text-slate-800 placeholder:text-zinc-400 placeholder:font-normal placeholder:italic"
+                                            className={INPUT_UI.TABLE_INPUT}
                                         />
                                     </td>
-                                    <td className="p-2 border border-slate-300 align-middle text-center">
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button
                                             onClick={() => handleRemoveRow(item.id)}
                                             disabled={items.length === 1}
@@ -359,15 +337,19 @@ export default function DoorsWindows() {
                 )}
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
-                    <button onClick={calculateMaterials} className="w-full md:w-auto px-8 py-3 bg-amber-600 text-white rounded-lg font-bold shadow-lg active:scale-95 transition-all hover:bg-amber-700 uppercase tracking-wider text-sm flex items-center justify-center gap-2 min-w-[200px]">
-                        <Calculator size={18} /> CALCULATE
-                    </button>
+                    <ActionButton
+                        onClick={calculateMaterials}
+                        label="CALCULATE"
+                        icon={Calculator}
+                        colorTheme={THEME}
+                        className="w-full md:w-auto px-8 py-3 uppercase tracking-wider text-sm min-w-[200px]"
+                    />
                 </div>
             </Card>
 
             {/* RESULT CARD */}
             {result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-amber-500">
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -379,9 +361,9 @@ export default function DoorsWindows() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className="text-left md:text-right bg-amber-50 px-5 py-3 rounded-xl border border-amber-100">
-                                    <p className="text-xs text-amber-800 font-bold uppercase tracking-wide mb-1">Grand Total Estimated Cost</p>
-                                    <p className="font-bold text-4xl text-amber-700 tracking-tight">₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                    <p className={`text-xs text-${THEME}-800 font-bold uppercase tracking-wide mb-1`}>Grand Total Estimated Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
@@ -402,28 +384,28 @@ export default function DoorsWindows() {
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-lg border border-gray-200 mb-2">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+                        <div className={TABLE_UI.CONTAINER}>
+                            <table className={TABLE_UI.TABLE}>
+                                <thead className={TABLE_UI.HEADER_ROW}>
                                     <tr>
-                                        <th className="px-4 py-3 w-[35%]">Material Item</th>
-                                        <th className="px-4 py-3 text-right">Quantity</th>
-                                        <th className="px-4 py-3 text-center">Unit</th>
-                                        <th className="px-4 py-3 text-right w-[140px]">Unit Price (Editable)</th>
-                                        <th className="px-4 py-3 text-right bg-gray-100/50">Total</th>
+                                        <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
+                                        <th className={TABLE_UI.HEADER_CELL}>Unit</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[140px]`}>Unit Price (Editable)</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 font-medium text-gray-800">{item.name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-800 font-medium">
+                                        <tr key={idx} className={TABLE_UI.BODY_ROW}>
+                                            <td className={`${TABLE_UI.CELL} font-medium text-gray-800`}>{item.name}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-medium text-gray-800`}>
                                                 {item.qty}
                                             </td>
-                                            <td className="px-4 py-3 text-center text-gray-600">
+                                            <td className={`${TABLE_UI.CELL_CENTER} text-gray-600`}>
                                                 <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                             </td>
-                                            <td className="px-4 py-2">
+                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 {item.priceType === 'hardware' || item.priceType === 'frame' || item.priceType === 'leaf' ? (
                                                     <TablePriceInput
                                                         value={item.price}
@@ -438,6 +420,7 @@ export default function DoorsWindows() {
                                                                 setTimeout(() => calculateMaterials(), 50);
                                                             }
                                                         }}
+                                                        colorTheme={THEME}
                                                     />
                                                 ) : (
                                                     <div className="text-right text-sm text-gray-500 font-bold px-2 py-1.5">
@@ -445,7 +428,7 @@ export default function DoorsWindows() {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900 bg-gray-50/50">₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -458,10 +441,10 @@ export default function DoorsWindows() {
             {!result && !error && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <DoorOpen size={32} className="text-amber-500" />
+                        <DoorOpen size={32} className={`text-${THEME}-500`} />
                     </div>
                     <p className="font-medium text-center max-w-md">
-                        Enter your door/window specifications, then click <span className="font-bold text-amber-600">'CALCULATE'</span> to get itemized cost estimates.
+                        Enter your door/window specifications, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span> to get itemized cost estimates.
                     </p>
                 </div>
             )}

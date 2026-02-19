@@ -8,30 +8,22 @@ import { useHistory } from '../contexts/HistoryContext';
  * @param {*} initialValue - The initial value to use if no value is stored.
  * @returns {[*, Function]} - The state and the setState function.
  */
-// Session cache to maintain state during tab switching (internal navigation)
-// This cache is reset automatically on browser refresh.
-const sessionCache = {};
+import { getSessionData, setSessionData } from '../utils/sessionCache';
+export { getSessionData, setSessionData };
 
 export default function useLocalStorage(key, initialValue) {
     const { captureChange, subscribe } = useHistory();
 
     // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
-    // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
     const [storedValue, setStoredValue] = useState(() => {
-        // 1. Check session cache first (for tab switching persistence)
-        if (sessionCache[key] !== undefined) {
-            return sessionCache[key];
-        }
-
-        // 2. Fallback to initial value
-        // We strictly rely on sessionCache or initialValue (LocalStorage disabled).
+        const cached = getSessionData(key);
+        if (cached !== undefined) return cached;
         return initialValue;
     });
 
     const loadFromCache = useCallback(() => {
-        if (sessionCache[key] !== undefined) {
-            setStoredValue(sessionCache[key]);
-        }
+        const cached = getSessionData(key);
+        if (cached !== undefined) setStoredValue(cached);
     }, [key]);
 
     // Return a wrapped version of useState's setter function
@@ -43,7 +35,7 @@ export default function useLocalStorage(key, initialValue) {
             captureChange(key, storedValue, valueToStore);
 
             setStoredValue(valueToStore);
-            sessionCache[key] = valueToStore;
+            setSessionData(key, valueToStore);
 
             // Trigger update for listeners (like totals)
             window.dispatchEvent(new CustomEvent('storage-update', { detail: { key, value: valueToStore } }));
@@ -52,12 +44,11 @@ export default function useLocalStorage(key, initialValue) {
             console.error(`Error setting session key "${key}":`, error);
         }
     }, [key, storedValue, captureChange]);
-
     // 1. Subscribe to external updates (Undo/Redo)
     useEffect(() => {
         const unsubscribe = subscribe(key, (newValue) => {
             setStoredValue(newValue);
-            sessionCache[key] = newValue;
+            setSessionData(key, newValue);
         });
         return unsubscribe;
     }, [key, subscribe]);
@@ -74,16 +65,3 @@ export default function useLocalStorage(key, initialValue) {
 
     return [storedValue, setValue];
 }
-
-/**
- * Helper to direct access session data for Export/Import
- */
-export const getSessionData = (key) => {
-    return sessionCache[key];
-};
-
-export const setSessionData = (key, value) => {
-    sessionCache[key] = value;
-    // We don't trigger React updates here directly, the events do that if needed, 
-    // or the components read on mount/event.
-};

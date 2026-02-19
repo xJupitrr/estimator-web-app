@@ -1,5 +1,5 @@
 
-import { getSessionData, setSessionData } from '../hooks/useLocalStorage';
+import { getSessionData, setSessionData } from './sessionCache';
 import { calculateMasonry } from './calculations/masonryCalculator';
 import { calculateSlabOnGrade } from './calculations/slabOnGradeCalculator';
 import { calculateRoofing } from './calculations/roofingCalculator';
@@ -14,8 +14,9 @@ import { calculateFormworks } from './calculations/formworksCalculator';
 import { calculateSuspendedSlab } from './calculations/suspendedSlabCalculator';
 import { calculateElectrical } from './calculations/electricalCalculator';
 import { calculatePlumbing } from './calculations/plumbingCalculator';
-
 import { calculateFooting } from './calculations/footingCalculator';
+import { calculateConcreteWall } from './calculations/concreteWallCalculator';
+import { calculateSteelTruss } from './calculations/steelTrussCalculator';
 
 
 
@@ -144,6 +145,22 @@ const MODULES = [
         resultKey: 'formworks_result',
         totalKey: 'formworks_total',
         calculator: calculateFormworks
+    },
+    {
+        name: 'Concrete Wall',
+        dataKey: 'concrete_walls',
+        priceKey: 'concrete_wall_prices',
+        resultKey: 'concrete_wall_result',
+        totalKey: 'concrete_wall_total',
+        calculator: calculateConcreteWall
+    },
+    {
+        name: 'Steel Truss',
+        dataKey: 'steel_truss_parts',
+        priceKey: 'steel_truss_prices',
+        resultKey: 'steel_truss_result',
+        totalKey: 'steel_truss_total',
+        calculator: calculateSteelTruss
     }
 ];
 

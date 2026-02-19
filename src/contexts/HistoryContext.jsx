@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
-import { setSessionData } from '../hooks/useLocalStorage';
+import { setSessionData } from '../utils/sessionCache';
 
 const HistoryContext = createContext(null);
 
