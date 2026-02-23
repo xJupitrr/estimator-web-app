@@ -11,7 +11,8 @@ const MathInput = ({
     placeholder,
     className = "",
     id,
-    title
+    title,
+    disabled
 }) => {
     // Local state to hold the string representation (including operators)
     const [displayValue, setDisplayValue] = useState(value === null || value === undefined ? '' : String(value));
@@ -46,6 +47,7 @@ const MathInput = ({
             type="text"
             id={id}
             title={title}
+            disabled={disabled}
             placeholder={placeholder}
             value={displayValue}
             onChange={(e) => setDisplayValue(e.target.value)}

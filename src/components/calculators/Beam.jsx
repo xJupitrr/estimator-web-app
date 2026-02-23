@@ -734,27 +734,26 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             {/* Patterns List */}
                                             <div className="p-5 space-y-6 max-h-[500px] overflow-y-auto print:max-h-none print:overflow-visible text-gray-800">
                                                 {groupedPatterns.map((bin, gIdx) => (
-                                                    <div key={gIdx} className="relative bg-zinc-50/50 p-4 border border-zinc-100 hover:bg-white hover:border-zinc-200 transition-all rounded-sm print:border-zinc-900 print:bg-white">
+                                                    <div key={gIdx} className="bg-white border-l-4 border-l-zinc-800 border-t border-b border-r border-zinc-200 p-4 shadow-sm hover:shadow-md transition-all">
                                                         <div className="flex justify-between items-center mb-3">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="bg-zinc-800 text-white text-[9px] font-mono px-2 py-0.5 rounded-sm">
-                                                                    RB{(item.name.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
-                                                                    <span className="ml-2 text-blue-400 print:text-zinc-600">({bin.count} PIECES)</span>
+                                                                <span className="text-[10px] font-bold text-zinc-500 uppercase font-mono tracking-widest">
+                                                                    MARK {(item.name.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
                                                                 </span>
-                                                                <span className="text-[10px] text-zinc-400 font-mono italic">STOCK: {bin.stockLength.toFixed(2)}m</span>
+                                                                <span className="text-[10px] text-zinc-400 font-bold font-mono uppercase">({bin.count} PCS)</span>
                                                             </div>
-                                                            <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tighter">
-                                                                OFFCUT: <span className={bin.freeSpace > 0.5 ? 'text-red-500 font-black' : 'text-zinc-400 font-bold'}>{bin.freeSpace.toFixed(3)}m</span>
+                                                            <span className="text-[10px] font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-sm uppercase font-mono tracking-widest">
+                                                                FREE: {bin.freeSpace.toFixed(3)}m
                                                             </span>
                                                         </div>
 
                                                         {/* Visual Bar - Color Coded */}
-                                                        <div className="h-10 w-full bg-zinc-200/50 rounded-sm relative flex overflow-hidden shadow-inner border border-zinc-200/50 mb-3 print:border-zinc-800 print:bg-white">
+                                                        <div className="relative h-6 bg-zinc-100 rounded-sm mb-4 flex overflow-hidden border border-zinc-200">
                                                             {bin.cuts.map((cut, cIdx) => (
                                                                 <div
                                                                     key={cIdx}
                                                                     style={{ width: `${(cut.length / bin.stockLength) * 100}%` }}
-                                                                    className={`h-full ${getCutColor(cut)} border-r border-white/20 flex items-center justify-center group/cut transition-all hover:brightness-110 active:brightness-90 cursor-default print:border-zinc-800`}
+                                                                    className={`h-full ${getCutColor(cut)} border-r border-white/20 flex items-center justify-center group/cut transition-all`}
                                                                 >
                                                                     <span className="text-white text-[9px] font-bold font-mono px-1 truncate drop-shadow-sm">
                                                                         {cut.length.toFixed(2)}m
@@ -777,15 +776,17 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                                         </div>
 
                                                         {/* Legend */}
-                                                        <div className="flex flex-wrap gap-2 text-gray-800">
+                                                        <div className="space-y-1">
                                                             {Array.from(new Set(bin.cuts.map(c => `${c.length.toFixed(3)}|${c.label}`))).map((cutKey, lIdx) => {
                                                                 const [len, label] = cutKey.split('|');
                                                                 const count = bin.cuts.filter(c => `${c.length.toFixed(3)}|${c.label}` === cutKey).length;
                                                                 return (
-                                                                    <div key={lIdx} className="flex items-center gap-1.5 bg-white border border-zinc-200 px-2 py-0.5 rounded-sm shadow-sm print:border-zinc-400">
-                                                                        <div className={`w-2 h-2 rounded-full ${getCutColor({ length: parseFloat(len), label })} print:border print:border-zinc-900`}></div>
-                                                                        <span className="text-[9px] font-black text-zinc-800 font-mono">{count}x {parseFloat(len).toFixed(2)}m</span>
-                                                                        <span className="text-[8px] text-zinc-500 font-mono uppercase tracking-tighter truncate max-w-[80px]">{label}</span>
+                                                                    <div key={lIdx} className="flex justify-between text-[10px] text-zinc-600 font-mono">
+                                                                        <span className="flex items-center gap-2 truncate pr-2">
+                                                                            <div className={`w-2 h-2 rounded-full shrink-0 ${getCutColor({ length: parseFloat(len), label })}`}></div>
+                                                                            <span>• {count}x {label}</span>
+                                                                        </span>
+                                                                        <span className="font-bold text-zinc-900">{parseFloat(len).toFixed(3)}m</span>
                                                                     </div>
                                                                 );
                                                             })}

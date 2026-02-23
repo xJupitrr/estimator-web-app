@@ -71,13 +71,13 @@ export const BUTTON_UI = {
 // --- LEGACY THEME SUPPORT ---
 export const THEME_COLORS = {
     masonry: 'orange',
-    slab: 'cyan',
-    suspended_slab: 'purple',
+    slab: 'green',
+    suspended_slab: 'blue',
     footing: 'emerald',
     roofing: 'amber',
     column: 'indigo',
     beam: 'violet',
-    lintel: 'teal',
+    lintel: 'violet',
     stairs: 'teal',
     tanks: 'blue',
     concrete_wall: 'blue',

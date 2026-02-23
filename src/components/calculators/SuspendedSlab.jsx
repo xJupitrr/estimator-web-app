@@ -191,6 +191,7 @@ export default function SuspendedSlab() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Type</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Main-Sp</th>
@@ -252,6 +253,11 @@ export default function SuspendedSlab() {
                                             placeholder="0.00"
                                         />
                                     </td>
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
+                                        <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider whitespace-nowrap ${getSlabType(slab.length, slab.width) === 'Two-Way' ? 'bg-indigo-100 text-indigo-700' : getSlabType(slab.length, slab.width) === 'One-Way' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                                            {getSlabType(slab.length, slab.width)}
+                                        </span>
+                                    </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={slab.thickness}
@@ -281,8 +287,10 @@ export default function SuspendedSlab() {
                                         <MathInput
                                             value={slab.tempSpacing}
                                             onChange={(val) => handleSlabChange(slab.id, 'tempSpacing', val)}
-                                            className={INPUT_UI.TABLE_INPUT}
-                                            placeholder="0.20"
+                                            className={`${INPUT_UI.TABLE_INPUT} ${getSlabType(slab.length, slab.width) === 'Two-Way' ? 'opacity-50 cursor-not-allowed bg-slate-100' : ''}`}
+                                            placeholder={getSlabType(slab.length, slab.width) === 'Two-Way' ? "N/A" : "0.20"}
+                                            disabled={getSlabType(slab.length, slab.width) === 'Two-Way'}
+                                            title={getSlabType(slab.length, slab.width) === 'Two-Way' ? "Not needed for Two-Way slab" : ""}
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
@@ -334,6 +342,18 @@ export default function SuspendedSlab() {
                 </div>
             </Card>
 
+            {!result && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50 mt-6">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Box size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Configure your suspended slab specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
+                    </p>
+                </div>
+            )}
+
             {result && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-600 mt-6`}>
                     <div className="p-6">
@@ -350,11 +370,11 @@ export default function SuspendedSlab() {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => copyToClipboard(result.items)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">
+                                    <button onClick={() => copyToClipboard(result.items)} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-sm font-medium text-${THEME}-600 hover:bg-${THEME}-50 shadow-sm transition-colors`}>
                                         <ClipboardCopy size={14} /> Copy Table
                                     </button>
-                                    <button onClick={() => downloadCSV(result.items, 'suspended_slab_estimate.csv')} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 shadow-sm transition-colors">
-                                        <Download size={14} /> CSV
+                                    <button onClick={() => downloadCSV(result.items, 'suspended_slab_estimate.csv')} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-sm font-medium text-${THEME}-600 hover:bg-${THEME}-50 shadow-sm transition-colors`}>
+                                        <Download size={14} /> Export CSV
                                     </button>
                                 </div>
                             </div>

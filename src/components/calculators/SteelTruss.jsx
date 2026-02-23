@@ -292,15 +292,15 @@ export default function SteelTruss() {
 
                 <div className="overflow-x-auto p-4">
                     <table className={TABLE_UI.INPUT_TABLE}>
-                        <thead>
-                            <tr className="bg-slate-50">
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-10`}>#</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER}`}>Component Name</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-48`}>Steel Type</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-56`}>Size / Specs</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-32`}>Thickness</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-24 text-center`}>Cuts</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-10`}></th>
+                        <thead className="bg-slate-100">
+                            <tr>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Component Name</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Steel Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Size / Specs</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Thickness</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px] text-center`}>Cuts</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -346,11 +346,13 @@ export default function SteelTruss() {
                     </table>
                 </div>
 
-                {error && (
-                    <div className="p-4 bg-red-50 border-t border-red-200 text-red-700 text-sm font-medium flex items-center justify-center gap-2">
-                        <AlertCircle size={16} /> {error}
-                    </div>
-                )}
+                {
+                    error && (
+                        <div className="p-4 bg-red-50 border-t border-red-200 text-red-700 text-sm font-medium flex items-center justify-center gap-2">
+                            <AlertCircle size={16} /> {error}
+                        </div>
+                    )
+                }
 
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <ActionButton
@@ -361,7 +363,19 @@ export default function SteelTruss() {
                         className="w-full sm:w-auto px-10 py-3"
                     />
                 </div>
-            </Card>
+            </Card >
+
+            {!estimationResults && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50 mt-6">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Box size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Enter your steel truss components and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'RUN OPTIMIZED ESTIMATE'</span>.
+                    </p>
+                </div>
+            )}
 
             {estimationResults && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
@@ -423,82 +437,85 @@ export default function SteelTruss() {
                         </div>
                     </div>
                 </Card>
-            )}
+            )
+            }
 
             {/* Pattern Visualizer Modal Logic here if needed or keep the original complex one */}
-            {viewingPatterns && estimationResults && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-6xl h-[90vh] rounded-sm border border-zinc-200 shadow-2xl flex flex-col animate-in zoom-in-95 duration-300 relative overflow-hidden text-left">
-                        <div className={`absolute top-0 left-0 w-full h-1 bg-${THEME}-600 no-print`}></div>
-                        <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-100 bg-zinc-50 shrink-0 no-print">
-                            <div className="flex items-center gap-5">
-                                <div className={`p-3 bg-${THEME}-600 text-white rounded-sm shadow-lg shadow-${THEME}-100`}>
-                                    <Scissors size={24} />
+            {
+                viewingPatterns && estimationResults && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="bg-white w-full max-w-6xl h-[90vh] rounded-sm border border-zinc-200 shadow-2xl flex flex-col animate-in zoom-in-95 duration-300 relative overflow-hidden text-left">
+                            <div className={`absolute top-0 left-0 w-full h-1 bg-${THEME}-600 no-print`}></div>
+                            <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-100 bg-zinc-50 shrink-0 no-print">
+                                <div className="flex items-center gap-5">
+                                    <div className={`p-3 bg-${THEME}-600 text-white rounded-sm shadow-lg shadow-${THEME}-100`}>
+                                        <Scissors size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-zinc-900 uppercase tracking-tight">Cutting Pattern Map</h2>
+                                        <p className="text-xs text-zinc-500 font-mono mt-1 uppercase tracking-wider italic">Optimized material utilization plan (6.0m stock base)</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-zinc-900 uppercase tracking-tight">Cutting Pattern Map</h2>
-                                    <p className="text-xs text-zinc-500 font-mono mt-1 uppercase tracking-wider italic">Optimized material utilization plan (6.0m stock base)</p>
-                                </div>
+                                <button onClick={() => setViewingPatterns(false)} className="p-3 hover:bg-white text-zinc-400 hover:text-zinc-900 transition-colors border border-transparent hover:border-zinc-200 rounded-sm">
+                                    <X size={24} />
+                                </button>
                             </div>
-                            <button onClick={() => setViewingPatterns(false)} className="p-3 hover:bg-white text-zinc-400 hover:text-zinc-900 transition-colors border border-transparent hover:border-zinc-200 rounded-sm">
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="p-8 overflow-y-auto flex-1 bg-[linear-gradient(rgba(0,0,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.01)_1px,transparent_1px)] bg-[size:40px_40px]">
-                            <div className="grid grid-cols-1 gap-12">
-                                {estimationResults.items.map((item, idx) => (
-                                    <div key={idx} className="space-y-6">
-                                        <div className="flex items-center justify-between border-b-2 border-zinc-800 pb-2">
-                                            <h4 className="font-bold text-lg text-zinc-900 uppercase flex items-center gap-3">
-                                                <span className={`w-8 h-8 flex items-center justify-center bg-zinc-900 text-white text-sm rounded-sm`}>{idx + 1}</span>
-                                                {item.name} <span className="text-zinc-400 font-mono text-xs">{item.specs}</span>
-                                            </h4>
-                                            <div className="flex gap-4">
-                                                <div className="text-right">
-                                                    <div className="text-[10px] text-zinc-400 font-mono uppercase">Efficiency</div>
-                                                    <div className="text-sm font-bold text-emerald-600">{(item.optimization.efficiency * 100).toFixed(1)}%</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-[10px] text-zinc-400 font-mono uppercase">Waste</div>
-                                                    <div className="text-sm font-bold text-red-500">{item.optimization.wasteTotal.toFixed(3)}m</div>
+                            <div className="p-8 overflow-y-auto flex-1 bg-[linear-gradient(rgba(0,0,0,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.01)_1px,transparent_1px)] bg-[size:40px_40px]">
+                                <div className="grid grid-cols-1 gap-12">
+                                    {estimationResults.items.map((item, idx) => (
+                                        <div key={idx} className="space-y-6">
+                                            <div className="flex items-center justify-between border-b-2 border-zinc-800 pb-2">
+                                                <h4 className="font-bold text-lg text-zinc-900 uppercase flex items-center gap-3">
+                                                    <span className={`w-8 h-8 flex items-center justify-center bg-zinc-900 text-white text-sm rounded-sm`}>{idx + 1}</span>
+                                                    {item.name} <span className="text-zinc-400 font-mono text-xs">{item.specs}</span>
+                                                </h4>
+                                                <div className="flex gap-4">
+                                                    <div className="text-right">
+                                                        <div className="text-[10px] text-zinc-400 font-mono uppercase">Efficiency</div>
+                                                        <div className="text-sm font-bold text-emerald-600">{(item.optimization.efficiency * 100).toFixed(1)}%</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-[10px] text-zinc-400 font-mono uppercase">Waste</div>
+                                                        <div className="text-sm font-bold text-red-500">{item.optimization.wasteTotal.toFixed(3)}m</div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {item.optimization.patterns.map((pattern, pIdx) => (
-                                                <div key={pIdx} className="bg-white border-l-4 border-l-zinc-800 border-t border-b border-r border-zinc-200 p-4 shadow-sm hover:shadow-md transition-all">
-                                                    <div className="flex justify-between items-center mb-3">
-                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase font-mono tracking-widest">Bar #{pattern.id}</span>
-                                                        <span className="text-[10px] font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-sm">FREE: {pattern.freeSpace.toFixed(3)}m</span>
-                                                    </div>
-                                                    <div className="relative h-6 bg-zinc-100 rounded-sm mb-4 flex overflow-hidden border border-zinc-200">
-                                                        {pattern.cuts.map((cut, cIdx) => (
-                                                            <div key={cIdx} className="h-full border-r border-white/20 flex items-center justify-center relative group" style={{ width: `${(cut.length / pattern.stockLength) * 100}%`, backgroundColor: `hsl(${180 + (cIdx * 40)}, 60%, 45%)` }}>
-                                                                <span className="text-[8px] text-white font-bold tabular-nums">{cut.length.toFixed(2)}</span>
-                                                                <div className="absolute top-full left-0 mt-2 p-2 bg-zinc-900 text-white text-[9px] rounded-sm opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap shadow-xl pointer-events-none uppercase tracking-tighter">
-                                                                    {cut.label}: {cut.length}m
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                {item.optimization.patterns.map((pattern, pIdx) => (
+                                                    <div key={pIdx} className="bg-white border-l-4 border-l-zinc-800 border-t border-b border-r border-zinc-200 p-4 shadow-sm hover:shadow-md transition-all">
+                                                        <div className="flex justify-between items-center mb-3">
+                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase font-mono tracking-widest">Bar #{pattern.id}</span>
+                                                            <span className="text-[10px] font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-sm">FREE: {pattern.freeSpace.toFixed(3)}m</span>
+                                                        </div>
+                                                        <div className="relative h-6 bg-zinc-100 rounded-sm mb-4 flex overflow-hidden border border-zinc-200">
+                                                            {pattern.cuts.map((cut, cIdx) => (
+                                                                <div key={cIdx} className="h-full border-r border-white/20 flex items-center justify-center relative group" style={{ width: `${(cut.length / pattern.stockLength) * 100}%`, backgroundColor: `hsl(${180 + (cIdx * 40)}, 60%, 45%)` }}>
+                                                                    <span className="text-[8px] text-white font-bold tabular-nums">{cut.length.toFixed(2)}</span>
+                                                                    <div className="absolute top-full left-0 mt-2 p-2 bg-zinc-900 text-white text-[9px] rounded-sm opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap shadow-xl pointer-events-none uppercase tracking-tighter">
+                                                                        {cut.label}: {cut.length}m
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            {pattern.cuts.map((cut, cIdx) => (
+                                                                <div key={cIdx} className="flex justify-between text-[10px] text-zinc-600 font-mono">
+                                                                    <span className="truncate pr-2">• {cut.label}</span>
+                                                                    <span className="font-bold text-zinc-900">{cut.length.toFixed(3)}m</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        {pattern.cuts.map((cut, cIdx) => (
-                                                            <div key={cIdx} className="flex justify-between text-[10px] text-zinc-600 font-mono">
-                                                                <span className="truncate pr-2">• {cut.label}</span>
-                                                                <span className="font-bold text-zinc-900">{cut.length.toFixed(3)}m</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

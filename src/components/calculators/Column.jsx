@@ -360,12 +360,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             )}
 
             {!showResult && !error && (
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Hammer size={32} className={`text-${THEME}-500`} />
+                        <Hammer size={40} className={`text-${THEME}-400`} />
                     </div>
-                    <p className="font-medium text-center max-w-md">
-                        Enter your column dimensions above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span> to generate the material list.
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Enter your column dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
                     </p>
                 </div>
             )}
@@ -601,21 +602,20 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 
                                                 <div className="p-5 space-y-6 text-gray-800">
                                                     {groupedPatterns.map((bin, gIdx) => (
-                                                        <div key={gIdx} className="relative bg-zinc-50/50 p-4 border border-zinc-100 rounded-sm">
+                                                        <div key={gIdx} className="bg-white border-l-4 border-l-zinc-800 border-t border-b border-r border-zinc-200 p-4 shadow-sm hover:shadow-md transition-all">
                                                             <div className="flex justify-between items-center mb-3">
                                                                 <div className="flex items-center gap-2">
-                                                                    <span className="bg-zinc-800 text-white text-[9px] font-mono px-2 py-0.5 rounded-sm uppercase tracking-tighter">
+                                                                    <span className="text-[10px] font-bold text-zinc-500 uppercase font-mono tracking-widest">
                                                                         MARK {(item?.name?.match(/\d+/) || [10])[0]}-{getAlphabeticalIndex(gIdx)}
                                                                     </span>
                                                                     <span className="text-[10px] text-zinc-400 font-bold font-mono uppercase">({bin.count} PCS)</span>
-                                                                    <span className="text-[10px] text-zinc-300 font-mono tracking-tighter uppercase ml-2 text-left">STOCK: {(bin.stockLength || 0).toFixed(2)}m</span>
                                                                 </div>
-                                                                <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tighter">
-                                                                    SCRAP: <span className={bin.freeSpace > 0.5 ? 'text-rose-500' : 'text-zinc-400'}>{(bin.freeSpace || 0).toFixed(3)}m</span>
+                                                                <span className="text-[10px] font-bold text-zinc-900 bg-zinc-100 px-2 py-0.5 rounded-sm uppercase font-mono tracking-widest">
+                                                                    FREE: {(bin.freeSpace || 0).toFixed(3)}m
                                                                 </span>
                                                             </div>
 
-                                                            <div className="h-10 w-full bg-zinc-200/50 rounded-sm relative flex overflow-hidden shadow-inner border border-zinc-200/50 mb-3">
+                                                            <div className="relative h-6 bg-zinc-100 rounded-sm mb-4 flex overflow-hidden border border-zinc-200">
                                                                 {(bin?.cuts || []).map((cut, cIdx) => (
                                                                     <div key={cIdx} style={{ width: `${((parseFloat(cut?.length) || 0) / (parseFloat(bin?.stockLength) || 6)) * 100}%` }} className={`h-full ${getCutColor(cut, uniqueCutsInItem)} border-r border-white/20 flex items-center justify-center group/cut transition-all relative`}>
                                                                         <span className="text-white text-[9px] font-bold font-mono px-1 truncate drop-shadow-sm">{(parseFloat(cut?.length) || 0).toFixed(2)}m</span>
@@ -628,16 +628,18 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                                 {bin.freeSpace > 0 && <div className="flex-1 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(0,0,0,0.03)_5px,rgba(0,0,0,0.03)_10px)] flex items-center justify-center text-[8px] text-zinc-300 font-mono uppercase tracking-widest no-print text-center">loss</div>}
                                                             </div>
 
-                                                            <div className="flex flex-wrap gap-2">
+                                                            <div className="space-y-1">
                                                                 {Array.from(new Set((bin?.cuts || []).map(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}`))).map((cutKey, lIdx) => {
                                                                     const [lenStr, label] = cutKey.split('|');
                                                                     const len = parseFloat(lenStr) || 0;
                                                                     const count = (bin?.cuts || []).filter(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}` === cutKey).length;
                                                                     return (
-                                                                        <div key={lIdx} className="flex items-center gap-1.5 bg-white border border-zinc-200 px-2 py-0.5 rounded-sm shadow-sm ring-1 ring-zinc-50">
-                                                                            <div className={`w-2 h-2 rounded-full ${getCutColor({ length: len, label }, uniqueCutsInItem)}`}></div>
-                                                                            <span className="text-[9px] font-black text-zinc-800 font-mono">{count}x {len.toFixed(2)}m</span>
-                                                                            <span className="text-[8px] text-zinc-500 font-bold font-mono uppercase tracking-tighter truncate max-w-[80px]">{label}</span>
+                                                                        <div key={lIdx} className="flex justify-between text-[10px] text-zinc-600 font-mono">
+                                                                            <span className="flex items-center gap-2 truncate pr-2">
+                                                                                <div className={`w-2 h-2 rounded-full shrink-0 ${getCutColor({ length: len, label }, uniqueCutsInItem)}`}></div>
+                                                                                <span>• {count}x {label}</span>
+                                                                            </span>
+                                                                            <span className="font-bold text-zinc-900">{len.toFixed(3)}m</span>
                                                                         </div>
                                                                     );
                                                                 })}

@@ -183,7 +183,7 @@ export default function Footing() {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
                 <SectionHeader
                     title="Footing Configuration"
                     icon={Columns}
@@ -333,8 +333,20 @@ export default function Footing() {
                 </div>
             </Card>
 
+            {!footingResult && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Columns size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Enter your footing dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
+                    </p>
+                </div>
+            )}
+
             {footingResult && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-600 mt-6`}>
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500 mt-6`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>

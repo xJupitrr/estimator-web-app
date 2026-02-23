@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Box } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
 import { getDefaultPrices } from '../../constants/materials';
@@ -409,6 +409,18 @@ export default function Masonry() { // Renamed to Masonry
                 </div>
             </Card>
 
+            {!wallResult && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Box size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Enter your masonry wall dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
+                    </p>
+                </div>
+            )}
+
             {/* RESULT CARD */}
             {wallResult && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
@@ -490,16 +502,7 @@ export default function Masonry() { // Renamed to Masonry
                 </Card>
             )}
 
-            {!wallResult && !error && (
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/50">
-                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Calculator size={32} className={`text-${THEME}-500`} />
-                    </div>
-                    <p className="font-medium text-center max-w-md">
-                        Enter your wall dimensions above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span> to generate the material list.
-                    </p>
-                </div>
-            )}
+
         </div>
     );
 }

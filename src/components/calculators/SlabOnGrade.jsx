@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Box } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -23,13 +23,13 @@ const rebarOptions = rebarDiameters.flatMap(size =>
 
 const getInitialSlab = () => ({
     id: Date.now() + Math.random(),
-    quantity: "1",
+    quantity: "",
     length: "",
     width: "",
-    thickness: "0.10",
-    gravelBeddingThickness: "0.05",
-    barSize: "10mm x 6.0m",
-    spacing: "0.20",
+    thickness: "",
+    gravelBeddingThickness: "",
+    barSize: "",
+    spacing: "",
     description: "",
     isExcluded: false,
 });
@@ -180,6 +180,7 @@ export default function SlabOnGrade() {
                             label="Add Slab Row"
                             icon={PlusCircle}
                             colorTheme={THEME}
+                            className="bg-green-600 hover:bg-green-700 text-white"
                         />
                     }
                 />
@@ -240,7 +241,7 @@ export default function SlabOnGrade() {
                                         <MathInput value={slab.spacing} onChange={(v) => handleSlabChange(slab.id, 'spacing', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.20" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <button onClick={() => handleRemoveRow(slab.id)} disabled={slabs.length === 1} className={`p-2 rounded-full transition-colors ${slabs.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-200 cursor-not-allowed'}`}>
+                                        <button onClick={() => handleRemoveRow(slab.id)} disabled={slabs.length === 1} className={`p-2 rounded-full transition-colors ${slabs.length > 1 ? 'text-red-400 hover:bg-red-50 hover:text-red-600' : 'text-gray-400 cursor-not-allowed'}`}>
                                             <Trash2 size={16} />
                                         </button>
                                     </td>
@@ -262,10 +263,22 @@ export default function SlabOnGrade() {
                         label="RUN CALCULATION"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto px-10 py-3"
+                        className="w-full sm:w-auto px-10 py-3 bg-green-600 hover:bg-green-700 text-white"
                     />
                 </div>
             </Card>
+
+            {!result && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50 mt-6">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Box size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Enter your slab dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'RUN CALCULATION'</span>.
+                    </p>
+                </div>
+            )}
 
             {result && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500 mt-6`}>
@@ -286,11 +299,11 @@ export default function SlabOnGrade() {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => copyToClipboard(result.items)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
+                                    <button onClick={() => copyToClipboard(result.items)} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-xs font-semibold text-${THEME}-700 hover:bg-${THEME}-50 transition-colors shadow-sm text-green-700 border-green-200 hover:bg-green-50`}>
                                         <ClipboardCopy size={14} /> Copy Results
                                     </button>
-                                    <button onClick={() => downloadCSV(result.items, 'slab_estimate.csv')} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm">
-                                        <Download size={14} /> Download PDF
+                                    <button onClick={() => downloadCSV(result.items, 'slab_estimate.csv')} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-xs font-semibold text-${THEME}-700 hover:bg-${THEME}-50 transition-colors shadow-sm text-green-700 border-green-200 hover:bg-green-50`}>
+                                        <Download size={14} /> Export CSV
                                     </button>
                                 </div>
                             </div>

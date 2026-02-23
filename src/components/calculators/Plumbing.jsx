@@ -369,8 +369,20 @@ export default function Plumbing() {
                 </div>
             </Card>
 
+            {!result && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50 mt-6">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Box size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Add your plumbing fixtures and piping materials above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
+                    </p>
+                </div>
+            )}
+
             {result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
+                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500 mt-6`}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -393,7 +405,7 @@ export default function Plumbing() {
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
                                         <th className={TABLE_UI.HEADER_CELL}>Unit</th>
                                         <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[140px]`}>Unit Price (Editable)</th>
-                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-${THEME}-50`}>Total</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-slate-50/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -411,7 +423,7 @@ export default function Plumbing() {
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className={`${TABLE_UI.CELL_RIGHT} text-${THEME}-900 font-extrabold bg-${THEME}-50/20`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-slate-900 bg-slate-50/30 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>

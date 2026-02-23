@@ -23,12 +23,12 @@ const getInitialWall = () => ({
     id: Date.now() + Math.random(),
     length: "",
     height: "",
-    thickness: "150",
-    vertSpacing: "0.20",
-    horizSpacing: "0.20",
-    vertRebarSpec: "10mm x 6.0m",
-    horizRebarSpec: "10mm x 6.0m",
-    layers: "2",
+    thickness: "",
+    vertSpacing: "",
+    horizSpacing: "",
+    vertRebarSpec: "",
+    horizRebarSpec: "",
+    layers: "",
     isExcluded: false,
     quantity: "1"
 });
@@ -194,17 +194,17 @@ export default function ConcreteWall() {
 
                 <div className="overflow-x-auto p-4">
                     <table className={TABLE_UI.INPUT_TABLE}>
-                        <thead>
-                            <tr className="bg-slate-50">
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-10`}>#</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-20`}>Qty</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER}`}>Length (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER}`}>Height (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-32`}>Thickness</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-32`}>Vert. Rebar</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-32`}>Horiz. Rebar</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-24`}>Layers</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-10`}></th>
+                        <thead className="bg-slate-100">
+                            <tr>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Thickness</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Vert. Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Horiz. Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Layers</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -301,6 +301,18 @@ export default function ConcreteWall() {
                     />
                 </div>
             </Card>
+
+            {!result && !error && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Layers size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Enter your wall dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'RUN CALCULATION'</span>.
+                    </p>
+                </div>
+            )}
 
             {result && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>

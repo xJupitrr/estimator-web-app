@@ -627,18 +627,18 @@ export default function RebarSchedule() {
                             <div className={TABLE_UI.CONTAINER} style={{ borderRadius: 0, margin: 0, border: 'none' }}>
                                 <table className={TABLE_UI.TABLE}>
                                     <thead className="bg-zinc-100 border-b border-zinc-200 print:bg-zinc-100">
-                                        <tr>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-center w-10">#</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-left">Element / Label</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-center">Dia.</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-center">Bend Type</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-center">Diagram</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-right">Cut Length</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-right">Hook</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-right">Stock Bar</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-right">Qty</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-right bg-zinc-200/50">Total Length</th>
-                                            <th className="px-3 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider text-right">Est. Weight</th>
+                                        <tr className={TABLE_UI.HEADER_ROW}>
+                                            <th className={`${TABLE_UI.HEADER_CELL} w-10 text-center`}>#</th>
+                                            <th className={TABLE_UI.HEADER_CELL}>Element / Label</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL} text-center`}>Dia.</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL} text-center`}>Bend Type</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL} text-center`}>Diagram</th>
+                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Cut Length</th>
+                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Hook</th>
+                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Stock Bar</th>
+                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Qty</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-zinc-200/50`}>Total Length</th>
+                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Est. Weight</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-100">

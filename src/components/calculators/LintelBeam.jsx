@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Settings, Info, Calculator, DoorOpen, ClipboardCopy, Download } from 'lucide-react';
+import { Settings, Info, Calculator, DoorOpen, ClipboardCopy, Download, Box } from 'lucide-react';
 import { calculateLintelBeam } from '../../utils/calculations/lintelBeamCalculator';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
@@ -175,7 +175,7 @@ export default function LintelBeam() {
 
     return (
         <div className="space-y-6">
-            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
                 <SectionHeader
                     title="Lintel Beam General Specifications"
                     icon={Settings}
@@ -265,7 +265,7 @@ export default function LintelBeam() {
                 </div>
             </Card>
 
-            <Card className={`border-t-4 border-t-${THEME}-600 shadow-md`}>
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
                 <SectionHeader
                     title="Opening Detection"
                     icon={DoorOpen}
@@ -322,6 +322,18 @@ export default function LintelBeam() {
                 </div>
             </Card>
 
+            {!showResult && (
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50 mt-6">
+                    <div className="bg-white p-4 rounded-full shadow-sm mb-4">
+                        <Box size={40} className={`text-${THEME}-400`} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
+                    <p className="max-w-md mx-auto text-sm">
+                        Configure your lintel specifications and click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>. Make sure to add openings from the Doors & Windows tab first.
+                    </p>
+                </div>
+            )}
+
             {showResult && result && (
                 <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
                     <div className="p-6">
@@ -376,7 +388,7 @@ export default function LintelBeam() {
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-${THEME}-700 bg-${THEME}-50/10 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-slate-900 bg-slate-50/30 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>
