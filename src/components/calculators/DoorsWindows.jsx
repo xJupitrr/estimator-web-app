@@ -336,13 +336,13 @@ export default function DoorsWindows() {
                     </div>
                 )}
 
-                <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end rounded-b-xl">
                     <ActionButton
                         onClick={calculateMaterials}
                         label="CALCULATE"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full md:w-auto px-8 py-3 uppercase tracking-wider text-sm min-w-[200px]"
+                        className="w-full sm:w-auto"
                     />
                 </div>
             </Card>

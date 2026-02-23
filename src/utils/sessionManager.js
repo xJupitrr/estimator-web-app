@@ -15,9 +15,13 @@ const LIST_SECTIONS = {
     'SUSPENDED SLAB DATA': 'suspended_slab_rows',
     'TILES DATA': 'tiles_rows',
     'PAINTING DATA': 'painting_rows',
-    'CEILING DATA': 'ceiling_rooms',
+    'CEILING DATA': 'ceiling_rows',
     'DOORS & WINDOWS DATA': 'doorswindows_rows',
-    'RETAINING/SHEAR WALL DATA': 'concrete_walls'
+    'RETAINING/SHEAR WALL DATA': 'concrete_walls',
+    'ELECTRICAL DATA': 'electrical_rows',
+    'PLUMBING DATA': 'plumbing_rows',
+    'STEEL TRUSS DATA': 'steel_truss_parts',
+    'LINTEL BEAMS DATA': 'lintel_beams'
 };
 
 // Mapping of Single Value/Object Keys to a generic Settings Section
@@ -42,7 +46,11 @@ const SETTINGS_KEYS = [
     'beam_prices',
     'column_prices',
     'lintel_prices',
-    'lintel_specs',
+    'lintelbeam_specs',
+    'electrical_prices',
+    'plumbing_prices',
+    'steel_truss_prices',
+    'steel_truss_settings',
     'project_name',
     'last_save_info',
 
@@ -58,8 +66,12 @@ const SETTINGS_KEYS = [
     'painting_result',
     'ceiling_result',
     'doorswindows_result',
+    'electrical_result',
+    'plumbing_result',
+    'steel_truss_result',
     // On-the-fly calculators (persist display state)
     'beam_show_result',
+    'column_show_result',
     'lintel_show_result',
 
     // --- Totals (for Dashboard) ---
@@ -75,6 +87,9 @@ const SETTINGS_KEYS = [
     'painting_total',
     'ceiling_total',
     'doors_windows_total',
+    'electrical_total',
+    'plumbing_total',
+    'steel_truss_total',
     'lintel_beam_total',
     'concrete_wall_total',
     'concrete_wall_prices',
@@ -152,6 +167,17 @@ const csvToArray = (csvText) => {
         const obj = {};
         for (let j = 0; j < headers.length; j++) {
             let val = currentline[j];
+
+            // Restore primitive types
+            if (val === 'true') {
+                val = true;
+            } else if (val === 'false') {
+                val = false;
+            } else if (val !== '' && !isNaN(val)) {
+                // we safely parse numbers, but preserve empty strings
+                val = Number(val);
+            }
+
             obj[headers[j]] = val;
         }
         result.push(obj);
@@ -215,6 +241,52 @@ export const exportProjectToCSV = () => {
     });
 
     return csvParts.join('\n');
+};
+
+/**
+ * Generates a summary of the data that will be exported.
+ * Returns an array of section metadata objects.
+ */
+export const getExportSummary = () => {
+    const summary = [];
+
+    // 1. Check Settings
+    let settingsCount = 0;
+    SETTINGS_KEYS.forEach(key => {
+        const val = getSessionData(key);
+        if (val !== null && val !== undefined) settingsCount++;
+    });
+    if (settingsCount > 0) {
+        summary.push({
+            key: 'SETTINGS',
+            label: 'Global Configurations',
+            code: 'CONF-00',
+            count: `${settingsCount} params`
+        });
+    }
+
+    // 2. Check Sections
+    Object.entries(LIST_SECTIONS).forEach(([sectionName, key]) => {
+        const data = getSessionData(key);
+        if (data) {
+            try {
+                const arrayData = (typeof data === 'string') ? JSON.parse(data) : data;
+                if (Array.isArray(arrayData) && arrayData.length > 0) {
+                    const code = sectionName.substring(0, 3) + '-' + (Math.floor(Math.random() * 90) + 10);
+                    summary.push({
+                        key: sectionName,
+                        label: sectionName.replace(' DATA', '').replace(/_/g, ' '),
+                        code: code,
+                        count: `${arrayData.length} items`
+                    });
+                }
+            } catch (e) {
+                // Ignore parse errors safely
+            }
+        }
+    });
+
+    return summary;
 };
 
 /**

@@ -241,10 +241,10 @@ export default function Masonry() { // Renamed to Masonry
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>CMU Size</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Plaster</th>
 
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Vert. Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>V. Rebar Spacing</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Horiz. Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>H. Rebar Spacing</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Vert. Rebar Spec</th>
 
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
@@ -328,6 +328,17 @@ export default function Masonry() { // Renamed to Masonry
                                         />
                                     </td>
 
+                                    {/* Vertical Rebar Spec */}
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={wall.vertRebarSpec}
+                                            onChange={(val) => handleWallChange(wall.id, 'vertRebarSpec', val)}
+                                            options={rebarOptions}
+                                            placeholder="Select Spec..."
+                                            focusColor="orange"
+                                        />
+                                    </td>
+
                                     {/* V. Rebar Spacing */}
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
@@ -364,17 +375,6 @@ export default function Masonry() { // Renamed to Masonry
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none">m</span>
                                         </div>
                                     </td>
-
-                                    {/* Vertical Rebar Spec */}
-                                    <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={wall.vertRebarSpec}
-                                            onChange={(val) => handleWallChange(wall.id, 'vertRebarSpec', val)}
-                                            options={rebarOptions}
-                                            placeholder="Select Spec..."
-                                            focusColor="orange"
-                                        />
-                                    </td>
                                     {/* Delete Button */}
                                     <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button
@@ -398,13 +398,13 @@ export default function Masonry() { // Renamed to Masonry
                     </div>
                 )}
 
-                <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
+                <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end rounded-b-xl">
                     <ActionButton
                         onClick={calculateWall}
                         label="CALCULATE"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full md:w-auto px-8 py-3 uppercase tracking-wider text-sm min-w-[200px]"
+                        className="w-full sm:w-auto"
                     />
                 </div>
             </Card>

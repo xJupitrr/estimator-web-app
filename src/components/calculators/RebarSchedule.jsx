@@ -116,8 +116,9 @@ const buildSchedule = (data) => {
             const count = parseInt(cut.quantity) || 0;
             const customLen = parseFloat(cut.length) || 0;
             const anchorLen = (L_ANCHOR * sku.diameter) / 1000;
-            const cutLen = customLen > 0 ? customLen : H + anchorLen;
-            push('RC Column', 'indigo', `${label}M`, sku.diameter, sku.stockLength, cutLen, count * qty, 'Straight + Hook', anchorLen);
+            const hookLen = Math.max(12 * (sku.diameter / 1000), 0.25);
+            const cutLen = customLen > 0 ? customLen : H + anchorLen + hookLen;
+            push('RC Column', 'indigo', `${label}M`, sku.diameter, sku.stockLength, cutLen, count * qty, 'Offset Lap + 90° Hook', hookLen);
         });
 
         // Ties
@@ -324,6 +325,55 @@ const buildSchedule = (data) => {
         if (slab.top_long_spec) processRebarSpec(slab.top_long_spec, 'TL', Math.max(L, W) * 0.3, parseInt(slab.top_long_count) || 0);
     });
 
+    // ── RC RETAINING / SHEAR WALL ───────────────────────────────────────────
+    const concreteWalls = data.concrete_walls || [];
+    concreteWalls.forEach((wall, i) => {
+        if (wall.isExcluded) return;
+        const qty = parseInt(wall.quantity) || 1;
+        const length = parseFloat(wall.length) || 0;
+        const height = parseFloat(wall.height) || 0;
+        const layers = parseInt(wall.layers) || 2;
+        const vSpace = parseFloat(wall.vertSpacing) || 0;
+        const hSpace = parseFloat(wall.horizSpacing) || 0;
+        if (length <= 0 || height <= 0 || qty <= 0) return;
+
+        const label = `RW-${i + 1}`;
+
+        const pushWallCuts = (span, totalCount, specStr, direction) => {
+            const spec = parseSpec(specStr);
+            if (!spec || totalCount <= 0) return;
+            const { diameter, stockLength } = spec;
+            const spliceLen = 40 * (diameter / 1000); // 40d lap
+
+            if (span <= stockLength) {
+                push('Retaining Wall', 'blue', `${label}${direction}`, diameter, stockLength, span, totalCount, 'Straight', 0);
+            } else {
+                const effectivePerBar = stockLength - spliceLen;
+                if (effectivePerBar <= 0) return;
+                const additionalFullBars = Math.floor((span - stockLength) / effectivePerBar);
+                const numFullBars = 1 + additionalFullBars;
+                const coveredByFull = stockLength + additionalFullBars * effectivePerBar;
+                const rawTail = span - coveredByFull;
+                const tailCutLen = rawTail > 0.05 ? rawTail + spliceLen : 0;
+
+                push('Retaining Wall', 'blue', `${label}${direction} (Full)`, diameter, stockLength, stockLength, numFullBars * totalCount, 'Straight', 0);
+                if (tailCutLen > 0.05) {
+                    push('Retaining Wall', 'blue', `${label}${direction} (Tail)`, diameter, stockLength, tailCutLen, totalCount, 'Straight', 0);
+                }
+            }
+        };
+
+        if (wall.vertRebarSpec && vSpace > 0) {
+            const runsPerLayer = Math.floor(length / vSpace) + 1;
+            pushWallCuts(height, runsPerLayer * layers * qty, wall.vertRebarSpec, 'V');
+        }
+
+        if (wall.horizRebarSpec && hSpace > 0) {
+            const runsPerLayer = Math.floor(height / hSpace) + 1;
+            pushWallCuts(length, runsPerLayer * layers * qty, wall.horizRebarSpec, 'H');
+        }
+    });
+
     return entries;
 };
 
@@ -335,7 +385,8 @@ const buildSchedule = (data) => {
 const BarDiagram = ({ entry }) => {
     const { cutLength, hookLength, bendType, diameter, stockLength } = entry;
     const totalBar = cutLength;
-    const straightLen = totalBar - (2 * (hookLength || 0));
+    const isSingleHook = bendType?.includes('90° Hook');
+    const straightLen = totalBar - (isSingleHook ? (hookLength || 0) : 2 * (hookLength || 0));
     const isStirrup = bendType?.includes('Stirrup');
     const hasHook = hookLength > 0 && !isStirrup;
 
@@ -359,7 +410,7 @@ const BarDiagram = ({ entry }) => {
                     <span className="text-white text-[9px] font-mono px-1 truncate">{cutLength.toFixed(3)}m</span>
                 </div>
                 {/* Right hook */}
-                {hasHook && (
+                {hasHook && !isSingleHook && (
                     <div className={`h-full w-3 ${colors.bg} rounded-r-sm opacity-70 border-l border-white/30 flex-shrink-0`} title={`Hook: ${hookLength}m`} />
                 )}
                 {isStirrup && (
@@ -392,6 +443,7 @@ export default function RebarSchedule() {
     const [doorsWindowsRows] = useLocalStorage('doorswindows_rows', []);
     const [slabRows] = useLocalStorage('slab_rows', []);
     const [suspendedRows] = useLocalStorage('suspended_slab_rows', []);
+    const [concreteWalls] = useLocalStorage('concrete_walls', []);
 
     const [expandedModules, setExpandedModules] = useState({});
     const [groupBy, setGroupBy] = useState('module'); // 'module' | 'diameter'
@@ -408,7 +460,8 @@ export default function RebarSchedule() {
         doorswindows_rows: doorsWindowsRows,
         slab_rows: slabRows,
         suspended_slab_rows: suspendedRows,
-    }), [footingRows, columnElements, beamElements, lintelSpecs, doorsWindowsRows, slabRows, suspendedRows, refreshKey]);
+        concrete_walls: concreteWalls,
+    }), [footingRows, columnElements, beamElements, lintelSpecs, doorsWindowsRows, slabRows, suspendedRows, concreteWalls, refreshKey]);
 
     const schedule = useMemo(() => buildSchedule(allData), [allData]);
 
@@ -467,8 +520,19 @@ export default function RebarSchedule() {
 
     const isEmpty = schedule.length === 0;
 
+    const formatCutLength = (cutLen, stockLen) => {
+        if (typeof cutLen !== 'number') return '0 m';
+        if (!stockLen || cutLen <= stockLen) return `${cutLen.toFixed(3)} m`;
+        const fullBars = Math.floor(cutLen / stockLen);
+        const remainder = cutLen - (fullBars * stockLen);
+        const parts = [];
+        for (let i = 0; i < fullBars; i++) parts.push(stockLen.toFixed(2));
+        if (remainder > 0.001) parts.push(remainder.toFixed(3));
+        return parts.join('m + ') + 'm';
+    };
+
     return (
-        <div className="space-y-6 print:space-y-4 printable-flow">
+        <div className="space-y-6 printable-flow">
             {/* ── HEADER ── */}
             <Card className="border-t-4 border-t-zinc-800 shadow-md">
                 <SectionHeader
@@ -668,8 +732,8 @@ export default function RebarSchedule() {
                                                     <td className="px-3 py-2 min-w-[160px]">
                                                         <BarDiagram entry={entry} />
                                                     </td>
-                                                    <td className="px-3 py-2 text-right font-mono text-xs font-bold text-zinc-800">
-                                                        {entry.cutLength.toFixed(3)} m
+                                                    <td className="px-3 py-2 text-right font-mono text-xs font-bold text-zinc-800" title={`Total: ${entry.cutLength.toFixed(3)}m`}>
+                                                        {formatCutLength(entry.cutLength, entry.stockLength)}
                                                     </td>
                                                     <td className="px-3 py-2 text-right font-mono text-[11px] text-zinc-500">
                                                         {entry.hookLength > 0 ? `${(entry.hookLength * 1000).toFixed(0)}mm` : '—'}

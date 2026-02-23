@@ -22,7 +22,7 @@ export const calculateConcreteWall = (walls, prices) => {
     validWalls.forEach(wall => {
         const length = parseFloat(wall.length) || 0;
         const height = parseFloat(wall.height) || 0;
-        const thickness = (parseFloat(wall.thickness) || 0) / 1000; // convert mm to m
+        const thickness = parseFloat(wall.thickness) || 0;
         const quantity = parseInt(wall.quantity) || 1;
         const layers = parseInt(wall.layers) || 2; // Default to double mat
 

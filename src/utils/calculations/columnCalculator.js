@@ -83,7 +83,8 @@ export const calculateColumn = (columns, prices) => {
                     if (cutLen <= 0) {
                         const mainDiameter_m = diameter / 1000;
                         const L_dowel_splice = L_ANCHOR_DEV_FACTOR * mainDiameter_m;
-                        cutLen = H + L_dowel_splice;
+                        const L_footing_hook = Math.max(12 * mainDiameter_m, 0.25);
+                        cutLen = H + L_dowel_splice + L_footing_hook;
                     }
                     addRebarReq(skuId, cutLen, count * qty, `${colLabel} Main`);
                 }
@@ -96,7 +97,8 @@ export const calculateColumn = (columns, prices) => {
             const { diameter } = getSkuDetails(skuId);
             const mainDiameter_m = diameter / 1000;
             const L_dowel_splice = L_ANCHOR_DEV_FACTOR * mainDiameter_m;
-            const cutLen = H + L_dowel_splice;
+            const L_footing_hook = Math.max(12 * mainDiameter_m, 0.25);
+            const cutLen = H + L_dowel_splice + L_footing_hook;
             addRebarReq(skuId, cutLen, count * qty, `${colLabel} Main`);
         }
 

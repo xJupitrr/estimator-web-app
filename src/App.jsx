@@ -24,9 +24,11 @@ import ConcreteWall from './components/calculators/ConcreteWall';
 import RebarSchedule from './components/calculators/RebarSchedule';
 import RebarCuttingSchedule from './components/calculators/RebarCuttingSchedule';
 
-import { exportProjectToCSV, parseProjectCSV, applySessionData } from './utils/sessionManager';
+import { exportProjectToCSV, parseProjectCSV, applySessionData, getExportSummary } from './utils/sessionManager';
 import { getSessionData } from './utils/sessionCache';
 import SessionImportModal from './components/modals/SessionImportModal';
+import SessionExportModal from './components/modals/SessionExportModal';
+import SessionLoadDashboard from './components/modals/SessionLoadDashboard';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -125,6 +127,9 @@ export default function App() {
                 } else if (e.key === 'y') {
                     e.preventDefault();
                     redo();
+                } else if (e.key === 's') {
+                    e.preventDefault();
+                    triggerLoadSession();
                 }
             }
         };
@@ -177,6 +182,11 @@ export default function App() {
 
     const fileInputRef = useRef(null);
 
+    // --- Export Modal State ---
+    const [exportModalOpen, setExportModalOpen] = useState(false);
+    const [exportSummaryData, setExportSummaryData] = useState([]);
+    const [exportFileName, setExportFileName] = useState("");
+
     const handleSaveSession = () => {
         const today = new Date().toISOString().slice(0, 10);
         let currentVersion = 1;
@@ -188,14 +198,23 @@ export default function App() {
         setLastSaveInfo({ date: today, count: currentVersion });
 
         const fileName = `${projectName.replace(/[^a-z0-9]/gi, '_')}_${today.replace(/-/g, '')}_v${currentVersion}.csv`;
+        const summary = getExportSummary();
 
+        setExportFileName(fileName);
+        setExportSummaryData(summary);
+        setExportModalOpen(true);
+    };
+
+    const confirmExport = () => {
         const csv = exportProjectToCSV();
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = fileName;
+        link.download = exportFileName;
         link.click();
+
+        setExportModalOpen(false);
     };
 
     // Initialize Global Events
@@ -208,6 +227,7 @@ export default function App() {
 
     // --- Import Modal State ---
     const [importModalOpen, setImportModalOpen] = useState(false);
+    const [loadDashboardOpen, setLoadDashboardOpen] = useState(false);
     const [parsedSessionData, setParsedSessionData] = useState(null);
     const [currentImportFileName, setCurrentImportFileName] = useState("");
 
@@ -254,7 +274,7 @@ export default function App() {
     };
 
     const triggerLoadSession = () => {
-        fileInputRef.current?.click();
+        setLoadDashboardOpen(true);
     };
 
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
@@ -407,6 +427,25 @@ export default function App() {
                 onConfirm={handleConfirmImport}
                 parsedData={parsedSessionData}
                 fileName={currentImportFileName}
+            />
+
+            {/* Load Dashboard Modal */}
+            <SessionLoadDashboard
+                isOpen={loadDashboardOpen}
+                onClose={() => setLoadDashboardOpen(false)}
+                onBrowseFiles={() => fileInputRef.current?.click()}
+                projectName={projectName}
+                lastSaveInfo={lastSaveInfo}
+                projectTotal={projectTotal}
+            />
+
+            {/* Export Confirmation Modal */}
+            <SessionExportModal
+                isOpen={exportModalOpen}
+                onClose={() => setExportModalOpen(false)}
+                onConfirm={confirmExport}
+                summaryData={exportSummaryData}
+                fileName={exportFileName}
             />
 
             {/* Hidden Input for File Upload - Always present for both header and landing page access */}

@@ -426,28 +426,28 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                         <th className={TABLE_UI.HEADER_CELL_LEFT}>Material Item</th>
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
                                         <th className={TABLE_UI.HEADER_CELL}>Unit</th>
-                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[160px]`}>Unit Price (Editable)</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[140px]`}>Unit Price (Editable)</th>
                                         <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {result.items.map((item, idx) => (
                                         <tr key={idx} className={TABLE_UI.BODY_ROW}>
-                                            <td className={`${TABLE_UI.CELL} font-medium text-gray-800 uppercase tracking-tight`}>{item.name}</td>
-                                            <td className={TABLE_UI.CELL_RIGHT}>
+                                            <td className={`${TABLE_UI.CELL} font-medium`}>{item.name}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-medium`}>
                                                 {item.qty.toLocaleString()}
                                             </td>
-                                            <td className={TABLE_UI.CELL_CENTER}>
-                                                <span className={`bg-${THEME}-100 px-2 py-1 rounded text-[10px] font-bold uppercase text-${THEME}-700`}>{item.unit}</span>
+                                            <td className={`${TABLE_UI.CELL_CENTER} text-gray-600`}>
+                                                <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                             </td>
-                                            <td className={`${TABLE_UI.CELL} border-r-0`}>
+                                            <td className="px-4 py-2 border-r border-gray-100">
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] !== undefined ? prices[item.priceKey] : item.price}
                                                     onChange={(val) => setPrices(prev => ({ ...prev, [item.priceKey]: parseFloat(val) || 0 }))}
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50 font-mono`}>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
                                                 {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                         </tr>

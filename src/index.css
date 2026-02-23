@@ -84,6 +84,10 @@ body {
     color: black !important;
   }
 
-  /* Visual bars don't print well as background colors usually, 
-     but we can try to force them or just rely on the table data. */
+  /* Force background colors to print (Crucial for the Rebar Diagram) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Layers, Calculator, PlusCircle, Trash2, Download, ArrowUp, Copy, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Layers, Calculator, PlusCircle, Trash2, Download, ArrowUp, Copy, Eye, EyeOff, AlertCircle, ClipboardCopy } from 'lucide-react';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateConcreteWall } from '../../utils/calculations/concreteWallCalculator';
 
 import Card from '../common/Card';
@@ -200,10 +201,12 @@ export default function ConcreteWall() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Thickness</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Vert. Rebar</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Horiz. Rebar</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Layers</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Vert. Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>V-Sp (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Horiz. Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>H-Sp (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Layers</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
@@ -232,20 +235,7 @@ export default function ConcreteWall() {
                                         <MathInput value={wall.height} onChange={(v) => handleWallChange(wall.id, 'height', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.00" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={wall.thickness}
-                                            onChange={(v) => handleWallChange(wall.id, 'thickness', v)}
-                                            options={[
-                                                { id: "100", display: "100mm" },
-                                                { id: "125", display: "125mm" },
-                                                { id: "150", display: "150mm" },
-                                                { id: "200", display: "200mm" },
-                                                { id: "250", display: "250mm" },
-                                                { id: "300", display: "300mm" }
-                                            ]}
-                                            focusColor={THEME}
-                                            placeholder="Thickness"
-                                        />
+                                        <MathInput value={wall.thickness} onChange={(v) => handleWallChange(wall.id, 'thickness', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.20" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
@@ -257,6 +247,9 @@ export default function ConcreteWall() {
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={wall.vertSpacing} onChange={(v) => handleWallChange(wall.id, 'vertSpacing', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.20" />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={wall.horizRebarSpec}
                                             onChange={(v) => handleWallChange(wall.id, 'horizRebarSpec', v)}
@@ -264,6 +257,9 @@ export default function ConcreteWall() {
                                             focusColor={THEME}
                                             placeholder="Horiz. Spec"
                                         />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <MathInput value={wall.horizSpacing} onChange={(v) => handleWallChange(wall.id, 'horizSpacing', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.20" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
@@ -274,7 +270,7 @@ export default function ConcreteWall() {
                                             placeholder="Layers"
                                         />
                                     </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button onClick={() => handleRemoveWall(wall.id)} className="p-1 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded transition-colors" disabled={walls.length === 1}>
                                             <Trash2 size={16} />
                                         </button>
@@ -329,9 +325,19 @@ export default function ConcreteWall() {
                                     <p className="text-sm text-slate-500">Sections: <strong className="text-slate-900">{result.quantity}</strong></p>
                                 </div>
                             </div>
-                            <div className={`text-left md:text-right bg-blue-50 px-8 py-4 rounded-xl border border-blue-100 shadow-sm`}>
-                                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.2em] mb-1">Project Total Cost</p>
-                                <p className={`font-bold text-4xl text-${THEME}-700 tabular-nums`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-8 py-4 rounded-xl border border-${THEME}-100 shadow-sm w-full md:w-auto`}>
+                                    <p className={`text-[10px] text-${THEME}-600 font-bold uppercase tracking-[0.2em] mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tabular-nums`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                                <div className="flex gap-2 w-full md:w-auto">
+                                    <button onClick={() => copyToClipboard(result.items)} className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-sm font-medium text-${THEME}-600 hover:bg-${THEME}-50 shadow-sm transition-colors`}>
+                                        <ClipboardCopy size={14} /> Copy Table
+                                    </button>
+                                    <button onClick={() => downloadCSV(result.items, 'concrete_wall_estimate.csv')} className={`flex-1 md:flex-none flex justify-center items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-sm font-medium text-${THEME}-600 hover:bg-${THEME}-50 shadow-sm transition-colors`}>
+                                        <Download size={14} /> Export CSV
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

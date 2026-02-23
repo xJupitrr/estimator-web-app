@@ -118,8 +118,9 @@ const buildSchedule = (data) => {
             const count = parseInt(cut.quantity) || 0;
             const customLen = parseFloat(cut.length) || 0;
             const anchorLen = (L_ANCHOR * sku.diameter) / 1000;
-            const cutLen = customLen > 0 ? customLen : H + anchorLen;
-            push('RC Column', 'indigo', `${label}M`, sku.diameter, sku.stockLength, cutLen, count * qty, 'Straight + Hook', anchorLen);
+            const hookLen = Math.max(12 * (sku.diameter / 1000), 0.25);
+            const cutLen = customLen > 0 ? customLen : H + anchorLen + hookLen;
+            push('RC Column', 'indigo', `${label}M`, sku.diameter, sku.stockLength, cutLen, count * qty, 'Offset Lap + 90° Hook', hookLen);
         });
 
         // Ties
@@ -326,6 +327,80 @@ const buildSchedule = (data) => {
         if (slab.top_long_spec) processRebarSpec(slab.top_long_spec, 'TL', Math.max(L, W) * 0.3, parseInt(slab.top_long_count) || 0);
     });
 
+    // ── RC RETAINING / SHEAR WALL ───────────────────────────────────────────
+    const concreteWalls = data.concrete_walls || [];
+    concreteWalls.forEach((wall, i) => {
+        if (wall.isExcluded) return;
+        const qty = parseInt(wall.quantity) || 1;
+        const length = parseFloat(wall.length) || 0;
+        const height = parseFloat(wall.height) || 0;
+        const layers = parseInt(wall.layers) || 2;
+        const vSpace = parseFloat(wall.vertSpacing) || 0;
+        const hSpace = parseFloat(wall.horizSpacing) || 0;
+        if (length <= 0 || height <= 0 || qty <= 0) return;
+
+        const label = `RW-${i + 1}`;
+
+        const pushWallCuts = (span, totalCount, specStr, direction) => {
+            const spec = parseSpec(specStr);
+            if (!spec || totalCount <= 0) return;
+            const { diameter, stockLength } = spec;
+            const spliceLen = 40 * (diameter / 1000); // 40d lap
+
+            if (span <= stockLength) {
+                entries.push({
+                    id: seqId++, module: 'Retaining Wall', moduleColor: 'blue',
+                    label: `${label}${direction}`,
+                    diameter, stockLength,
+                    cutLength: Math.round(span * 1000) / 1000,
+                    quantity: totalCount,
+                    bendType: 'Straight', hookLength: 0, spliced: false,
+                    totalLength: Math.round(span * totalCount * 1000) / 1000,
+                });
+            } else {
+                const effectivePerBar = stockLength - spliceLen;
+                if (effectivePerBar <= 0) return;
+                const additionalFullBars = Math.floor((span - stockLength) / effectivePerBar);
+                const numFullBars = 1 + additionalFullBars;
+                const coveredByFull = stockLength + additionalFullBars * effectivePerBar;
+                const rawTail = span - coveredByFull;
+                const tailCutLen = rawTail > 0.05 ? rawTail + spliceLen : 0;
+
+                entries.push({
+                    id: seqId++, module: 'Retaining Wall', moduleColor: 'blue',
+                    label: `${label}${direction} (Full)`,
+                    diameter, stockLength,
+                    cutLength: stockLength,
+                    quantity: numFullBars * totalCount,
+                    bendType: 'Straight', hookLength: 0, spliced: true,
+                    totalLength: Math.round(stockLength * numFullBars * totalCount * 1000) / 1000,
+                });
+
+                if (tailCutLen > 0.05) {
+                    entries.push({
+                        id: seqId++, module: 'Retaining Wall', moduleColor: 'blue',
+                        label: `${label}${direction} (Tail)`,
+                        diameter, stockLength,
+                        cutLength: Math.round(tailCutLen * 1000) / 1000,
+                        quantity: totalCount,
+                        bendType: 'Straight', hookLength: 0, spliced: true,
+                        totalLength: Math.round(tailCutLen * totalCount * 1000) / 1000,
+                    });
+                }
+            }
+        };
+
+        if (wall.vertRebarSpec && vSpace > 0) {
+            const runsPerLayer = Math.floor(length / vSpace) + 1;
+            pushWallCuts(height, runsPerLayer * layers * qty, wall.vertRebarSpec, 'V');
+        }
+
+        if (wall.horizRebarSpec && hSpace > 0) {
+            const runsPerLayer = Math.floor(height / hSpace) + 1;
+            pushWallCuts(length, runsPerLayer * layers * qty, wall.horizRebarSpec, 'H');
+        }
+    });
+
     return entries;
 };
 
@@ -356,6 +431,7 @@ export default function RebarCuttingSchedule() {
     const [doorsWindowsRows] = useLocalStorage('doorswindows_rows', []);
     const [slabRows] = useLocalStorage('slab_rows', []);
     const [suspendedRows] = useLocalStorage('suspended_slab_rows', []);
+    const [concreteWalls] = useLocalStorage('concrete_walls', []);
 
     const [expandedModules, setExpandedModules] = useState({});
     const [groupBy, setGroupBy] = useState('module'); // 'module' | 'diameter'
@@ -372,7 +448,8 @@ export default function RebarCuttingSchedule() {
         doorswindows_rows: doorsWindowsRows,
         slab_rows: slabRows,
         suspended_slab_rows: suspendedRows,
-    }), [footingRows, columnElements, beamElements, lintelSpecs, doorsWindowsRows, slabRows, suspendedRows, refreshKey]);
+        concrete_walls: concreteWalls,
+    }), [footingRows, columnElements, beamElements, lintelSpecs, doorsWindowsRows, slabRows, suspendedRows, concreteWalls, refreshKey]);
 
     const schedule = useMemo(() => buildSchedule(allData), [allData]);
 
