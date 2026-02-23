@@ -26,17 +26,17 @@ export const FONTS = {
 
 // --- TABLE UI STYLES ---
 export const TABLE_UI = {
-    CONTAINER: 'overflow-hidden rounded-lg border border-gray-200 mb-2 shadow-sm',
-    TABLE: 'w-full text-sm text-left border-collapse',
-    HEADER_ROW: 'bg-gray-100 border-b border-gray-200',
-    HEADER_CELL: 'px-4 py-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center',
-    HEADER_CELL_LEFT: 'px-4 py-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left',
-    HEADER_CELL_RIGHT: 'px-4 py-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-right',
-    BODY_ROW: 'border-b border-gray-50 hover:bg-gray-50/50 transition-colors',
-    BODY_ROW_HOVER: 'hover:bg-indigo-50/30 transition-colors',
-    CELL: 'px-4 py-3 text-gray-700 border-r border-gray-100 last:border-r-0',
-    CELL_CENTER: 'px-4 py-3 text-gray-700 text-center border-r border-gray-100 last:border-r-0',
-    CELL_RIGHT: 'px-4 py-3 text-gray-700 text-right border-r border-gray-100 last:border-r-0',
+    CONTAINER: 'overflow-hidden print:overflow-visible rounded-lg border border-gray-200 mb-2 shadow-sm print:shadow-none',
+    TABLE: 'w-full text-sm text-left border-collapse print:text-xs',
+    HEADER_ROW: 'bg-gray-100 border-b border-gray-200 print:bg-white',
+    HEADER_CELL: 'px-4 py-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center print:px-2 print:py-1 print:border-b-2 print:border-gray-800',
+    HEADER_CELL_LEFT: 'px-4 py-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left print:px-2 print:py-1 print:border-b-2 print:border-gray-800',
+    HEADER_CELL_RIGHT: 'px-4 py-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-right print:px-2 print:py-1 print:border-b-2 print:border-gray-800',
+    BODY_ROW: 'border-b border-gray-50 hover:bg-gray-50/50 transition-colors print:break-inside-avoid',
+    BODY_ROW_HOVER: 'hover:bg-indigo-50/30 transition-colors print:break-inside-avoid',
+    CELL: 'px-4 py-3 text-gray-700 border-r border-gray-100 last:border-r-0 print:px-2 print:py-1 print:border-gray-300',
+    CELL_CENTER: 'px-4 py-3 text-gray-700 text-center border-r border-gray-100 last:border-r-0 print:px-2 print:py-1 print:border-gray-300',
+    CELL_RIGHT: 'px-4 py-3 text-gray-700 text-right border-r border-gray-100 last:border-r-0 print:px-2 print:py-1 print:border-gray-300',
     // Specific for input tables (like Wall Config)
     INPUT_TABLE: 'w-full text-sm text-left border-collapse border border-slate-200 rounded-lg',
     INPUT_HEADER: 'px-2 py-2 font-bold border border-slate-300 text-center bg-slate-100 text-slate-700 text-xs uppercase',
@@ -46,7 +46,7 @@ export const TABLE_UI = {
 
 // --- CARD UI STYLES ---
 export const CARD_UI = {
-    CONTAINER: 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden',
+    CONTAINER: 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden print:overflow-visible print:shadow-none print:border-slate-300 print:mb-4',
     HEADER: 'px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white',
     TITLE: 'text-lg font-bold text-slate-800 flex items-center gap-2',
     BODY: 'p-6',

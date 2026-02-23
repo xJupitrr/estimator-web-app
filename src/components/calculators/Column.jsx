@@ -299,13 +299,16 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                     <td className={`${TABLE_UI.INPUT_CELL} bg-indigo-50/10`}>
                                         <button
                                             onClick={() => setEditingCutsId(col.id)}
-                                            className="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-300 rounded text-[10px] font-bold uppercase transition-all hover:border-indigo-400 hover:text-indigo-600 group/btn shadow-sm"
+                                            className={`px-3 py-1.5 bg-white hover:bg-${THEME}-100 text-${THEME}-600 hover:text-${THEME}-700 rounded border border-${THEME}-200 hover:border-${THEME}-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]`}
                                         >
-                                            <Edit2 size={12} className="text-indigo-400" />
-                                            <span className="italic">
+                                            <Edit2 size={12} className="opacity-70 flex-shrink-0" />
+                                            <span className="truncate">
                                                 {(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length > 0
-                                                    ? `${(col.main_rebar_cuts || []).filter(c => c.sku && c.quantity).length} Sets`
-                                                    : 'Configure'
+                                                    ? (col.main_rebar_cuts || [])
+                                                        .filter(c => c.sku && c.quantity)
+                                                        .map(c => `${c.quantity}-${c.sku.split('_')[0]}mm`)
+                                                        .join(', ')
+                                                    : "Sets"
                                                 }
                                             </span>
                                         </button>
@@ -677,7 +680,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                 <table className="w-full text-[10px] font-mono text-left border-collapse border-none">
                                                     <thead className="bg-zinc-100 border-b border-zinc-300">
                                                         <tr>
-                                                            <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-16 text-center">Mark</th>
+                                                            <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-28 text-center">Mark</th>
                                                             <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600">Cutting Detail (Lengths in Meters)</th>
                                                             <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Batch</th>
                                                             <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Scrap (m)</th>

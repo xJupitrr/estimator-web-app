@@ -23,17 +23,17 @@ body {
     margin: 1cm;
     size: auto;
   }
-  
+
   body * {
     visibility: hidden;
   }
-  
-  /* The printable area logic */
-  .printable-area, 
+
+  /* The printable area logic (absolute overlay) */
+  .printable-area,
   .printable-area * {
     visibility: visible !important;
   }
-  
+
   .printable-area {
     position: absolute;
     left: 0;
@@ -42,6 +42,16 @@ body {
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  /* The printable flow logic (natural pagination) */
+  .printable-flow,
+  .printable-flow * {
+    visibility: visible !important;
+  }
+
+  .printable-flow {
+    background: white !important;
   }
 
   /* Hide UI elements within printable area */
@@ -54,9 +64,11 @@ body {
     background-color: black !important;
     color: white !important;
     -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  
-  .bg-zinc-50, .bg-zinc-100 {
+
+  .bg-zinc-50,
+  .bg-zinc-100 {
     background-color: transparent !important;
     border-color: #ccc !important;
   }
@@ -65,8 +77,9 @@ body {
     border-collapse: collapse !important;
     width: 100% !important;
   }
-  
-  th, td {
+
+  th,
+  td {
     border: 1px solid #000 !important;
     color: black !important;
   }

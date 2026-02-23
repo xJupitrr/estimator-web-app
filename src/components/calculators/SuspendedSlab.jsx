@@ -196,7 +196,7 @@ export default function SuspendedSlab() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Main-Sp</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Temp-Sp</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Decking/Forms</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Decking/Forms</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>

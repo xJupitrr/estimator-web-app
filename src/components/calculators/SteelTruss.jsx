@@ -232,44 +232,64 @@ export default function SteelTruss() {
                 </div>
             )}
 
-            {/* CUTS MODAL */}
             {editingCutsId && activePartForCuts && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white w-full max-w-lg rounded-sm border border-zinc-200 shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 relative overflow-hidden">
-                        <div className={`absolute top-0 left-0 w-full h-1 bg-${THEME}-600`}></div>
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl border border-zinc-200 flex flex-col animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50 rounded-t-xl">
                             <div>
                                 <h3 className="font-bold text-lg text-zinc-800 uppercase tracking-tight text-left">Cutting Lengths</h3>
-                                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest mt-1 text-left">
+                                <p className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest mt-1 text-left line-height-none">
                                     Part: <span className={`text-${THEME}-600 font-bold`}>{activePartForCuts.name || 'Unnamed'}</span>
                                 </p>
                             </div>
-                            <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-zinc-100 text-zinc-400 hover:text-zinc-900 transition-colors rounded-sm">
-                                <X size={20} />
+                            <button onClick={() => setEditingCutsId(null)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+                                <X size={20} className="text-zinc-500" />
                             </button>
                         </div>
-                        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
+                        <div className="p-6 max-h-[60vh] overflow-y-auto space-y-3">
                             {activePartForCuts.cuts.map((cut, idx) => (
                                 <div key={idx} className="flex items-center gap-3">
-                                    <div className="bg-zinc-800 text-white text-[9px] font-mono w-6 h-6 flex items-center justify-center rounded-sm shrink-0">{idx + 1}</div>
+                                    <span className="text-xs font-mono text-zinc-400 w-6 shrink-0">{idx + 1}</span>
                                     <div className="flex-1">
-                                        <MathInput placeholder="Length (m)" value={cut.length} onChange={(val) => updateCut(activePartForCuts.id, idx, 'length', val)} className={`${INPUT_UI.TABLE_INPUT} text-center`} />
+                                        <MathInput
+                                            placeholder="Length (m)"
+                                            value={cut.length}
+                                            onChange={(val) => updateCut(activePartForCuts.id, idx, 'length', val)}
+                                            className="w-full h-10 text-center"
+                                        />
                                     </div>
-                                    <div className="text-zinc-300 font-mono text-[10px] font-bold px-1">×</div>
+                                    <span className="text-zinc-400 text-xs text-center w-4 shrink-0">×</span>
                                     <div className="w-24">
-                                        <MathInput placeholder="Qty" value={cut.quantity} onChange={(val) => updateCut(activePartForCuts.id, idx, 'quantity', val)} className={`${INPUT_UI.TABLE_INPUT} text-center`} />
+                                        <MathInput
+                                            placeholder="Qty"
+                                            value={cut.quantity}
+                                            onChange={(val) => updateCut(activePartForCuts.id, idx, 'quantity', val)}
+                                            className="w-full h-10 text-center font-bold"
+                                        />
                                     </div>
-                                    <button onClick={() => removeCut(activePartForCuts.id, idx)} className="p-2 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-sm">
+                                    <span className="text-zinc-400 text-xs shrink-0 lowercase">pcs</span>
+                                    <button
+                                        onClick={() => removeCut(activePartForCuts.id, idx)}
+                                        className="p-2 text-zinc-400 hover:text-red-500 transition-colors"
+                                    >
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
                             ))}
-                            <button onClick={() => addCut(activePartForCuts.id)} className={`w-full py-3 bg-white border border-dashed border-zinc-200 text-zinc-400 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:border-${THEME}-300 hover:text-${THEME}-500 hover:bg-${THEME}-50/50 transition-all flex items-center justify-center gap-2`}>
-                                <Plus size={14} /> Add Cut Pattern
+                            <button
+                                onClick={() => addCut(activePartForCuts.id)}
+                                className={`w-full py-2 bg-${THEME}-50 border border-${THEME}-100 text-${THEME}-600 rounded-lg text-xs font-bold uppercase hover:bg-${THEME}-100 transition-colors flex items-center justify-center gap-2 mt-2`}
+                            >
+                                <PlusCircle size={14} /> Add Cut Pattern
                             </button>
                         </div>
-                        <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end">
-                            <button onClick={() => setEditingCutsId(null)} className={`px-8 py-2 bg-${THEME}-600 text-white rounded-sm font-bold text-[10px] uppercase tracking-widest hover:bg-${THEME}-700 shadow-md`}>Save Pattern</button>
+                        <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end rounded-b-xl">
+                            <button
+                                onClick={() => setEditingCutsId(null)}
+                                className={`px-8 py-2 bg-${THEME}-600 text-white rounded-lg font-bold text-sm hover:bg-${THEME}-700 transition-colors shadow-lg shadow-${THEME}-100`}
+                            >
+                                Done
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
-import { Scissors, Download, Printer, Info, AlertCircle, ChevronDown, ChevronUp, RefreshCw, Layers } from 'lucide-react';
+import { Scissors, Download, Printer, Info, RefreshCw, Layers, ChevronDown, ChevronUp } from 'lucide-react';
 import { TABLE_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import { downloadCSV } from '../../utils/export';
+import { optimizeCuts } from '../../utils/optimization/cuttingStock';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -18,6 +19,7 @@ const BEND_COLORS = {
     25: { bg: 'bg-rose-500', text: 'text-rose-700', light: 'bg-rose-50', border: 'border-rose-200' },
     default: { bg: 'bg-zinc-500', text: 'text-zinc-700', light: 'bg-zinc-50', border: 'border-zinc-200' },
 };
+
 
 const MODULES = [
     { key: 'footing', label: 'RC Footing', color: 'emerald', storageKey: 'footing_rows', pricesKey: 'footing_prices', type: 'footing' },
@@ -331,45 +333,7 @@ const buildSchedule = (data) => {
 // SUB-COMPONENTS
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Visual bar diagram */
-const BarDiagram = ({ entry }) => {
-    const { cutLength, hookLength, bendType, diameter, stockLength } = entry;
-    const totalBar = cutLength;
-    const straightLen = totalBar - (2 * (hookLength || 0));
-    const isStirrup = bendType?.includes('Stirrup');
-    const hasHook = hookLength > 0 && !isStirrup;
 
-    const colors = BEND_COLORS[diameter] || BEND_COLORS.default;
-
-    return (
-        <div className="flex items-center gap-2 my-1">
-            <div className="flex items-center gap-0 h-5 flex-1 max-w-[200px]">
-                {/* Left hook */}
-                {hasHook && (
-                    <div className={`h-full w-3 ${colors.bg} rounded-l-sm opacity-70 border-r border-white/30 flex-shrink-0`} title={`Hook: ${hookLength}m`} />
-                )}
-                {isStirrup && (
-                    <div className={`h-full w-3 ${colors.bg} rounded-l-sm opacity-80 border-r border-white/30 flex-shrink-0`} />
-                )}
-                {/* Main body */}
-                <div
-                    className={`h-full ${colors.bg} flex-1 flex items-center justify-center overflow-hidden`}
-                    title={`Straight: ${straightLen.toFixed(3)}m`}
-                >
-                    <span className="text-white text-[9px] font-mono px-1 truncate">{cutLength.toFixed(3)}m</span>
-                </div>
-                {/* Right hook */}
-                {hasHook && (
-                    <div className={`h-full w-3 ${colors.bg} rounded-r-sm opacity-70 border-l border-white/30 flex-shrink-0`} title={`Hook: ${hookLength}m`} />
-                )}
-                {isStirrup && (
-                    <div className={`h-full w-3 ${colors.bg} rounded-r-sm opacity-80 border-l border-white/30 flex-shrink-0`} />
-                )}
-            </div>
-            <span className="text-[10px] font-mono text-zinc-400 whitespace-nowrap">{stockLength}m bar</span>
-        </div>
-    );
-};
 
 /** Summary stat box */
 const StatBox = ({ label, value, unit, colorClass }) => (
@@ -383,7 +347,7 @@ const StatBox = ({ label, value, unit, colorClass }) => (
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function RebarSchedule() {
+export default function RebarCuttingSchedule() {
     // Read from all relevant localStorage keys
     const [footingRows] = useLocalStorage('footing_rows', []);
     const [columnElements] = useLocalStorage('column_elements', []);
@@ -435,34 +399,94 @@ export default function RebarSchedule() {
         return { totalBars, totalLength, totalWeight, byDiameter };
     }, [filtered]);
 
-    // Group
-    const grouped = useMemo(() => {
+    // Provide an alphabetical index (A, B... Z, AA...)
+    const getAlphabeticalIndex = (num) => {
+        let result = '';
+        while (num >= 0) {
+            result = String.fromCharCode((num % 26) + 65) + result;
+            num = Math.floor(num / 26) - 1;
+        }
+        return result;
+    };
+
+    // Group items for Cutting Optimization
+    const optimizedGroups = useMemo(() => {
         const groups = {};
+        // We ALWAYS group by diameter and stockLength first for cutting optimization
         filtered.forEach(e => {
-            const key = groupBy === 'diameter' ? `${e.diameter}mm` : e.module;
-            if (!groups[key]) groups[key] = { label: key, color: e.moduleColor, entries: [] };
-            groups[key].entries.push(e);
+            // If the user wants to group by Module, we create a sub-grouping key
+            const moduleKey = groupBy === 'module' ? e.module : 'Global';
+            const color = groupBy === 'module' ? e.moduleColor : 'zinc';
+            const specKey = `∅${e.diameter}mm x ${e.stockLength}m`;
+            const fullKey = `${moduleKey}_${specKey}`;
+
+            if (!groups[fullKey]) {
+                groups[fullKey] = {
+                    key: fullKey,
+                    module: moduleKey,
+                    color: color,
+                    spec: specKey,
+                    diameter: e.diameter,
+                    stockLength: e.stockLength,
+                    cuts: []
+                };
+            }
+            groups[fullKey].cuts.push({
+                length: e.cutLength,
+                quantity: e.quantity,
+                label: `[${e.module}] ${e.label}`
+            });
         });
-        return Object.values(groups).sort((a, b) => {
-            if (groupBy === 'diameter') return parseInt(a.label) - parseInt(b.label);
-            return a.label.localeCompare(b.label);
+
+        // Run optimization for each group
+        return Object.values(groups).map(g => {
+            // optimizeCuts expects array of { length, quantity, label }
+            const optimization = optimizeCuts(g.cuts, g.stockLength, 0.005, 0); // 0 splice length since we mapped everything to final cuts
+
+            // Group identical patterns
+            const groupedPatterns = [];
+            optimization.patterns.forEach(p => {
+                const patternStr = p.cuts.map(c => `${c.length.toFixed(3)}|${c.label}`).sort().join(',');
+                const existing = groupedPatterns.find(gp => gp.patternStr === patternStr);
+                if (existing) {
+                    existing.count += 1;
+                } else {
+                    groupedPatterns.push({ ...p, patternStr, count: 1 });
+                }
+            });
+
+            return {
+                ...g,
+                optimization,
+                groupedPatterns: groupedPatterns.sort((a, b) => b.count - a.count)
+            };
+        }).sort((a, b) => {
+            if (groupBy === 'module' && a.module !== b.module) return a.module.localeCompare(b.module);
+            return a.diameter - b.diameter || a.stockLength - b.stockLength;
         });
     }, [filtered, groupBy]);
 
     const allModules = useMemo(() => [...new Set(schedule.map(e => e.module))], [schedule]);
     const allDiameters = useMemo(() => [...new Set(schedule.map(e => e.diameter))].sort((a, b) => a - b), [schedule]);
 
-    const toggleModule = (key) => setExpandedModules(prev => ({ ...prev, [key]: !prev[key] }));
+    const toggleGroup = (key) => setExpandedModules(prev => ({ ...prev, [key]: !prev[key] }));
 
     const handleExport = () => {
-        const items = filtered.map(e => ({
-            name: `[${e.module}] ${e.label} — ∅${e.diameter}mm × ${e.cutLength}m`,
-            qty: e.quantity,
-            unit: 'pcs',
-            price: 0,
-            total: 0,
-        }));
-        downloadCSV(items, 'rebar_bending_schedule.csv');
+        const items = [];
+        optimizedGroups.forEach(g => {
+            g.groupedPatterns.forEach((p, pIdx) => {
+                const patName = `RB${g.diameter}-${getAlphabeticalIndex(pIdx)}`;
+                const prefix = groupBy === 'module' ? `[${g.module}] ` : '';
+                items.push({
+                    name: `${prefix}${patName} (∅${g.diameter}mm x ${g.stockLength}m)`,
+                    qty: p.count,
+                    unit: 'pcs',
+                    price: 0,
+                    total: 0,
+                });
+            });
+        });
+        downloadCSV(items, 'rebar_cutting_schedule.csv');
     };
 
     const isEmpty = schedule.length === 0;
@@ -472,10 +496,10 @@ export default function RebarSchedule() {
             {/* ── HEADER ── */}
             <Card className="border-t-4 border-t-zinc-800 shadow-md">
                 <SectionHeader
-                    title="Rebar Bending Schedule"
+                    title="Schedule of Rebar Cuts"
                     icon={Scissors}
                     colorTheme="zinc"
-                    description="Aggregated bar bending schedule from all structural calculators"
+                    description="Optimized cutting patterns from all structural calculators"
                     actions={
                         <div className="flex items-center gap-2 no-print">
                             <button
@@ -584,7 +608,7 @@ export default function RebarSchedule() {
                     </div>
                     <h3 className="text-lg font-bold text-zinc-600 mb-1">No Rebar Data Yet</h3>
                     <p className="max-w-md text-sm">
-                        Add rebar inputs in the <span className="font-bold text-zinc-700">Footing, Column, Beam, Lintel Beam, Slab on Grade,</span> or <span className="font-bold text-zinc-700">Suspended Slab</span> tabs, then return here to see the full Bar Bending Schedule.
+                        Add rebar inputs in the <span className="font-bold text-zinc-700">Footing, Column, Beam, Lintel Beam, Slab on Grade,</span> or <span className="font-bold text-zinc-700">Suspended Slab</span> tabs, then return here to see the optimized Cutting Schedule.
                     </p>
                     <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-2 text-[11px]">
                         {MODULES.map(m => (
@@ -598,28 +622,32 @@ export default function RebarSchedule() {
             )}
 
             {/* ── GROUPED SCHEDULE ── */}
-            {grouped.map((group) => {
-                const isExpanded = expandedModules[group.label] !== false; // default open
-                const groupColors = BEND_COLORS[parseInt(group.label)] || BEND_COLORS.default;
-                const groupWeight = group.entries.reduce((a, e) => {
-                    const w = (Math.PI / 4) * Math.pow(e.diameter / 1000, 2) * 7850;
-                    return a + e.cutLength * e.quantity * w;
-                }, 0);
+            {optimizedGroups.map((group) => {
+                const isExpanded = expandedModules[group.key] !== false; // default open
+                const titleLabel = groupBy === 'module' ? `${group.module} — ${group.spec}` : `Global — ${group.spec}`;
+                const optimization = group.optimization;
+                const effColor = optimization.efficiency > 0.9 ? 'emerald' : optimization.efficiency > 0.8 ? 'blue' : 'amber';
+                const totalWeight = group.optimization.barsRequired * group.stockLength * ((Math.PI / 4) * Math.pow(group.diameter / 1000, 2) * 7850);
 
                 return (
-                    <Card key={group.label} className={`shadow-sm overflow-hidden print:overflow-visible border-l-4 border-l-${group.color || 'zinc'}-500`}>
+                    <Card key={group.key} className={`shadow-sm overflow-hidden print:overflow-visible border-l-4 border-l-${group.color}-500`}>
                         {/* Group Header */}
                         <button
-                            onClick={() => toggleModule(group.label)}
-                            className="w-full flex items-center justify-between px-5 py-3.5 bg-zinc-50 hover:bg-zinc-100 transition-colors text-left"
+                            onClick={() => toggleGroup(group.key)}
+                            className="w-full flex flex-col md:flex-row md:items-center justify-between px-5 py-3.5 bg-zinc-50 hover:bg-zinc-100 transition-colors text-left"
                         >
                             <div className="flex items-center gap-3">
-                                <div className={`w-2.5 h-2.5 rounded-full bg-${group.color || 'zinc'}-500`} />
-                                <span className="font-bold text-zinc-800 uppercase tracking-wide text-sm">{group.label}</span>
-                                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-200 px-2 py-0.5 rounded-full">{group.entries.length} types · {group.entries.reduce((a, e) => a + e.quantity, 0)} pcs</span>
-                                <span className="text-[10px] font-mono text-zinc-500">~{groupWeight.toFixed(1)} kg</span>
+                                <div className={`w-2.5 h-2.5 rounded-full bg-${group.color}-500`} />
+                                <span className="font-bold text-zinc-800 uppercase tracking-wide text-sm">{titleLabel}</span>
+                                <span className="text-[10px] font-mono text-zinc-500">~{totalWeight.toFixed(0)} kg</span>
                             </div>
-                            {isExpanded ? <ChevronUp size={16} className="text-zinc-400" /> : <ChevronDown size={16} className="text-zinc-400" />}
+                            <div className="flex flex-wrap items-center gap-4 text-[10px] font-mono uppercase tracking-wide mt-2 md:mt-0">
+                                <span className="text-zinc-500"><b>{optimization.barsRequired.toLocaleString()} PCS</b> × {group.stockLength}m</span>
+                                <span className={`text-${effColor}-600 bg-${effColor}-100 px-2 py-0.5 rounded border border-${effColor}-200 ml-auto`}>
+                                    {(optimization.efficiency * 100).toFixed(1)}% Eff.
+                                </span>
+                                {isExpanded ? <ChevronUp size={16} className="text-zinc-400" /> : <ChevronDown size={16} className="text-zinc-400" />}
+                            </div>
                         </button>
 
                         {/* Group Table */}
@@ -628,82 +656,56 @@ export default function RebarSchedule() {
                                 <table className={TABLE_UI.TABLE}>
                                     <thead className="bg-zinc-100 border-b border-zinc-200 print:bg-zinc-100">
                                         <tr className={TABLE_UI.HEADER_ROW}>
-                                            <th className={`${TABLE_UI.HEADER_CELL} w-10 text-center`}>#</th>
-                                            <th className={TABLE_UI.HEADER_CELL}>Element / Label</th>
-                                            <th className={`${TABLE_UI.HEADER_CELL} text-center`}>Dia.</th>
-                                            <th className={`${TABLE_UI.HEADER_CELL} text-center`}>Bend Type</th>
-                                            <th className={`${TABLE_UI.HEADER_CELL} text-center`}>Diagram</th>
-                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Cut Length</th>
-                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Hook</th>
-                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Stock Bar</th>
-                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Qty</th>
-                                            <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-zinc-200/50`}>Total Length</th>
-                                            <th className={TABLE_UI.HEADER_CELL_RIGHT}>Est. Weight</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL} w-28 text-center`}>Mark</th>
+                                            <th className={TABLE_UI.HEADER_CELL}>Cutting Detail (Lengths in Meters)</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-24`}>Stock Qty</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-24`}>Waste (m)</th>
+                                            <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-32 bg-zinc-200/50`}>Running Len</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-100">
-                                        {group.entries.map((entry, idx) => {
-                                            const colors = BEND_COLORS[entry.diameter] || BEND_COLORS.default;
-                                            const weight = (Math.PI / 4) * Math.pow(entry.diameter / 1000, 2) * 7850 * entry.cutLength * entry.quantity;
-                                            return (
-                                                <tr key={entry.id} className="hover:bg-zinc-50/50 transition-colors">
-                                                    <td className="px-3 py-2 text-[10px] font-mono text-zinc-400 text-center">{idx + 1}</td>
-                                                    <td className="px-3 py-2">
-                                                        <div className="text-xs font-semibold text-zinc-700">{entry.label}</div>
-                                                        <div className="text-[10px] text-zinc-400 font-mono">{entry.module}</div>
-                                                    </td>
-                                                    <td className="px-3 py-2 text-center">
-                                                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${colors.bg} text-white`}>
-                                                            ∅{entry.diameter}mm
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-3 py-2 text-center">
-                                                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${colors.border} ${colors.light} ${colors.text}`}>
-                                                            {entry.bendType}
-                                                        </span>
-                                                        {entry.spliced && (
-                                                            <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 border border-amber-300 rounded-full">SPLICED</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-2 min-w-[160px]">
-                                                        <BarDiagram entry={entry} />
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right font-mono text-xs font-bold text-zinc-800">
-                                                        {entry.cutLength.toFixed(3)} m
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right font-mono text-[11px] text-zinc-500">
-                                                        {entry.hookLength > 0 ? `${(entry.hookLength * 1000).toFixed(0)}mm` : '—'}
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right font-mono text-[11px] text-zinc-500">
-                                                        {entry.stockLength}m
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right font-bold text-sm text-zinc-900">
-                                                        {entry.quantity.toLocaleString()}
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right font-mono text-xs bg-zinc-50/50 text-zinc-700">
-                                                        {entry.totalLength.toFixed(2)} m
-                                                    </td>
-                                                    <td className="px-3 py-2 text-right font-mono text-[11px] text-zinc-500">
-                                                        {weight.toFixed(1)} kg
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        {group.groupedPatterns.map((p, pIdx) => (
+                                            <tr key={pIdx} className="hover:bg-zinc-50/50 transition-colors">
+                                                <td className="px-3 py-2 text-center font-bold text-xs text-zinc-700">RB{group.diameter}-{getAlphabeticalIndex(pIdx)}</td>
+                                                <td className="px-3 py-2">
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {Array.from(new Set(p.cuts.map(c => `${c.length.toFixed(3)}|${c.label}`))).map((cutKey, lIdx) => {
+                                                            const [len, label] = cutKey.split('|');
+                                                            const count = p.cuts.filter(c => `${c.length.toFixed(3)}|${c.label}` === cutKey).length;
+                                                            return (
+                                                                <span key={lIdx} className="bg-zinc-100 px-2 py-0.5 border border-zinc-200 rounded-sm whitespace-nowrap text-xs">
+                                                                    <span className="font-bold text-emerald-600">{count}x</span> {parseFloat(len).toFixed(2)}m <span className="text-[10px] text-zinc-500 truncate max-w-[150px] inline-block align-bottom ml-1">[{label}]</span>
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </td>
+                                                <td className="px-3 py-2 text-right font-bold text-sm text-zinc-900 border-l border-zinc-100">
+                                                    {p.count.toLocaleString()}
+                                                </td>
+                                                <td className="px-3 py-2 text-right font-mono text-xs text-zinc-500">
+                                                    {p.freeSpace.toFixed(3)}
+                                                </td>
+                                                <td className="px-3 py-2 text-right font-mono text-xs bg-zinc-50/50 text-zinc-800 font-bold border-l border-zinc-200">
+                                                    {(p.count * group.stockLength).toFixed(2)} m
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                     {/* Group subtotal */}
-                                    <tfoot className="bg-zinc-100 border-t-2 border-zinc-300">
+                                    <tfoot className="bg-zinc-800 border-t-2 border-zinc-400 text-white">
                                         <tr>
-                                            <td colSpan={8} className="px-3 py-2 text-xs font-bold text-zinc-600 uppercase tracking-wide text-right">
-                                                Group Total:
+                                            <td colSpan={2} className="px-3 py-2 text-[10px] uppercase tracking-wide text-right font-mono text-zinc-400">
+                                                Optimization Summary ({optimization.totalCuts} pieces cut):
                                             </td>
-                                            <td className="px-3 py-2 text-right font-bold text-sm text-zinc-900">
-                                                {group.entries.reduce((a, e) => a + e.quantity, 0).toLocaleString()} pcs
+                                            <td className="px-3 py-2 text-right font-bold text-sm text-emerald-400">
+                                                {optimization.barsRequired.toLocaleString()} PCS
                                             </td>
-                                            <td className="px-3 py-2 text-right font-mono text-xs font-bold text-zinc-800 bg-zinc-200/50">
-                                                {group.entries.reduce((a, e) => a + e.totalLength, 0).toFixed(2)} m
+                                            <td className="px-3 py-2 text-right font-mono text-xs text-zinc-300">
+                                                {optimization.wasteTotal.toFixed(2)} m
                                             </td>
-                                            <td className="px-3 py-2 text-right font-mono text-xs font-bold text-zinc-700">
-                                                {groupWeight.toFixed(1)} kg
+                                            <td className="px-3 py-2 text-right font-mono text-sm font-bold text-white">
+                                                {(optimization.barsRequired * group.stockLength).toFixed(2)} m
                                             </td>
                                         </tr>
                                     </tfoot>

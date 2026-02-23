@@ -600,7 +600,7 @@ export default function Footing() {
                                                             <table className="w-full text-[10px] font-mono text-left border-collapse">
                                                                 <thead className="bg-zinc-100 border-b border-zinc-300">
                                                                     <tr>
-                                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase font-bold text-zinc-600 w-16 text-center">Mark</th>
+                                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase font-bold text-zinc-600 w-28 text-center">Mark</th>
                                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase font-bold text-zinc-600">Cutting Detail</th>
                                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase font-bold text-zinc-600 w-24 text-center">Qty</th>
                                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase font-bold text-zinc-600 w-24 text-center">Waste (m)</th>

@@ -856,7 +856,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             <table className="w-full text-[10px] font-mono text-left border-collapse">
                                                 <thead className="bg-zinc-100 border-b border-zinc-300">
                                                     <tr>
-                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-16 text-center">Mark</th>
+                                                        <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-28 text-center">Mark</th>
                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600">Cutting Detail (Lengths in Meters)</th>
                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Stock Count</th>
                                                         <th className="px-6 py-2 border-r border-zinc-200 uppercase tracking-wider font-bold text-zinc-600 w-24 text-center">Waste (m)</th>
