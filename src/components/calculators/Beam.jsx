@@ -106,7 +106,7 @@ const TableNumberInput = React.memo(({ value, onChange, placeholder, className =
 
 export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
     // Use props if provided, otherwise use local state (for backward compatibility)
-    const [localBeams, setLocalBeams] = useLocalStorage('beam_elements', [getInitialElement()]);
+    const [localBeams, setLocalBeams] = useLocalStorage('app_beams', [getInitialElement()]);
     const beams = propBeams || localBeams;
     const setBeams = propSetBeams || setLocalBeams;
 
@@ -126,21 +126,26 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
 
     // Migration logic for old state
     useEffect(() => {
-        const needsMigration = beams.some(b => !b.main_rebar_cuts || !b.cut_support_cuts || !b.cut_midspan_cuts);
+        if (!beams || !Array.isArray(beams)) return;
+        const needsMigration = beams.some(b => b && (!b.main_rebar_cuts || typeof b.main_rebar_cuts === 'string' || !Array.isArray(b.main_rebar_cuts) || !b.cut_support_cuts || typeof b.cut_support_cuts === 'string' || !Array.isArray(b.cut_support_cuts) || !b.cut_midspan_cuts || typeof b.cut_midspan_cuts === 'string' || !Array.isArray(b.cut_midspan_cuts)));
         if (needsMigration) {
-            setBeams(prev => prev.map(b => {
-                let updated = { ...b };
-                if (!updated.main_rebar_cuts) {
-                    updated.main_rebar_cuts = b.main_bar_sku ? [{ sku: b.main_bar_sku, length: '', quantity: b.main_bar_count }] : [{ sku: '', length: '', quantity: '' }];
-                }
-                if (!updated.cut_support_cuts) {
-                    updated.cut_support_cuts = b.cut_support_sku ? [{ sku: b.cut_support_sku, length: '', quantity: b.cut_support_count }] : [{ sku: '', length: '', quantity: '' }];
-                }
-                if (!updated.cut_midspan_cuts) {
-                    updated.cut_midspan_cuts = b.cut_midspan_sku ? [{ sku: b.cut_midspan_sku, length: '', quantity: b.cut_midspan_count }] : [{ sku: '', length: '', quantity: '' }];
-                }
-                return updated;
-            }));
+            setBeams(prev => {
+                if (!Array.isArray(prev)) return [getInitialElement()];
+                return prev.map(b => {
+                    if (!b) return b;
+                    let updated = { ...b };
+                    if (!updated.main_rebar_cuts || typeof updated.main_rebar_cuts === 'string' || !Array.isArray(updated.main_rebar_cuts)) {
+                        updated.main_rebar_cuts = b.main_bar_sku ? [{ sku: b.main_bar_sku, length: '', quantity: b.main_bar_count }] : [{ sku: '', length: '', quantity: '' }];
+                    }
+                    if (!updated.cut_support_cuts || typeof updated.cut_support_cuts === 'string' || !Array.isArray(updated.cut_support_cuts)) {
+                        updated.cut_support_cuts = b.cut_support_sku ? [{ sku: b.cut_support_sku, length: '', quantity: b.cut_support_count }] : [{ sku: '', length: '', quantity: '' }];
+                    }
+                    if (!updated.cut_midspan_cuts || typeof updated.cut_midspan_cuts === 'string' || !Array.isArray(updated.cut_midspan_cuts)) {
+                        updated.cut_midspan_cuts = b.cut_midspan_sku ? [{ sku: b.cut_midspan_sku, length: '', quantity: b.cut_midspan_count }] : [{ sku: '', length: '', quantity: '' }];
+                    }
+                    return updated;
+                });
+            });
         }
     }, [beams, setBeams]);
 

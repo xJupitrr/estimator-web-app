@@ -80,7 +80,7 @@ const getInitialColumn = () => ({
 });
 
 const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns }) => {
-    const [localColumns, setLocalColumns] = useLocalStorage('column_elements', [getInitialColumn()]);
+    const [localColumns, setLocalColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
 
     // Logic to prefer props if provided (from App globally) or local storage
     const columns = propColumns || localColumns;
@@ -112,12 +112,12 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 
     useEffect(() => {
         if (!columns || !Array.isArray(columns)) return;
-        const needsMigration = columns.some(c => c && !c.main_rebar_cuts);
+        const needsMigration = columns.some(c => c && (!c.main_rebar_cuts || typeof c.main_rebar_cuts === 'string' || !Array.isArray(c.main_rebar_cuts)));
         if (needsMigration) {
             setColumns(prev => {
                 if (!Array.isArray(prev)) return [getInitialColumn()];
                 return prev.map(c => {
-                    if (c && !c.main_rebar_cuts) {
+                    if (c && (!c.main_rebar_cuts || typeof c.main_rebar_cuts === 'string' || !Array.isArray(c.main_rebar_cuts))) {
                         return {
                             ...c,
                             main_rebar_cuts: c.main_bar_sku

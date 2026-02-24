@@ -140,7 +140,14 @@ const arrayToCSV = (arr) => {
     const rows = arr.map(obj => {
         return headers.map(h => {
             const val = obj[h];
-            const str = (val === null || val === undefined) ? "" : String(val);
+            let str = "";
+            if (val === null || val === undefined) {
+                str = "";
+            } else if (typeof val === 'object') {
+                str = JSON.stringify(val);
+            } else {
+                str = String(val);
+            }
             if (str.includes(',') || str.includes('"') || str.includes('\n')) {
                 return `"${str.replace(/"/g, '""')}"`;
             }
@@ -176,6 +183,12 @@ const csvToArray = (csvText) => {
             } else if (val !== '' && !isNaN(val)) {
                 // we safely parse numbers, but preserve empty strings
                 val = Number(val);
+            } else if (typeof val === 'string' && ((val.startsWith('[') && val.endsWith(']')) || (val.startsWith('{') && val.endsWith('}')))) {
+                try {
+                    val = JSON.parse(val);
+                } catch (e) {
+                    // keep as string if parse fails
+                }
             }
 
             obj[headers[j]] = val;

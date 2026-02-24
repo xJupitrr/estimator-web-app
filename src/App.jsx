@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction, Scissors } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction, Scissors, SaveAll } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
@@ -113,6 +113,7 @@ const getInitialBeam = () => ({
 export default function App() {
     const { undo, redo, clearHistory } = useHistory();
     const [activeTabId, setActiveTabId] = useState('home');
+    const [fileHandle, setFileHandle] = useState(null);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -129,20 +130,24 @@ export default function App() {
                     redo();
                 } else if (e.key === 's') {
                     e.preventDefault();
-                    triggerLoadSession();
+                    if (e.shiftKey) {
+                        handleSaveAsSession();
+                    } else {
+                        handleSaveSession();
+                    }
                 }
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [undo, redo]);
+    }, [undo, redo, fileHandle]); // fileHandle dependency for closure over state
 
 
     // Persisted via localStorage
     // Unified State - Syncing with component local storage keys for cross-tab availability
-    const [columns, setColumns] = useLocalStorage('column_elements', [getInitialColumn()]);
-    const [beams, setBeams] = useLocalStorage('beam_elements', [getInitialBeam()]);
+    const [columns, setColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
+    const [beams, setBeams] = useLocalStorage('app_beams', [getInitialBeam()]);
     const [projectName, setProjectName] = useLocalStorage('project_name', 'Untitled Project');
     const [lastSaveInfo, setLastSaveInfo] = useLocalStorage('last_save_info', { date: '', count: 0 });
 
@@ -187,7 +192,51 @@ export default function App() {
     const [exportSummaryData, setExportSummaryData] = useState([]);
     const [exportFileName, setExportFileName] = useState("");
 
-    const handleSaveSession = () => {
+    async function verifyPermission(fileHandle, readWrite) {
+        const options = {};
+        if (readWrite) {
+            options.mode = 'readwrite';
+        }
+        if ((await fileHandle.queryPermission(options)) === 'granted') {
+            return true;
+        }
+        if ((await fileHandle.requestPermission(options)) === 'granted') {
+            return true;
+        }
+        return false;
+    }
+
+    const handleSaveSession = async () => {
+        const today = new Date().toISOString().slice(0, 10);
+        let currentVersion = 1;
+
+        if (lastSaveInfo.date === today) {
+            currentVersion = lastSaveInfo.count + 1;
+        }
+
+        const csv = exportProjectToCSV();
+
+        if (fileHandle) {
+            try {
+                const permission = await verifyPermission(fileHandle, true);
+                if (permission) {
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(csv);
+                    await writable.close();
+
+                    setLastSaveInfo({ date: today, count: currentVersion });
+                    alert(`Successfully saved to ${fileHandle.name}`);
+                    return;
+                }
+            } catch (err) {
+                console.error("Failed to save via file handle, falling back to Save As", err);
+            }
+        }
+
+        handleSaveAsSession();
+    };
+
+    const handleSaveAsSession = () => {
         const today = new Date().toISOString().slice(0, 10);
         let currentVersion = 1;
 
@@ -205,14 +254,36 @@ export default function App() {
         setExportModalOpen(true);
     };
 
-    const confirmExport = (finalFileName) => {
+    const confirmExport = async (finalFileName) => {
         const csv = exportProjectToCSV();
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = finalFileName || exportFileName;
-        link.click();
+
+        try {
+            if ('showSaveFilePicker' in window) {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: finalFileName || exportFileName,
+                    types: [{
+                        description: 'CSV Files',
+                        accept: { 'text/csv': ['.csv'] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(csv);
+                await writable.close();
+                setFileHandle(handle);
+            } else {
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = finalFileName || exportFileName;
+                link.click();
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error("Save As failed", err);
+                alert("Failed to save file.");
+            }
+        }
 
         setExportModalOpen(false);
     };
@@ -277,6 +348,33 @@ export default function App() {
         setLoadDashboardOpen(true);
     };
 
+    const handleLoadSessionFS = async () => {
+        try {
+            if ('showOpenFilePicker' in window) {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'CSV Files',
+                        accept: { 'text/csv': ['.csv'] }
+                    }]
+                });
+                const file = await handle.getFile();
+                setFileHandle(handle);
+
+                const data = await parseProjectCSV(file);
+                setParsedSessionData(data);
+                setCurrentImportFileName(file.name);
+                setImportModalOpen(true);
+            } else {
+                fileInputRef.current?.click();
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error(err);
+                alert('Failed to open file.');
+            }
+        }
+    };
+
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
 
     // --- Drag & Drop Handlers ---
@@ -303,10 +401,36 @@ export default function App() {
         e.stopPropagation();
         setIsDragging(false);
 
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            const item = e.dataTransfer.items[0];
+            if (item.kind === 'file') {
+                const file = item.getAsFile();
+                if (file && file.name.endsWith('.csv')) {
+                    if (typeof item.getAsFileSystemHandle === 'function') {
+                        try {
+                            const handle = await item.getAsFileSystemHandle();
+                            setFileHandle(handle);
+                        } catch (err) {
+                            console.error(err);
+                            setFileHandle(null);
+                        }
+                    } else {
+                        setFileHandle(null);
+                    }
+                    await handleLoadSession({ target: { files: [file] } });
+                    return;
+                } else if (file) {
+                    alert('Please drop a valid CSV session file.');
+                    return;
+                }
+            }
+        }
+
+        // Fallback for files list
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             const file = e.dataTransfer.files[0];
             if (file.name.endsWith('.csv')) {
-                // Reuse existing load logic
+                setFileHandle(null);
                 await handleLoadSession({ target: { files: [file] } });
             } else {
                 alert('Please drop a valid CSV session file.');
@@ -403,8 +527,16 @@ export default function App() {
                             <button
                                 onClick={handleSaveSession}
                                 className="flex items-center gap-2 h-9 px-4 border border-emerald-200 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold uppercase tracking-wider transition-all rounded-sm group shadow-sm"
+                                title="Save (Ctrl+S)"
                             >
                                 <Save size={14} className="group-hover:scale-110 transition-transform" /> SAVE
+                            </button>
+                            <button
+                                onClick={handleSaveAsSession}
+                                className="flex items-center gap-2 h-9 px-4 border border-emerald-200 bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold uppercase tracking-wider transition-all rounded-sm group shadow-sm"
+                                title="Save As (Ctrl+Shift+S)"
+                            >
+                                <SaveAll size={14} className="group-hover:scale-110 transition-transform" /> SAVE AS
                             </button>
                             <button
                                 onClick={triggerLoadSession}
@@ -452,7 +584,7 @@ export default function App() {
                         }
                     }
                 }}
-                onBrowseFiles={() => fileInputRef.current?.click()}
+                onBrowseFiles={handleLoadSessionFS}
                 projectName={projectName}
                 lastSaveInfo={lastSaveInfo}
                 projectTotal={projectTotal}

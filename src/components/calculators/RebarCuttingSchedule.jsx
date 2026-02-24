@@ -23,8 +23,8 @@ const BEND_COLORS = {
 
 const MODULES = [
     { key: 'footing', label: 'RC Footing', color: 'emerald', storageKey: 'footing_rows', pricesKey: 'footing_prices', type: 'footing' },
-    { key: 'column', label: 'RC Column', color: 'indigo', storageKey: 'column_elements', type: 'column' },
-    { key: 'beam', label: 'RC Beam', color: 'violet', storageKey: 'beam_elements', type: 'beam' },
+    { key: 'column', label: 'RC Column', color: 'indigo', storageKey: 'app_columns', type: 'column' },
+    { key: 'beam', label: 'RC Beam', color: 'violet', storageKey: 'app_beams', type: 'beam' },
     { key: 'lintel', label: 'Lintel Beams', color: 'teal', storageKey: null, specsKey: 'lintelbeam_specs', type: 'lintel' },
     { key: 'slab_grade', label: 'Slab on Grade', color: 'cyan', storageKey: 'slab_rows', type: 'slab_grade' },
     { key: 'suspended', label: 'Suspended Slab', color: 'purple', storageKey: 'suspended_slab_rows', type: 'suspended' },
@@ -101,7 +101,7 @@ const buildSchedule = (data) => {
     });
 
     // ── RC COLUMN ───────────────────────────────────────────────────────────
-    const columns = data.column_elements || [];
+    const columns = data.app_columns || [];
     columns.forEach((col, i) => {
         if (col.isExcluded) return;
         const qty = parseInt(col.quantity) || 1;
@@ -140,7 +140,7 @@ const buildSchedule = (data) => {
     });
 
     // ── RC BEAM ─────────────────────────────────────────────────────────────
-    const beams = data.beam_elements || [];
+    const beams = data.app_beams || [];
     beams.forEach((beam, i) => {
         if (beam.isExcluded) return;
         const qty = parseInt(beam.quantity) || 1;
@@ -425,8 +425,8 @@ const StatBox = ({ label, value, unit, colorClass }) => (
 export default function RebarCuttingSchedule() {
     // Read from all relevant localStorage keys
     const [footingRows] = useLocalStorage('footing_rows', []);
-    const [columnElements] = useLocalStorage('column_elements', []);
-    const [beamElements] = useLocalStorage('beam_elements', []);
+    const [columnElements] = useLocalStorage('app_columns', []);
+    const [beamElements] = useLocalStorage('app_beams', []);
     const [lintelSpecs] = useLocalStorage('lintelbeam_specs', null);
     const [doorsWindowsRows] = useLocalStorage('doorswindows_rows', []);
     const [slabRows] = useLocalStorage('slab_rows', []);
@@ -442,8 +442,8 @@ export default function RebarCuttingSchedule() {
     // Aggregate all data
     const allData = useMemo(() => ({
         footing_rows: footingRows,
-        column_elements: columnElements,
-        beam_elements: beamElements,
+        app_columns: columnElements,
+        app_beams: beamElements,
         lintelbeam_specs: lintelSpecs,
         doorswindows_rows: doorsWindowsRows,
         slab_rows: slabRows,

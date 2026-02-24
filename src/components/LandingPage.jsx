@@ -1,13 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Layers, Box, SquareStack, LayoutTemplate, Columns, PenTool,
     Tent, Hammer, Grid3X3, Paintbrush, Cloud, DoorOpen,
     ArrowRight, Star, Zap, Shield, ChevronRight, Upload, Plus, X,
-    LayoutGrid, Brush, HardHat, Terminal, Cpu, Database
+    LayoutGrid, Brush, HardHat, Terminal, Cpu, Database, SaveAll
 } from 'lucide-react';
 
 export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
     const [activeCategory, setActiveCategory] = useState(null);
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) return;
+        // Show the install prompt
+        deferredPrompt.prompt();
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+        }
+    };
 
     const categories = [
         {
@@ -97,24 +120,35 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
                 </div>
 
                 {/* Primary Actions Command Center */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 mb-24 w-full max-w-md">
+                <div className="flex flex-col sm:flex-row items-center gap-4 mb-24 w-full max-w-2xl justify-center">
                     <button
                         onClick={() => onNavigate(tabs[0].id)}
-                        className="group w-full relative overflow-hidden bg-blue-600 text-white px-8 py-4 rounded-sm font-bold text-sm tracking-widest uppercase transition-all hover:bg-blue-700 shadow-lg shadow-blue-200"
+                        className="group w-full max-w-[220px] relative overflow-hidden bg-blue-600 text-white px-8 py-4 rounded-sm font-bold text-sm tracking-widest uppercase transition-all hover:bg-blue-700 shadow-lg shadow-blue-200"
                     >
                         <span className="relative z-10 flex items-center justify-center gap-3">
-                            <Plus size={16} /> Initialize Project
+                            <Plus size={16} /> Start
                         </span>
                     </button>
 
                     <button
                         onClick={onLoadSession}
-                        className="group w-full relative overflow-hidden bg-white border border-zinc-200 text-zinc-600 px-8 py-4 rounded-sm font-bold text-sm tracking-widest uppercase transition-all hover:bg-zinc-50 hover:text-zinc-900 hover:border-zinc-400"
+                        className="group w-full max-w-[220px] relative overflow-hidden bg-white border border-zinc-200 text-zinc-600 px-8 py-4 rounded-sm font-bold text-sm tracking-widest uppercase transition-all hover:bg-zinc-50 hover:text-zinc-900 hover:border-zinc-400"
                     >
                         <span className="relative z-10 flex items-center justify-center gap-3">
-                            <Upload size={16} /> Load Database
+                            <Upload size={16} /> Load
                         </span>
                     </button>
+
+                    {deferredPrompt && (
+                        <button
+                            onClick={handleInstallClick}
+                            className="group w-full max-w-[220px] relative overflow-hidden bg-emerald-600 text-white px-8 py-4 rounded-sm font-bold text-sm tracking-widest uppercase transition-all hover:bg-emerald-700 shadow-md shadow-emerald-200"
+                        >
+                            <span className="relative z-10 flex items-center justify-center gap-3">
+                                <Terminal size={16} /> Install App
+                            </span>
+                        </button>
+                    )}
                 </div>
 
                 {/* Industrial Dock / Module Selector */}
