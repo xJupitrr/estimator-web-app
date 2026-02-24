@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, FolderOpen, AlertCircle, HardDrive, UploadCloud, Clock, DollarSign } from 'lucide-react';
 
-export default function SessionLoadDashboard({ isOpen, onClose, onBrowseFiles, projectName, lastSaveInfo, projectTotal }) {
+export default function SessionLoadDashboard({ isOpen, onClose, onBrowseFiles, projectName, lastSaveInfo, projectTotal, onResume }) {
     if (!isOpen) return null;
 
     const formattedTotal = new Intl.NumberFormat('en-PH', {
@@ -51,7 +51,7 @@ export default function SessionLoadDashboard({ isOpen, onClose, onBrowseFiles, p
                             Currently Active Session
                         </span>
                         <div
-                            onClick={onClose}
+                            onClick={onResume || onClose}
                             className="relative p-5 border bg-white border-zinc-200 shadow-sm rounded-sm cursor-pointer hover:border-blue-400 hover:shadow-md transition-all group overflow-hidden"
                         >
                             {/* Hover highlight line */}

@@ -291,19 +291,30 @@ export default function SlabOnGrade() {
                                     <p className="text-sm text-gray-500">Total Volume: <strong className="text-gray-900">{result.totalVolume.toFixed(2)} m³</strong></p>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-3 text-right">
-                                <div className={`bg-${THEME}-50 px-8 py-4 rounded-xl border border-${THEME}-100 shadow-sm`}>
-                                    <p className={`text-[10px] text-${THEME}-600 font-bold uppercase tracking-[0.2em] mb-1`}>Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tabular-nums`}>
-                                        ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
+                                        {result.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => copyToClipboard(result.items)} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-xs font-semibold text-${THEME}-700 hover:bg-${THEME}-50 transition-colors shadow-sm text-green-700 border-green-200 hover:bg-green-50`}>
-                                        <ClipboardCopy size={14} /> Copy Results
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
                                     </button>
-                                    <button onClick={() => downloadCSV(result.items, 'slab_estimate.csv')} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-xs font-semibold text-${THEME}-700 hover:bg-${THEME}-50 transition-colors shadow-sm text-green-700 border-green-200 hover:bg-green-50`}>
-                                        <Download size={14} /> Export CSV
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'slab_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
                                     </button>
                                 </div>
                             </div>

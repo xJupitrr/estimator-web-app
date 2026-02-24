@@ -556,35 +556,40 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                     </div>
                                 </div>
                             </div>
-                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
-                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Cost</p>
-                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
+                                        {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'beam_estimation.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                    <button
+                                        onClick={() => setViewingPatterns(true)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
+                                        title="View cutting patterns and schedule"
+                                    >
+                                        <Scissors size={14} /> Cutting Analysis
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-
-                        {/* Export Buttons */}
-                        <div className="flex justify-end gap-2 mb-4">
-                            <button
-                                onClick={() => copyToClipboard(result.items)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                title="Copy table to clipboard"
-                            >
-                                <ClipboardCopy size={14} /> Copy
-                            </button>
-                            <button
-                                onClick={() => downloadCSV(result.items, 'beam_estimation.csv')}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                title="Download as CSV"
-                            >
-                                <Download size={14} /> CSV
-                            </button>
-                            <button
-                                onClick={() => setViewingPatterns(true)}
-                                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-all shadow-md active:scale-95"
-                                title="View cutting patterns and schedule"
-                            >
-                                <Scissors size={14} /> Cutting Patterns
-                            </button>
                         </div>
 
                         <div className={TABLE_UI.CONTAINER}>

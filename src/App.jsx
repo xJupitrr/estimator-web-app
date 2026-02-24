@@ -205,13 +205,13 @@ export default function App() {
         setExportModalOpen(true);
     };
 
-    const confirmExport = () => {
+    const confirmExport = (finalFileName) => {
         const csv = exportProjectToCSV();
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = exportFileName;
+        link.download = finalFileName || exportFileName;
         link.click();
 
         setExportModalOpen(false);
@@ -433,6 +433,25 @@ export default function App() {
             <SessionLoadDashboard
                 isOpen={loadDashboardOpen}
                 onClose={() => setLoadDashboardOpen(false)}
+                onResume={async () => {
+                    setLoadDashboardOpen(false);
+                    try {
+                        // Export current session to CSV and re-parse to leverage the Import/Review modal
+                        const csvString = exportProjectToCSV();
+                        const blob = new Blob([csvString], { type: 'text/csv' });
+                        const file = new File([blob], projectName + ".csv", { type: "text/csv" });
+
+                        const data = await parseProjectCSV(file);
+                        setParsedSessionData(data);
+                        setCurrentImportFileName("CURRENT_SESSION_CACHE");
+                        setImportModalOpen(true);
+                    } catch (e) {
+                        console.error("Error formatting resume data for import modal", e);
+                        if (activeTabId === 'home') {
+                            setActiveTabId(TABS[0].id);
+                        }
+                    }
+                }}
                 onBrowseFiles={() => fileInputRef.current?.click()}
                 projectName={projectName}
                 lastSaveInfo={lastSaveInfo}

@@ -363,18 +363,29 @@ export default function SuspendedSlab() {
                                 <p className="text-sm text-gray-500 mt-1">Total Slab Volume: <strong className="text-gray-700">{result.volume} m³</strong></p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {result.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button onClick={() => copyToClipboard(result.items)} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-sm font-medium text-${THEME}-600 hover:bg-${THEME}-50 shadow-sm transition-colors`}>
-                                        <ClipboardCopy size={14} /> Copy Table
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
                                     </button>
-                                    <button onClick={() => downloadCSV(result.items, 'suspended_slab_estimate.csv')} className={`flex items-center gap-1.5 px-3 py-1.5 bg-white border border-${THEME}-200 rounded-lg text-sm font-medium text-${THEME}-600 hover:bg-${THEME}-50 shadow-sm transition-colors`}>
-                                        <Download size={14} /> Export CSV
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'suspended_slab_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
                                     </button>
                                 </div>
                             </div>

@@ -404,16 +404,45 @@ export default function SteelTruss() {
                             <div>
                                 <h3 className="font-bold text-2xl text-slate-800 uppercase tracking-tight flex items-center gap-3">
                                     Results Summary
-                                    <button onClick={() => setViewingPatterns(true)} className="text-[10px] bg-indigo-600 text-white px-3 py-1 rounded-sm font-mono hover:bg-indigo-700 transition-colors">VIEW CUTTING PATTERNS</button>
                                 </h3>
                                 <div className="flex flex-wrap gap-4 mt-3">
                                     <p className="text-sm text-slate-500">Total 6m Bars: <strong className="text-slate-900">{estimationResults.totalPieces} pcs</strong></p>
                                     <p className="text-sm text-slate-500">Material Varieties: <strong className="text-slate-900">{estimationResults.items.length}</strong></p>
                                 </div>
                             </div>
-                            <div className={`text-left md:text-right bg-blue-50 px-8 py-4 rounded-xl border border-blue-100 shadow-sm`}>
-                                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.2em] mb-1">Estimated Total Cost</p>
-                                <p className={`font-bold text-4xl text-${THEME}-700 tabular-nums`}>₱{estimationResults.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
+                                        {estimationResults.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(estimationResults.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(estimationResults.items, 'steel_truss_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                    <button
+                                        onClick={() => setViewingPatterns(true)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
+                                        title="View cutting patterns and schedule"
+                                    >
+                                        <Scissors size={14} /> Cutting Analysis
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

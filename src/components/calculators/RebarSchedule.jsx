@@ -544,22 +544,24 @@ export default function RebarSchedule() {
                         <div className="flex items-center gap-2 no-print">
                             <button
                                 onClick={() => setRefreshKey(k => k + 1)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-zinc-600 bg-white border border-zinc-300 rounded hover:bg-zinc-50 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
                                 title="Refresh from calculators"
                             >
-                                <RefreshCw size={13} /> Refresh
+                                <RefreshCw size={14} /> Refresh
                             </button>
                             <button
                                 onClick={handleExport}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-zinc-600 bg-white border border-zinc-300 rounded hover:bg-zinc-50 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                title="Download as CSV"
                             >
-                                <Download size={13} /> CSV
+                                <Download size={14} /> Download CSV
                             </button>
                             <button
                                 onClick={() => window.print()}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-zinc-800 rounded hover:bg-zinc-900 transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-white border border-zinc-900 rounded-lg text-sm font-bold hover:bg-zinc-900 transition-colors shadow-sm"
+                                title="Print Schedule"
                             >
-                                <Printer size={13} /> Print
+                                <Printer size={14} /> Print
                             </button>
                         </div>
                     }

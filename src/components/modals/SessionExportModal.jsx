@@ -1,7 +1,14 @@
-import React, { useMemo } from 'react';
-import { X, CheckSquare, Save, AlertCircle, FileText, Database, ArrowRight } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { X, CheckSquare, Save, AlertCircle, FileText, Database, ArrowRight, Edit3 } from 'lucide-react';
 
 export default function SessionExportModal({ isOpen, onClose, onConfirm, summaryData, fileName }) {
+    const [editFileName, setEditFileName] = useState("");
+
+    useEffect(() => {
+        if (isOpen) {
+            setEditFileName(fileName || "");
+        }
+    }, [isOpen, fileName]);
 
     if (!isOpen) return null;
 
@@ -26,15 +33,24 @@ export default function SessionExportModal({ isOpen, onClose, onConfirm, summary
                                     Review Mode
                                 </span>
                             </div>
-                            <p className="text-xs text-zinc-400 font-mono mt-1 uppercase tracking-widest flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                DEST: {fileName}
-                            </p>
+                            <div className="mt-2 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></span>
+                                <span className="text-xs text-zinc-400 font-mono uppercase tracking-widest whitespace-nowrap">FILE NAME:</span>
+                                <div className="relative flex items-center group/input">
+                                    <input
+                                        type="text"
+                                        value={editFileName}
+                                        onChange={(e) => setEditFileName(e.target.value)}
+                                        className="text-sm font-mono text-zinc-800 bg-white border border-dashed border-zinc-300 rounded px-3 py-1.5 min-w-[400px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                                    />
+                                    <Edit3 size={14} className="absolute right-3 text-zinc-400 group-hover/input:text-emerald-500 pointer-events-none transition-colors" />
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="group p-2 hover:bg-zinc-100 text-zinc-400 hover:text-red-500 transition-colors rounded-sm"
+                        className="group p-2 hover:bg-zinc-100 text-zinc-400 hover:text-red-500 transition-colors rounded-sm ml-4 self-start"
                     >
                         <X size={20} className="group-hover:rotate-90 transition-transform duration-300" />
                     </button>
@@ -117,7 +133,7 @@ export default function SessionExportModal({ isOpen, onClose, onConfirm, summary
                         Cancel
                     </button>
                     <button
-                        onClick={onConfirm}
+                        onClick={() => onConfirm(editFileName)}
                         disabled={summaryData.length === 0}
                         className={`
                             group relative overflow-hidden px-8 py-3 rounded-sm text-xs font-bold uppercase tracking-widest transition-all shadow-lg
