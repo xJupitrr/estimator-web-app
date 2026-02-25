@@ -165,7 +165,7 @@ export default function Painting() {
                     actions={
                         <ActionButton
                             onClick={handleAddRow}
-                            label="Add Surface"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -283,10 +283,10 @@ export default function Painting() {
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <ActionButton
                         onClick={handleCalculate}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto px-8 py-3"
+                        
                     />
                 </div>
             </Card>
@@ -353,3 +353,6 @@ export default function Painting() {
         </div>
     );
 }
+
+
+

@@ -70,25 +70,32 @@ export const BUTTON_UI = {
 
 // --- LEGACY THEME SUPPORT ---
 export const THEME_COLORS = {
-    masonry: 'orange',
-    slab: 'green',
+    // --- Structure (Blue/Indigo) ---
+    footing: 'blue',
+    column: 'blue',
+    beam: 'blue',
+    slab: 'blue',
     suspended_slab: 'blue',
-    footing: 'emerald',
-    roofing: 'amber',
-    column: 'indigo',
-    beam: 'violet',
-    lintel: 'violet',
-    stairs: 'teal',
-    tanks: 'blue',
     concrete_wall: 'blue',
+    lintel: 'blue',
     steel_truss: 'blue',
-    tiles: 'fuchsia',
-    painting: 'rose',
-    ceiling: 'sky',
-    electrical: 'yellow',
-    plumbing: 'cyan',
-    doors: 'orange',
-    formworks: 'stone'
+    roofing: 'blue',
+    stairs: 'blue',
+    tanks: 'blue',
+
+    // --- Finishes (Emerald) ---
+    masonry: 'emerald',
+    doors: 'emerald',
+    ceiling: 'emerald',
+    tiles: 'emerald',
+    painting: 'emerald',
+
+    // --- Auxiliary (Orange) ---
+    formworks: 'orange',
+
+    // --- MEP (Amber) ---
+    electrical: 'amber',
+    plumbing: 'amber',
 };
 
 /**

@@ -314,10 +314,10 @@ export default function LintelBeam() {
                     <ActionButton
                         onClick={handleCalculate}
                         disabled={lintelBeams.length === 0}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="py-3 px-8"
+                        
                     />
                 </div>
             </Card>
@@ -421,3 +421,4 @@ export default function LintelBeam() {
         </div>
     );
 }
+

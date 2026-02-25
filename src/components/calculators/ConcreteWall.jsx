@@ -186,7 +186,7 @@ export default function ConcreteWall() {
                     actions={
                         <ActionButton
                             onClick={handleAddWall}
-                            label="Add New Wall Section"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -290,10 +290,10 @@ export default function ConcreteWall() {
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <ActionButton
                         onClick={handleCalculate}
-                        label="RUN CALCULATION"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto px-10 py-3"
+                        
                     />
                 </div>
             </Card>
@@ -305,7 +305,7 @@ export default function ConcreteWall() {
                     </div>
                     <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
                     <p className="max-w-md mx-auto text-sm">
-                        Enter your wall dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'RUN CALCULATION'</span>.
+                        Enter your wall dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
                     </p>
                 </div>
             )}
@@ -392,3 +392,6 @@ export default function ConcreteWall() {
         </div>
     );
 }
+
+
+

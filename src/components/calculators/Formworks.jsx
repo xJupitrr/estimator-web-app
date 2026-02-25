@@ -224,7 +224,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-600`}>
+            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
                 <SectionHeader
                     title="Manual Formwork Entry"
                     icon={Hammer}
@@ -232,14 +232,14 @@ export default function Formworks({ columns = [], beams = [] }) {
                     actions={
                         <ActionButton
                             onClick={handleAddRow}
-                            label="Add Manual Row"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
                     }
                 />
 
-                <div className="p-4 overflow-x-auto">
+                <div className="overflow-x-auto p-4">
                     <table className={TABLE_UI.INPUT_TABLE}>
                         <thead className="bg-slate-100">
                             <tr>
@@ -333,10 +333,10 @@ export default function Formworks({ columns = [], beams = [] }) {
                     </div>
                     <ActionButton
                         onClick={performCalculation}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="px-8 py-3"
+
                     />
                 </div>
             </Card>
@@ -361,7 +361,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                                 <h3 className="font-bold text-2xl text-gray-800">Formwork Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
                             </div>
-                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                 <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                 <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
                             </div>
@@ -403,3 +403,6 @@ export default function Formworks({ columns = [], beams = [] }) {
         </div>
     );
 }
+
+
+

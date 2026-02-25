@@ -384,7 +384,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                     actions={
                         <ActionButton
                             onClick={handleAddRow}
-                            label="Add Beam"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -468,7 +468,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                             onChange={(val) => handleBeamChange(col.id, 'tie_bar_sku', val)}
                                             options={AVAILABLE_TIE_SKUS}
                                             placeholder="Select SKU..."
-                                            focusColor="teal"
+                                            focusColor={THEME}
                                         />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/20`}><TableNumberInput value={col.tie_spacing_mm} onChange={(v) => handleBeamChange(col.id, 'tie_spacing_mm', v)} placeholder="150" step="10" /></td>
@@ -526,10 +526,10 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                 <div className="flex justify-end p-4 bg-slate-50 border-t border-gray-200">
                     <ActionButton
                         onClick={handleCalculate}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="py-3 px-8"
+
                     />
                 </div>
             </Card>
@@ -723,11 +723,11 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                     };
 
                                     return (
-                                        <div key={index} className="group relative bg-white border border-zinc-200 shadow-sm hover:border-blue-500/30 transition-all duration-300 flex flex-col rounded-sm overflow-hidden print:break-inside-avoid shadow-inner">
+                                        <div key={index} className={`group relative bg-white border border-zinc-200 shadow-sm hover:border-${THEME}-500/30 transition-all duration-300 flex flex-col rounded-sm overflow-hidden print:break-inside-avoid shadow-inner`}>
                                             {/* Item Header */}
                                             <div className="px-5 py-4 bg-zinc-50 border-b border-zinc-100 flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                                                    <div className={`w-1.5 h-1.5 bg-${THEME}-500 rounded-full`}></div>
                                                     <div>
                                                         <h3 className="font-bold text-zinc-800 uppercase tracking-wide text-sm">{item.name}</h3>
                                                         <p className="text-[10px] font-mono text-zinc-400 uppercase">Reinforcement Type: Rebar</p>
@@ -735,7 +735,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                                 </div>
                                                 <div className="text-right no-print">
                                                     <div className="text-[9px] text-zinc-400 font-mono uppercase font-bold mb-0.5 tracking-tighter">Efficiency</div>
-                                                    <div className={`font-mono font-bold text-lg leading-none ${(item.optimization?.efficiency > 0.9) ? 'text-emerald-600' : (item.optimization?.efficiency > 0.8) ? 'text-blue-600' : 'text-amber-600'}`}>
+                                                    <div className={`font-mono font-bold text-lg leading-none ${(item.optimization?.efficiency > 0.9) ? 'text-emerald-600' : `text-${THEME}-600`}`}>
                                                         {((item.optimization?.efficiency || 0) * 100).toFixed(1)}%
                                                     </div>
                                                 </div>
@@ -822,7 +822,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                         <div className="w-12 h-1 bg-zinc-900"></div>
                                         <h2 className="text-xl font-bold text-zinc-900 uppercase tracking-tighter flex items-center gap-3">
                                             Structural Rebar Schedule
-                                            <span className="text-[10px] font-mono font-normal bg-zinc-100 text-zinc-500 px-2 py-1 rounded-sm border border-zinc-200 uppercase tracking-widest border-l-4 border-l-blue-600">Plan Code: SCT-BM-{Date.now().toString().slice(-6)}</span>
+                                            <span className={`text-[10px] font-mono font-normal bg-zinc-100 text-zinc-500 px-2 py-1 rounded-sm border border-zinc-200 uppercase tracking-widest border-l-4 border-l-${THEME}-600`}>Plan Code: SCT-BM-{Date.now().toString().slice(-6)}</span>
                                         </h2>
                                     </div>
                                     <button
@@ -891,7 +891,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                                                         const count = group.cuts.filter(c => `${c.length.toFixed(3)}|${c.label}` === cutKey).length;
                                                                         return (
                                                                             <span key={lIdx} className="bg-zinc-100 px-2 py-0.5 border border-zinc-200 rounded-sm">
-                                                                                <span className="font-bold text-blue-600">{count}x</span> {parseFloat(len).toFixed(2)}m <span className="text-[8px] text-zinc-400">[{label}]</span>
+                                                                                <span className={`font-bold text-${THEME}-600`}>{count}x</span> {parseFloat(len).toFixed(2)}m <span className="text-[8px] text-zinc-400">[{label}]</span>
                                                                             </span>
                                                                         );
                                                                     })}
@@ -933,3 +933,6 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
         </div>
     );
 }
+
+
+

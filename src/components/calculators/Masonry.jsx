@@ -222,7 +222,7 @@ export default function Masonry() { // Renamed to Masonry
                     actions={
                         <ActionButton
                             onClick={handleAddWall}
-                            label="Add Row"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                             title="Add another wall configuration row"
@@ -310,7 +310,7 @@ export default function Masonry() { // Renamed to Masonry
                                                 { id: "6", display: '6" (15cm)' }
                                             ]}
                                             placeholder="Select Size..."
-                                            focusColor="orange"
+                                            focusColor={THEME}
                                         />
                                     </td>
                                     {/* Plaster Sides */}
@@ -324,7 +324,7 @@ export default function Masonry() { // Renamed to Masonry
                                                 { id: "2", display: '2 Sides' }
                                             ]}
                                             placeholder="Select Plaster..."
-                                            focusColor="orange"
+                                            focusColor={THEME}
                                         />
                                     </td>
 
@@ -335,7 +335,7 @@ export default function Masonry() { // Renamed to Masonry
                                             onChange={(val) => handleWallChange(wall.id, 'vertRebarSpec', val)}
                                             options={rebarOptions}
                                             placeholder="Select Spec..."
-                                            focusColor="orange"
+                                            focusColor={THEME}
                                         />
                                     </td>
 
@@ -359,7 +359,7 @@ export default function Masonry() { // Renamed to Masonry
                                             onChange={(val) => handleWallChange(wall.id, 'horizRebarSpec', val)}
                                             options={rebarOptions}
                                             placeholder="Select Spec..."
-                                            focusColor="orange"
+                                            focusColor={THEME}
                                         />
                                     </td>
 
@@ -401,10 +401,10 @@ export default function Masonry() { // Renamed to Masonry
                 <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end rounded-b-xl">
                     <ActionButton
                         onClick={calculateWall}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto"
+
                     />
                 </div>
             </Card>
@@ -506,3 +506,5 @@ export default function Masonry() { // Renamed to Masonry
         </div>
     );
 }
+
+

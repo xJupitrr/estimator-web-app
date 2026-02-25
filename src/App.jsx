@@ -29,6 +29,7 @@ import { getSessionData } from './utils/sessionCache';
 import SessionImportModal from './components/modals/SessionImportModal';
 import SessionExportModal from './components/modals/SessionExportModal';
 import SessionLoadDashboard from './components/modals/SessionLoadDashboard';
+import Manual from './components/Manual';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -50,6 +51,7 @@ const TABS = [
     { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
     { id: 'rebar-schedule', label: 'Rebar Bending Schedule', component: RebarSchedule, icon: Scissors },
     { id: 'rebar-cutting-schedule', label: 'Rebar Cutting Schedule', component: RebarCuttingSchedule, icon: Scissors },
+    { id: 'manual', label: 'Manual & FAQ', component: Manual, icon: Info },
 ];
 
 const TAB_CATEGORIES = [
@@ -80,6 +82,13 @@ const TAB_CATEGORIES = [
         code: "MEP-04",
         color: "yellow",
         tabs: ['electrical', 'plumbing']
+    },
+    {
+        title: "Help & Docs",
+        id: "help",
+        code: "HLP-05",
+        color: "slate",
+        tabs: ['manual']
     }
 ];
 
@@ -440,7 +449,7 @@ export default function App() {
 
     return (
         <div
-            className="min-h-screen bg-gray-50 font-sans flex flex-col relative print:block print:min-h-min"
+            className="h-screen overflow-hidden bg-gray-50 font-sans flex flex-col relative print:block print:h-auto print:overflow-visible"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -609,10 +618,10 @@ export default function App() {
             />
 
             {/* Main Layout */}
-            <div className={`flex flex-1 container mx-auto max-w-full ${activeTabId === 'home' ? 'p-0' : 'p-6 gap-6'} relative print:block print:p-0`}>
+            <div className={`flex flex-1 overflow-hidden container mx-auto max-w-full ${activeTabId === 'home' ? 'p-0' : 'p-6 gap-6'} relative print:block print:overflow-visible print:p-0`}>
 
                 {/* Main Content Area */}
-                <main className="flex-1 min-w-0 print:block">
+                <main className="flex-1 min-w-0 h-full overflow-y-auto hide-scrollbar print:block print:overflow-visible pb-12">
                     {activeTabId === 'home' ? (
                         <LandingPage
                             tabs={TABS}
@@ -661,8 +670,8 @@ export default function App() {
 
                 {/* Right Sidebar Tabs - Only show when NOT on home */}
                 {activeTabId !== 'home' && (
-                    <aside className="w-64 flex-shrink-0 hidden lg:block print:hidden">
-                        <div className="sticky top-24 space-y-6">
+                    <aside className="w-64 flex-shrink-0 hidden lg:block h-full overflow-y-auto hide-scrollbar print:hidden">
+                        <div className="space-y-6 pb-24">
                             {TAB_CATEGORIES.map((category) => (
                                 <div key={category.id} className="space-y-2">
                                     <div className="flex items-center justify-between px-2 mb-3">

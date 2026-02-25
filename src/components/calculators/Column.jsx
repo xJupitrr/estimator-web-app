@@ -234,7 +234,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                     actions={
                         <ActionButton
                             onClick={addColumn}
-                            label="Add Row"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -276,23 +276,23 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                         </div>
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <TableNumberInput value={col.quantity} onChange={(val) => handleColumnChange(col.id, 'quantity', val)} placeholder="1" className="font-bold focus:ring-indigo-400" />
+                                        <TableNumberInput value={col.quantity} onChange={(val) => handleColumnChange(col.id, 'quantity', val)} placeholder="1" className="font-bold" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
-                                            <TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" className="pr-6 focus:ring-indigo-400" />
+                                            <TableNumberInput value={col.length_m} onChange={(val) => handleColumnChange(col.id, 'length_m', val)} placeholder="0.40" className="pr-6" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
-                                            <TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" className="pr-6 focus:ring-indigo-400" />
+                                            <TableNumberInput value={col.width_m} onChange={(val) => handleColumnChange(col.id, 'width_m', val)} placeholder="0.40" className="pr-6" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <div className="relative">
-                                            <TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" className="pr-6 focus:ring-indigo-400" />
+                                            <TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" className="pr-6" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
                                     </td>
@@ -320,12 +320,12 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             options={availableTieSKUs.map(sku => ({ value: sku.id, label: sku.display }))}
                                             placeholder="SKU"
                                             className="text-[10px] h-9"
-                                            focusColor="indigo"
+                                            focusColor={THEME}
                                         />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/10`}>
                                         <div className="relative">
-                                            <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="150" className="h-9 font-bold pr-6 focus:ring-indigo-400 shadow-sm" />
+                                            <TableNumberInput value={col.tie_spacing_mm} onChange={(val) => handleColumnChange(col.id, 'tie_spacing_mm', val)} placeholder="150" className="h-9 font-bold pr-6 shadow-sm" />
                                             <span className="absolute right-2 top-2.5 text-[10px] text-gray-400 pointer-events-none font-sans">mm</span>
                                         </div>
                                     </td>
@@ -347,10 +347,10 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                 <div className="p-4 bg-white border-none flex justify-end">
                     <ActionButton
                         onClick={handleCalculate}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="py-3 px-8"
+
                     />
                 </div>
             </Card >
@@ -597,7 +597,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                         </div>
                                                     </div>
                                                     <div className="text-right no-print">
-                                                        <div className={`font-mono font-bold text-lg leading-none ${(item.optimization?.efficiency > 0.9) ? 'text-emerald-600' : 'text-blue-600'}`}>
+                                                        <div className={`font-mono font-bold text-lg leading-none ${(item.optimization?.efficiency > 0.9) ? 'text-emerald-600' : `text-${THEME}-600`}`}>
                                                             {((item.optimization?.efficiency || 0) * 100).toFixed(1)}%
                                                         </div>
                                                     </div>
@@ -674,7 +674,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="text-sm font-bold text-zinc-900 font-mono leading-none underline decoration-orange-400 decoration-2 underline-offset-4">{item.qty} PCS</span>
+                                                        <span className={`text-sm font-bold text-zinc-900 font-mono leading-none underline decoration-${THEME}-400 decoration-2 underline-offset-4`}>{item.qty} PCS</span>
                                                     </div>
                                                 </div>
                                                 <table className="w-full text-[10px] font-mono text-left border-collapse border-none">
@@ -705,7 +705,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                                             const countResult = (group?.cuts || []).filter(c => `${(parseFloat(c?.length) || 0).toFixed(3)}|${c?.label || ''}` === cutKey).length;
                                                                             return (
                                                                                 <span key={lIdx} className="bg-zinc-50 px-2 py-0.5 border border-zinc-100 rounded shadow-sm text-[9px] font-bold">
-                                                                                    <span className="text-indigo-600 underline decoration-1 underline-offset-2 italic">{countResult}x</span> {(parseFloat(lenStr) || 0).toFixed(2)}m <span className="text-[8px] text-zinc-400 font-normal">[{label}]</span>
+                                                                                    <span className={`text-${THEME}-600 underline decoration-1 underline-offset-2 italic`}>{countResult}x</span> {(parseFloat(lenStr) || 0).toFixed(2)}m <span className="text-[8px] text-zinc-400 font-normal">[{label}]</span>
                                                                                 </span>
                                                                             );
                                                                         })}
@@ -747,13 +747,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                         style={{ left: contextMenu.x, top: contextMenu.y }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button onClick={() => duplicateColumn(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors">
+                        <button onClick={() => duplicateColumn(contextMenu.id)} className={`w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-${THEME}-50 flex items-center gap-3 uppercase tracking-wider transition-colors`}>
                             <Copy size={14} className="text-slate-400" /> Duplicate Mark
                         </button>
-                        <button onClick={() => handleAddRowAbove(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors border-b border-slate-50">
+                        <button onClick={() => handleAddRowAbove(contextMenu.id)} className={`w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-${THEME}-50 flex items-center gap-3 uppercase tracking-wider transition-colors border-b border-slate-50`}>
                             <ArrowUp size={14} className="text-slate-400" /> Add Mark Above
                         </button>
-                        <button onClick={() => handleToggleExcludeRow(contextMenu.id)} className="w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-indigo-50 flex items-center gap-3 uppercase tracking-wider transition-colors mt-1 font-mono">
+                        <button onClick={() => handleToggleExcludeRow(contextMenu.id)} className={`w-full px-4 py-2.5 text-left text-[11px] font-bold text-slate-700 hover:bg-${THEME}-50 flex items-center gap-3 uppercase tracking-wider transition-colors mt-1 font-mono`}>
                             {columns.find(c => c.id === contextMenu.id)?.isExcluded
                                 ? <><Eye size={14} className="text-emerald-500" /> Include in BoQ</>
                                 : <><EyeOff size={14} className="text-rose-500" /> Exclude from BoQ</>
@@ -767,3 +767,5 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
 });
 
 export default Column;
+
+

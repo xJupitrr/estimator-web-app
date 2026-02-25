@@ -210,7 +210,7 @@ export default function DoorsWindows() {
                     actions={
                         <ActionButton
                             onClick={handleAddRow}
-                            label="Add Row"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -339,10 +339,10 @@ export default function DoorsWindows() {
                 <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end rounded-b-xl">
                     <ActionButton
                         onClick={calculateMaterials}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto"
+                        
                     />
                 </div>
             </Card>
@@ -454,3 +454,5 @@ export default function DoorsWindows() {
         </div>
     );
 }
+
+

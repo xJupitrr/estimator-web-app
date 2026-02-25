@@ -123,8 +123,8 @@ const PLUMBING_ITEMS = {
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
     quantity: "",
-    category: 'fixtures',
-    type: 'wc',
+    category: "",
+    type: "",
     description: '',
     isExcluded: false,
 });
@@ -139,9 +139,9 @@ export default function Plumbing() {
         setRows(prev => prev.map(r => {
             if (r.id === id) {
                 const updatedRow = { ...r, [field]: value };
-                // If category changed, reset type (item) to first available in new category
+                // If category changed, reset type (item) to empty to allow placeholder text
                 if (field === 'category') {
-                    updatedRow.type = PLUMBING_ITEMS[value][0].id;
+                    updatedRow.type = "";
                 }
                 return updatedRow;
             }
@@ -278,7 +278,7 @@ export default function Plumbing() {
                     actions={
                         <ActionButton
                             onClick={handleAddRow}
-                            label="Add Row"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -327,15 +327,17 @@ export default function Plumbing() {
                                             options={PLUMBING_CATEGORIES.map(c => ({ id: c.id, display: c.label }))}
                                             focusColor={THEME}
                                             className="text-xs"
+                                            placeholder="Select Category..."
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={row.type}
                                             onChange={(val) => handleRowChange(row.id, 'type', val)}
-                                            options={PLUMBING_ITEMS[row.category].map(t => ({ id: t.id, display: t.label }))}
+                                            options={row.category ? (PLUMBING_ITEMS[row.category].map(t => ({ id: t.id, display: t.label }))) : []}
                                             focusColor={THEME}
                                             className="text-xs"
+                                            placeholder="Select Fixture/Material..."
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
@@ -361,10 +363,10 @@ export default function Plumbing() {
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <ActionButton
                         onClick={handleCalculate}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="w-full sm:w-auto px-8 py-3 uppercase"
+
                     />
                 </div>
             </Card>
@@ -435,3 +437,5 @@ export default function Plumbing() {
         </div>
     );
 }
+
+

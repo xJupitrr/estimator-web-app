@@ -267,8 +267,8 @@ const ELECTRICAL_ITEMS = {
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
     quantity: "",
-    category: 'lighting',
-    type: 'led_bulb_9w',
+    category: "",
+    type: "",
     description: '',
     isExcluded: false,
 });
@@ -290,7 +290,8 @@ export default function Electrical() {
     // Migration: Fix legacy 'points' category if present in local storage
     useEffect(() => {
         setRows(prev => prev.map(r => {
-            if (r.category === 'points' || !ELECTRICAL_ITEMS[r.category]) {
+            // Only migrate if category is NOT empty and either 'points' or not in items list
+            if (r.category !== "" && (r.category === 'points' || !ELECTRICAL_ITEMS[r.category])) {
                 return {
                     ...r,
                     category: 'devices',
@@ -305,10 +306,10 @@ export default function Electrical() {
         setRows(prev => prev.map(r => {
             if (r.id === id) {
                 const updatedRow = { ...r, [field]: value };
-                // If category changed, reset type (item) to first available in new category
+                // If category changed, reset type (item) to empty to force placeholder
                 if (field === 'category') {
                     // Access the first option of the first group
-                    updatedRow.type = ELECTRICAL_ITEMS[value][0].options[0].id;
+                    updatedRow.type = "";
                 }
                 return updatedRow;
             }
@@ -436,7 +437,7 @@ export default function Electrical() {
                     actions={
                         <ActionButton
                             onClick={handleAddRow}
-                            label="Add Row"
+                            label="Add Row" variant="addRow"
                             icon={PlusCircle}
                             colorTheme={THEME}
                         />
@@ -485,15 +486,17 @@ export default function Electrical() {
                                             options={ELECTRICAL_CATEGORIES.map(c => ({ id: c.id, display: c.label }))}
                                             focusColor={THEME}
                                             className="text-xs"
+                                            placeholder="Select Category..."
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
                                             value={row.type}
                                             onChange={(val) => handleRowChange(row.id, 'type', val)}
-                                            options={ELECTRICAL_ITEMS[row.category] || []}
+                                            options={row.category ? (ELECTRICAL_ITEMS[row.category] || []) : []}
                                             focusColor={THEME}
                                             className="text-xs"
+                                            placeholder="Select Equipment/Device..."
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
@@ -519,10 +522,10 @@ export default function Electrical() {
                 <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <ActionButton
                         onClick={handleCalculate}
-                        label="CALCULATE"
+                        label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        className="py-3 px-8"
+
                     />
                 </div>
             </Card>
@@ -599,3 +602,5 @@ export default function Electrical() {
         </div>
     );
 }
+
+
