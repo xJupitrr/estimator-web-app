@@ -7,11 +7,9 @@ import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/desig
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import Card from '../common/Card';
-import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
-import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.formworks;
 
@@ -363,18 +361,9 @@ export default function Formworks({ columns = [], beams = [] }) {
                                 <h3 className="font-bold text-2xl text-gray-800">Formwork Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
                             </div>
-                            <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
-                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
-                                </div>
-                                <ExportButtons
-                                    onCopy={async () => {
-                                        const success = await copyToClipboard(result.items);
-                                        if (success) alert('Table copied to clipboard!');
-                                    }}
-                                    onDownload={() => downloadCSV(result.items, 'formworks_estimate.csv')}
-                                />
+                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
                             </div>
                         </div>
 

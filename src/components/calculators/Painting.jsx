@@ -7,7 +7,6 @@ import SelectInput from '../common/SelectInput';
 import { calculatePainting, DEFAULT_PRICES } from '../../utils/calculations/paintingCalculator';
 
 
-import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
@@ -303,18 +302,9 @@ export default function Painting() {
                                 <h3 className="font-bold text-2xl text-gray-800">Painting Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Surface Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
                             </div>
-                            <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
-                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
-                                </div>
-                                <ExportButtons
-                                    onCopy={async () => {
-                                        const success = await copyToClipboard(result.items);
-                                        if (success) alert('Table copied to clipboard!');
-                                    }}
-                                    onDownload={() => downloadCSV(result.items, 'painting_estimate.csv')}
-                                />
+                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             </div>
                         </div>
 

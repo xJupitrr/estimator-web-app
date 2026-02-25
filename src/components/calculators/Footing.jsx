@@ -13,7 +13,6 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
-import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.footing;
 const getAlphabeticalIndex = (n) => {
@@ -355,26 +354,36 @@ export default function Footing() {
                                 <p className="text-sm text-gray-500 mt-1">Total Concrete Volume: <strong className="text-gray-700">{footingResult.volume} m³</strong></p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {footingResult.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="flex gap-2 w-full justify-between items-center flex-row-reverse">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(footingResult.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(footingResult.items, 'footing_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
                                     <button
                                         onClick={() => setShowAnalysis(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
                                     >
                                         <Scissors size={14} /> Cutting Analysis
                                     </button>
-                                    <ExportButtons
-                                        onCopy={async () => {
-                                            const success = await copyToClipboard(footingResult.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        onDownload={() => downloadCSV(footingResult.items, 'footing_estimate.csv')}
-                                    />
                                 </div>
                             </div>
                         </div>

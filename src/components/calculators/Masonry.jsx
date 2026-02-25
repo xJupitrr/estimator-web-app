@@ -10,7 +10,6 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
-import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.masonry;
 
@@ -425,19 +424,31 @@ export default function Masonry() { // Renamed to Masonry
                                 <p className="text-sm text-gray-500 mt-1">Based on <strong className="text-gray-700">{wallResult.quantity}</strong> wall configurations totaling <strong className="text-gray-700">{wallResult.area} m²</strong> area.</p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {wallResult.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <ExportButtons
-                                    onCopy={async () => {
-                                        const success = await copyToClipboard(wallResult.items);
-                                        if (success) alert('Table copied to clipboard!');
-                                    }}
-                                    onDownload={() => downloadCSV(wallResult.items, 'masonry_estimate.csv')}
-                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(wallResult.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(wallResult.items, 'masonry_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

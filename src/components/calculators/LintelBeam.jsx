@@ -10,7 +10,6 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.lintel;
 
@@ -348,21 +347,34 @@ export default function LintelBeam() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <ExportButtons
-                                    onCopy={async () => {
-                                        const success = await copyToClipboard(result.items);
-                                        if (success) alert('Table copied to clipboard!');
-                                    }}
-                                    onDownload={() => downloadCSV(result.items, 'lintel_estimation.csv')}
-                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'lintel_estimation.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                </div>
                             </div>
                         </div>
+
                         <div className={TABLE_UI.CONTAINER}>
                             <table className={TABLE_UI.TABLE}>
                                 <thead className={TABLE_UI.HEADER_ROW}>

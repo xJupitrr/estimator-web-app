@@ -8,7 +8,6 @@ import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
-import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.doors;
@@ -374,17 +373,26 @@ export default function DoorsWindows() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
                                     <p className={`text-xs text-${THEME}-800 font-bold uppercase tracking-wide mb-1`}>Grand Total Estimated Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <ExportButtons
-                                    onCopy={async () => {
-                                        const success = await copyToClipboard(result.items);
-                                        if (success) alert('Table copied to clipboard!');
-                                    }}
-                                    onDownload={() => downloadCSV(result.items, 'doors_windows_estimation.csv')}
-                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => copyToClipboard(result.items)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                        title="Copy table to clipboard"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'doors_windows_estimation.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> CSV
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

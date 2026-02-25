@@ -7,7 +7,6 @@ import SelectInput from '../common/SelectInput';
 import { calculateColumn } from '../../utils/calculations/columnCalculator';
 import { MATERIAL_DEFAULTS } from '../../constants/materials';
 
-import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
@@ -386,26 +385,36 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                 <p className="text-sm text-gray-500 mt-1 italic">Based on <strong className="text-gray-700">{columns.filter(c => !c.isExcluded).length}</strong> column marks totaling <strong className="text-gray-700">{result.volume} m³</strong> concrete.</p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="flex gap-2 w-full justify-between items-center flex-row-reverse">
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'column_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
                                     <button
                                         onClick={() => setViewingPatterns(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
                                     >
                                         <Scissors size={14} /> Cutting Analysis
                                     </button>
-                                    <ExportButtons
-                                        onCopy={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        onDownload={() => downloadCSV(result.items, 'column_estimate.csv')}
-                                    />
                                 </div>
                             </div>
                         </div>
@@ -453,8 +462,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                         </div>
                     </div>
                 </Card>
-            )
-            }
+            )}
 
             {/* Set Config Modal */}
             {
