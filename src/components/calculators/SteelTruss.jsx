@@ -210,19 +210,19 @@ export default function SteelTruss() {
                 >
                     <button
                         onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors`}
                     >
                         <Copy size={14} className="text-slate-400" /> Duplicate Part
                     </button>
                     <button
                         onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors border-b border-slate-50`}
                     >
                         <ArrowUp size={14} className="text-slate-400" /> Add Part Above
                     </button>
                     <button
                         onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-${THEME}-50 transition-colors`}
                     >
                         {trussParts.find(p => p.id === contextMenu.id)?.isExcluded
                             ? <><Eye size={14} className="text-emerald-500" /> Include Part</>
@@ -295,7 +295,7 @@ export default function SteelTruss() {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
                 <SectionHeader
                     title="Steel Truss Component List"
                     icon={Box}
@@ -380,7 +380,7 @@ export default function SteelTruss() {
                         label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        
+
                     />
                 </div>
             </Card >
@@ -398,7 +398,7 @@ export default function SteelTruss() {
             )}
 
             {estimationResults && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-8">
                         <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-6">
                             <div>

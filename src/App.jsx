@@ -80,7 +80,7 @@ const TAB_CATEGORIES = [
         title: "MEP Works",
         id: "mep",
         code: "MEP-04",
-        color: "yellow",
+        color: "amber",
         tabs: ['electrical', 'plumbing']
     },
     {
@@ -385,6 +385,8 @@ export default function App() {
     };
 
     const activeTabLabel = TABS.find(tab => tab.id === activeTabId)?.label;
+    const activeCategory = TAB_CATEGORIES.find(cat => cat.tabs.includes(activeTabId));
+    const accentColor = activeCategory ? activeCategory.color : 'blue';
 
     // --- Drag & Drop Handlers ---
     const [isDragging, setIsDragging] = useState(false);
@@ -557,7 +559,7 @@ export default function App() {
 
                     </div>
                     {/* Technical decorative line */}
-                    <div className="h-[2px] w-full bg-blue-600"></div>
+                    <div className={`h-[2px] w-full bg-${accentColor}-600 shadow-sm`}></div>
                 </header>
             )}
 

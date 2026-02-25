@@ -8,6 +8,7 @@ import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
+import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.doors;
@@ -202,7 +203,7 @@ export default function DoorsWindows() {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
                 <SectionHeader
                     title={`Door & Window Specification (${items.length} Total)`}
                     icon={DoorOpen}
@@ -342,7 +343,7 @@ export default function DoorsWindows() {
                         label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        
+
                     />
                 </div>
             </Card>
@@ -361,7 +362,7 @@ export default function DoorsWindows() {
 
             {/* RESULT CARD */}
             {result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -373,26 +374,17 @@ export default function DoorsWindows() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
                                     <p className={`text-xs text-${THEME}-800 font-bold uppercase tracking-wide mb-1`}>Grand Total Estimated Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => copyToClipboard(result.items)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                        title="Copy table to clipboard"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'doors_windows_estimation.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> CSV
-                                    </button>
-                                </div>
+                                <ExportButtons
+                                    onCopy={async () => {
+                                        const success = await copyToClipboard(result.items);
+                                        if (success) alert('Table copied to clipboard!');
+                                    }}
+                                    onDownload={() => downloadCSV(result.items, 'doors_windows_estimation.csv')}
+                                />
                             </div>
                         </div>
 

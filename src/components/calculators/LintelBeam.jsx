@@ -10,6 +10,7 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
+import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.lintel;
 
@@ -175,7 +176,7 @@ export default function LintelBeam() {
 
     return (
         <div className="space-y-6">
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
                 <SectionHeader
                     title="Lintel Beam General Specifications"
                     icon={Settings}
@@ -265,7 +266,7 @@ export default function LintelBeam() {
                 </div>
             </Card>
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
                 <SectionHeader
                     title="Opening Detection"
                     icon={DoorOpen}
@@ -317,7 +318,7 @@ export default function LintelBeam() {
                         label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        
+
                     />
                 </div>
             </Card>
@@ -335,7 +336,7 @@ export default function LintelBeam() {
             )}
 
             {showResult && result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -347,34 +348,21 @@ export default function LintelBeam() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
                                         {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'lintel_estimation.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
-                                </div>
+                                <ExportButtons
+                                    onCopy={async () => {
+                                        const success = await copyToClipboard(result.items);
+                                        if (success) alert('Table copied to clipboard!');
+                                    }}
+                                    onDownload={() => downloadCSV(result.items, 'lintel_estimation.csv')}
+                                />
                             </div>
                         </div>
-
                         <div className={TABLE_UI.CONTAINER}>
                             <table className={TABLE_UI.TABLE}>
                                 <thead className={TABLE_UI.HEADER_ROW}>

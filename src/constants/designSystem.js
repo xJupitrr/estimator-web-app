@@ -55,9 +55,9 @@ export const CARD_UI = {
 
 // --- INPUT FIELD STYLES ---
 export const INPUT_UI = {
-    STANDARD: 'w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all',
-    TABLE_INPUT: 'w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-indigo-500 outline-none font-medium bg-white text-slate-900',
-    Select: 'w-full p-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer',
+    STANDARD: 'w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all',
+    TABLE_INPUT: 'w-full p-1.5 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium bg-white text-slate-900',
+    Select: 'w-full p-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer',
 };
 
 // --- BUTTON STYLES ---
@@ -66,6 +66,7 @@ export const BUTTON_UI = {
     SECONDARY: 'px-4 py-2 bg-white text-slate-700 border border-slate-300 rounded-lg font-semibold hover:bg-slate-50 transition-colors shadow-sm active:scale-95 disabled:opacity-50',
     DANGER: 'px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg font-semibold hover:bg-red-100 transition-colors active:scale-95',
     ICON: 'p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors',
+    EXPORT: 'flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm no-print',
 };
 
 // --- LEGACY THEME SUPPORT ---
@@ -82,6 +83,9 @@ export const THEME_COLORS = {
     roofing: 'blue',
     stairs: 'blue',
     tanks: 'blue',
+    concrete_wall: 'blue',
+    rebar_schedule: 'blue',
+    rebar_cutting_schedule: 'blue',
 
     // --- Finishes (Emerald) ---
     masonry: 'emerald',

@@ -7,9 +7,11 @@ import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/desig
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import Card from '../common/Card';
+import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.formworks;
 
@@ -135,7 +137,7 @@ export default function Formworks({ columns = [], beams = [] }) {
         <div className="space-y-6">
             {/* AUTOMATED IMPORT BARD */}
             {/* AUTOMATED IMPORT BARD */}
-            <Card className={`p-4 border-l-4 border-l-${THEME}-600 flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+            <Card className="p-4 border-l-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm bg-white rounded-xl" style={{ borderLeft: '4px solid #ea580c' }}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
                     <h2 className={`font-bold text-${THEME}-900 flex items-center gap-2 text-sm whitespace-nowrap`}>
                         <LayoutTemplate size={18} /> Automated Import
@@ -224,7 +226,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #ea580c' }}>
                 <SectionHeader
                     title="Manual Formwork Entry"
                     icon={Hammer}
@@ -354,16 +356,25 @@ export default function Formworks({ columns = [], beams = [] }) {
             )}
 
             {result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 border-l-${THEME}-600`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 shadow-md bg-white rounded-xl" style={{ borderLeft: '4px solid #ea580c' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Formwork Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
                             </div>
-                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
-                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
+                                </div>
+                                <ExportButtons
+                                    onCopy={async () => {
+                                        const success = await copyToClipboard(result.items);
+                                        if (success) alert('Table copied to clipboard!');
+                                    }}
+                                    onDownload={() => downloadCSV(result.items, 'formworks_estimate.csv')}
+                                />
                             </div>
                         </div>
 

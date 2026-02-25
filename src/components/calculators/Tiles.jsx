@@ -10,6 +10,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.tiles;
@@ -131,22 +132,13 @@ export default function Tiles() {
                     style={{ left: contextMenu.x, top: contextMenu.y }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <button
-                        onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                    <button onClick={() => handleDuplicateRow(contextMenu.id)} className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors`}>
+                        <Copy size={14} className="text-slate-400" /> Duplicate Row
                     </button>
-                    <button
-                        onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
-                    >
+                    <button onClick={() => handleAddRowAbove(contextMenu.id)} className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors border-b border-${THEME}-500`}>
                         <ArrowUp size={14} className="text-slate-400" /> Add Row Above
                     </button>
-                    <button
-                        onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
+                    <button onClick={() => handleToggleExcludeRow(contextMenu.id)} className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-${THEME}-50 transition-colors`}>
                         {rows.find(r => r.id === contextMenu.id)?.isExcluded
                             ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
                             : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
@@ -155,7 +147,7 @@ export default function Tiles() {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #059669' }}>
                 <SectionHeader
                     title="Floor Tiles Area Configuration"
                     icon={LayoutGrid}
@@ -298,16 +290,25 @@ export default function Tiles() {
             )}
 
             {result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Tiles Estimation Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Floor Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
                             </div>
-                            <div className="text-left md:text-right bg-indigo-50 px-5 py-3 rounded-xl border border-indigo-100">
-                                <p className="text-xs text-indigo-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                <p className="font-bold text-4xl text-indigo-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                                <ExportButtons
+                                    onCopy={async () => {
+                                        const success = await copyToClipboard(result.items);
+                                        if (success) alert('Table copied to clipboard!');
+                                    }}
+                                    onDownload={() => downloadCSV(result.items, 'tiles_estimate.csv')}
+                                />
                             </div>
                         </div>
 

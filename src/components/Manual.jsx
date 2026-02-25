@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Info, HelpCircle, BookOpen, Layers, Columns, Box, Paintbrush, Zap, Droplets, Tent, Construction, Scissors, Grid3X3, Hammer, DoorOpen, LayoutTemplate, PenTool, SquareStack, Cloud, ChevronDown } from 'lucide-react';
+import { THEME_COLORS, CARD_UI } from '../constants/designSystem';
 
 const Manual = () => {
+    const THEME = 'slate'; // Fixed theme for Manual
     // State to toggle specific module explanations to keep UI clean
     const [openModules, setOpenModules] = useState({});
 
@@ -203,7 +205,7 @@ const Manual = () => {
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* Header */}
-            <div className="bg-white p-6 rounded-sm border border-zinc-200 shadow-sm relative overflow-hidden">
+            <div className={`bg-white p-6 rounded-sm border-t-4 border-t-${THEME}-500 border-x border-b border-zinc-200 shadow-sm relative overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full translate-x-1/3 -translate-y-1/3 opacity-50 pointer-events-none"></div>
                 <div className="relative z-10 flex items-start gap-4">
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-sm">
@@ -222,7 +224,7 @@ const Manual = () => {
 
                 {/* Left Side: General FAQ */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-white p-6 rounded-sm border border-zinc-200 shadow-sm">
+                    <div className={`bg-white p-6 rounded-sm border-l-4 border-l-${THEME}-500 border-y border-r border-zinc-200 shadow-sm`}>
                         <div className="flex items-center gap-2 mb-4 pb-2 border-b border-zinc-100">
                             <HelpCircle size={18} className="text-blue-600" />
                             <h3 className="text-md font-bold text-zinc-800 uppercase tracking-widest">General FAQ</h3>
@@ -255,7 +257,7 @@ const Manual = () => {
 
                 {/* Right Side: Specific Calculation Methodologies */}
                 <div className="lg:col-span-3 space-y-4">
-                    <div className="bg-white p-6 rounded-sm border border-zinc-200 shadow-sm mb-4">
+                    <div className={`bg-white p-6 rounded-sm border-l-4 border-l-${THEME}-500 border-y border-r border-zinc-200 shadow-sm mb-4`}>
                         <div className="flex items-center gap-2 pb-2 border-b border-zinc-100">
                             <Info size={18} className="text-blue-600" />
                             <h3 className="text-md font-bold text-zinc-800 uppercase tracking-widest">In-Depth Modulator Algorithms</h3>

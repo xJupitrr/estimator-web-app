@@ -11,6 +11,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.plumbing;
@@ -248,19 +249,19 @@ export default function Plumbing() {
                 >
                     <button
                         onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors`}
                     >
                         <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
                     </button>
                     <button
                         onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors border-b border-slate-50`}
                     >
                         <ArrowUp size={14} className="text-slate-400" /> Add Row Above
                     </button>
                     <button
                         onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-${THEME}-50 transition-colors`}
                     >
                         {rows.find(r => r.id === contextMenu.id)?.isExcluded
                             ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
@@ -270,7 +271,7 @@ export default function Plumbing() {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #d97706' }}>
                 <SectionHeader
                     title="Plumbing Works Configuration"
                     icon={Droplets}
@@ -384,7 +385,7 @@ export default function Plumbing() {
             )}
 
             {result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500 mt-6`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 mt-6 bg-white rounded-xl" style={{ borderLeft: '4px solid #d97706' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -393,9 +394,18 @@ export default function Plumbing() {
                                     <Info size={14} /> Estimates reflect selected items only (excludes automatic rough-ins)
                                 </p>
                             </div>
-                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
-                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                                <ExportButtons
+                                    onCopy={async () => {
+                                        const success = await copyToClipboard(result.items);
+                                        if (success) alert('Table copied to clipboard!');
+                                    }}
+                                    onDownload={() => downloadCSV(result.items, 'plumbing_estimate.csv')}
+                                />
                             </div>
                         </div>
 
@@ -407,7 +417,7 @@ export default function Plumbing() {
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
                                         <th className={TABLE_UI.HEADER_CELL}>Unit</th>
                                         <th className={`${TABLE_UI.HEADER_CELL_RIGHT} w-[140px]`}>Unit Price (Editable)</th>
-                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-slate-50/50`}>Total</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-${THEME}-50`}>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -425,7 +435,7 @@ export default function Plumbing() {
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-slate-900 bg-slate-50/30 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} font-extrabold text-${THEME}-900 bg-${THEME}-50/20 tabular-nums`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>

@@ -65,7 +65,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             id: "mep",
             code: "MEP-04",
             description: "Mechanical & Electrical",
-            color: "yellow",
+            color: "amber",
             icon: Cpu,
             tools: ['electrical', 'plumbing']
         }

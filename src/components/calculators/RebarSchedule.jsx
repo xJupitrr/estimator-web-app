@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Scissors, Download, Printer, Info, AlertCircle, ChevronDown, ChevronUp, RefreshCw, Layers } from 'lucide-react';
-import { TABLE_UI, CARD_UI } from '../../constants/designSystem';
+import { TABLE_UI, CARD_UI, THEME_COLORS } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import { downloadCSV } from '../../utils/export';
+
+const THEME = THEME_COLORS.rebar_schedule;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONSTANTS
@@ -534,11 +536,11 @@ export default function RebarSchedule() {
     return (
         <div className="space-y-6 printable-flow">
             {/* ── HEADER ── */}
-            <Card className="border-t-4 border-t-zinc-800 shadow-md">
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
                 <SectionHeader
                     title="Rebar Bending Schedule"
                     icon={Scissors}
-                    colorTheme="zinc"
+                    colorTheme={THEME}
                     description="Aggregated bar bending schedule from all structural calculators"
                     actions={
                         <div className="flex items-center gap-2 no-print">
@@ -782,7 +784,7 @@ export default function RebarSchedule() {
 
             {/* ── GRAND TOTAL ── */}
             {!isEmpty && filtered.length > 0 && (
-                <Card className="shadow-md border-l-4 border-l-zinc-800">
+                <Card className={`shadow-md border-l-4 border-l-${THEME}-800`}>
                     <div className="p-5 flex flex-wrap gap-4 items-center justify-between">
                         <div>
                             <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1">Grand Totals (All Rebar)</p>

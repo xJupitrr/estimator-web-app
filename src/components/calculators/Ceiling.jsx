@@ -10,6 +10,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import ExportButtons from '../common/ExportButtons';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.ceiling;
@@ -155,7 +156,7 @@ export default function Ceiling() {
                 </div>
             )}
 
-            <Card className={`border-t-4 border-t-${THEME}-500 shadow-md`}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #059669' }}>
                 <SectionHeader
                     title="Ceiling Area Configuration"
                     icon={Layout}
@@ -273,7 +274,7 @@ export default function Ceiling() {
                         label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-                        
+
                     />
                 </div>
             </Card>
@@ -291,16 +292,25 @@ export default function Ceiling() {
             )}
 
             {result && (
-                <Card className={`animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 border-l-${THEME}-500`}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800">Ceiling Result</h3>
                                 <p className="text-sm text-gray-500 mt-1">Total Ceiling Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
                             </div>
-                            <div className="text-left md:text-right bg-purple-50 px-5 py-3 rounded-xl border border-purple-100">
-                                <p className="text-xs text-purple-600 font-bold uppercase tracking-wide mb-1">Estimated Total Material Cost</p>
-                                <p className="font-bold text-4xl text-purple-700 tracking-tight">₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                                <ExportButtons
+                                    onCopy={async () => {
+                                        const success = await copyToClipboard(result.items);
+                                        if (success) alert('Table copied to clipboard!');
+                                    }}
+                                    onDownload={() => downloadCSV(result.items, 'ceiling_estimate.csv')}
+                                />
                             </div>
                         </div>
 
