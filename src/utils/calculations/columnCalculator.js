@@ -126,7 +126,9 @@ export const calculateColumn = (columns, prices) => {
             const totalTiePieces = numTiesPerCol * qty;
             addRebarReq(tieSku, tieCutLength, totalTiePieces, `${colLabel} Tie`);
 
-            // 4. Tie Wire
+            // 4. Tie Wire — 0.35m of wire per main-bar/tie intersection
+            // Each tie has mainCount corner points; totalTiePieces ties per group of columns
+            const intersections = totalTiePieces * mainCount;
             const wireMeters = intersections * 0.35;
             // 1.05 is the 5% waste factor
             totalTieWireKg += (wireMeters / wireMetersPerKg) * 1.05;

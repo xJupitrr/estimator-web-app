@@ -24,14 +24,14 @@ export const MATERIAL_TYPES = {
 };
 
 export const FILLER_MATERIALS = {
-    // Thermal Fillers
-    glasswool: { label: "Glasswool Insulation (1.2m x 15m Roll)", w: 1.2, l: 15, unit: 'rolls', category: 'Thermal' },
-    pe_foam: { label: "PE Foam Insulation (1m x 50m Roll)", w: 1, l: 50, unit: 'rolls', category: 'Thermal' },
-    eps_foam: { label: "EPS Styrofoam Board (1.2m x 2.4m)", w: 1.2, l: 2.4, unit: 'pcs', category: 'Thermal' },
+    // Thermal Fillers — w × l = coverage face area; t = nominal thickness (m)
+    glasswool: { label: "Glasswool Insulation (1.2m x 15m x 50mm Roll)", w: 1.2, l: 15, t: 0.050, unit: 'rolls', category: 'Thermal' },
+    pe_foam: { label: "PE Foam Insulation (1m x 50m x 12mm Roll)", w: 1.0, l: 50, t: 0.012, unit: 'rolls', category: 'Thermal' },
+    eps_foam: { label: "EPS Styrofoam Board (1.2m x 2.4m x 50mm)", w: 1.2, l: 2.4, t: 0.050, unit: 'pcs', category: 'Thermal' },
 
     // Acoustical Fillers
-    rockwool: { label: "Rockwool Slab (0.6m x 1.2m)", w: 0.6, l: 1.2, unit: 'pcs', category: 'Acoustical' },
-    acoustic_fiberglass: { label: "Acoustic Fiberglass Board (0.6m x 1.2m)", w: 0.6, l: 1.2, unit: 'pcs', category: 'Acoustical' },
+    rockwool: { label: "Rockwool Slab (0.6m x 1.2m x 50mm)", w: 0.6, l: 1.2, t: 0.050, unit: 'pcs', category: 'Acoustical' },
+    acoustic_fiberglass: { label: "Acoustic Fiberglass Board (0.6m x 1.2m x 50mm)", w: 0.6, l: 1.2, t: 0.050, unit: 'pcs', category: 'Acoustical' },
 };
 
 export const DRYWALL_TYPES = [
@@ -182,8 +182,13 @@ export const calculateDrywall = (walls, prices, config = {}) => {
 
         if (filler !== 'none' && FILLER_MATERIALS[filler]) {
             const fillerData = FILLER_MATERIALS[filler];
-            const fillerArea = fillerData.w * fillerData.l;
-            materials[filler] += (area / fillerArea);
+            // TRUE GEOMETRIC VOLUME:
+            // Cavity volume to fill = wall_area × filler_thickness (t)
+            // Volume per unit       = w × l × t
+            // Quantity              = cavity_volume / unit_volume = area / (w × l)
+            const cavityVolume = area * fillerData.t;            // m³ of cavity to fill
+            const unitVolume = fillerData.w * fillerData.l * fillerData.t; // m³ per roll/board
+            materials[filler] += cavityVolume / unitVolume;
         }
 
         processSide(typeA);

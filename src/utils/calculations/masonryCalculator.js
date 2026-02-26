@@ -49,17 +49,50 @@ export const calculateMasonry = (walls, wallPrices) => {
         totalChbCount += chbCount;
 
         // --- 2. Volume Calculation (Wet Volume) ---
-        const sides = parseInt(wall.plasterSides) || 0;
 
-        // Laying Mortar (Standard factor ~0.015 m³/m²)
-        const volumeMortarLaying = area * 0.015;
-        // Plaster (Standard 10mm thickness: 0.01 m³/m² per side)
-        const volumePlaster = area * sides * 0.01;
-        // Accumulate Mortar & Plaster (Cement + Sand only)
-        totalVolumeMortarPlaster += volumeMortarLaying + volumePlaster;
+        // TRUE GEOMETRIC MORTAR VOLUME
+        // Standard joint thickness = 10mm. Block tiling pitch = 0.41m (L) × 0.21m (H).
+        // Block net height (excluding bed joint above) = 0.19m.
+        // Block depth varies by CHB size (nominal in meters):
+        const CHB_DEPTHS = { "4": 0.100, "5": 0.125, "6": 0.150, "8": 0.200 };
+        const JOINT_T = 0.010;       // 10mm joint thickness
+        const TILE_L = 0.41;        // block length + joint (m)
+        const TILE_H = 0.21;        // block height + joint (m)
+        const BLK_H_NET = 0.19;      // block net height (no joint, m)
+        const depth = CHB_DEPTHS[wall.chbSize] || 0.100;
 
-        // Grout Filler (for cores) - (4" CHB: ~0.005 m³/m² | 6" CHB: ~0.01 m³/m²)
-        const groutFactor = wall.chbSize === "4" ? 0.005 : 0.01;
+        // Bed joints  : t × depth × (courses/m) × Area
+        const V_bed = JOINT_T * depth * (1 / TILE_H) * area;
+        // Head joints : t × BLK_H_NET × depth × (joints/m²) × Area
+        //   joints/m² = (1/TILE_L) per course × (1/TILE_H) courses/m
+        const V_head = JOINT_T * BLK_H_NET * depth * (1 / (TILE_L * TILE_H)) * area;
+        const volumeMortarLaying = V_bed + V_head;
+
+        // Plaster: user-defined thickness (mm) per exposed side
+        const plasterSidesCount = parseInt(wall.plasterSides) || 0;
+
+        // Helper: compute plaster wet->dry->cement/sand for one side config
+        const addPlasterSide = (thicknessMm, mixStr) => {
+            const thickM = (parseFloat(thicknessMm) || 10) / 1000;
+            const vol = area * thickM;
+            const [pC, pS] = (mixStr || '1:3').split(':').map(Number);
+            const pTotal = (!isNaN(pC) && !isNaN(pS)) ? pC + pS : 4;
+            const dry = vol * 1.25;
+            totalCementBagsGrout += dry * (pC / pTotal) / 0.035;
+            totalSandCumGrout += dry * (pS / pTotal);
+        };
+
+        if (plasterSidesCount === 1) {
+            addPlasterSide(wall.plasterThickness, wall.plasterMix);
+        } else if (plasterSidesCount === 2) {
+            addPlasterSide(wall.plasterThickness, wall.plasterMix);   // Side A
+            addPlasterSide(wall.plasterThicknessB, wall.plasterMixB);  // Side B
+        }
+
+        // Grout Filler (for cores) — scales with core volume per m²
+        // 4" = 0.005, 5" = 0.0065, 6" = 0.010, 8" = 0.015
+        const groutFactors = { "4": 0.005, "5": 0.0065, "6": 0.010, "8": 0.015 };
+        const groutFactor = groutFactors[wall.chbSize] || 0.005;
         const currentGroutVolume = area * groutFactor;
         // Accumulate Grout (Cement + Sand + Gravel)
         totalVolumeGroutFiller += currentGroutVolume;
@@ -133,7 +166,8 @@ export const calculateMasonry = (walls, wallPrices) => {
     const finalGravel = (totalGravelVolume * 1.05).toFixed(2); // m³ + 5% allowance
 
     // --- Cost Calculation ---
-    const chbKey = walls[0]?.chbSize === "4" ? "chb_4" : "chb_6";
+    const chbKeyMap = { "4": "chb_4", "5": "chb_5", "6": "chb_6", "8": "chb_8" };
+    const chbKey = chbKeyMap[walls[0]?.chbSize] || "chb_4";
     const costCHB = totalChbCount * (wallPrices[chbKey] || 0);
     const costCement = finalCement * wallPrices.cement_40kg;
     const costSand = parseFloat(finalSand) * wallPrices.sand_wash;

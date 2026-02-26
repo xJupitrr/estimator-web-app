@@ -8,6 +8,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import SelectInput from '../common/SelectInput';
 import { getDefaultPrices } from '../../constants/materials';
 import MathInput from '../common/MathInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';

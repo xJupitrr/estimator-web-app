@@ -85,6 +85,7 @@ export const THEME_COLORS = {
     concrete_wall: 'blue',
     rebar_schedule: 'blue',
     rebar_cutting_schedule: 'blue',
+    steel_truss: 'blue',
 
     // --- Finishes (Emerald) ---
     masonry: 'emerald',

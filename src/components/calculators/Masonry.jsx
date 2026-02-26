@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Box } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Box, Edit2, X, Layers } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
 import { getDefaultPrices } from '../../constants/materials';
@@ -34,7 +34,11 @@ const getInitialWall = () => ({
     height: "",
     quantity: "",
     chbSize: "",
-    plasterSides: "",
+    plasterSides: "0",
+    plasterThickness: "10",
+    plasterMix: "1:3",
+    plasterThicknessB: "10",
+    plasterMixB: "1:3",
     // Note: Spacing variables reflect the direction *along which* the spacing is measured.
     horizSpacing: "", // Spacing along the length (controls vertical bars)
     vertSpacing: "", // Spacing along the height (controls horizontal bars)
@@ -58,6 +62,7 @@ export default function Masonry() { // Renamed to Masonry
     // Track if an estimate has been run at least once to enable auto-recalc
     const [hasEstimated, setHasEstimated] = useLocalStorage('masonry_has_estimated', false);
     const [error, setError] = useState(null);
+    const [plasterModal, setPlasterModal] = useState(null); // wall.id when open
 
     // Handler to update a specific wall in the array
     const handleWallChange = (id, field, value) => {
@@ -133,7 +138,7 @@ export default function Masonry() { // Renamed to Masonry
     const calculateWall = () => {
         const hasEmptyFields = walls.some(wall =>
             wall.length === "" || wall.height === "" || wall.vertSpacing === "" || wall.horizSpacing === "" ||
-            wall.chbSize === "" || wall.plasterSides === "" || wall.horizRebarSpec === "" || wall.vertRebarSpec === ""
+            wall.chbSize === "" || wall.horizRebarSpec === "" || wall.vertRebarSpec === ""
         );
 
         if (hasEmptyFields) {
@@ -176,6 +181,98 @@ export default function Masonry() { // Renamed to Masonry
 
     return (
         <div className="space-y-6">
+
+            {/* PLASTER CONFIG MODAL */}
+            {plasterModal && (() => {
+                const pw = walls.find(w => w.id === plasterModal);
+                if (!pw) return null;
+                const PLASTER_MIXES = ['1:1', '1:2', '1:3', '1:4'];
+                return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white w-full max-w-md rounded-xl shadow-2xl border border-zinc-200 flex flex-col animate-in zoom-in-95 duration-200">
+                            {/* Header */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50 rounded-t-xl">
+                                <div>
+                                    <h3 className="font-bold text-lg text-zinc-800 flex items-center gap-2"><Layers size={18} className="text-emerald-600" /> Plaster Configuration</h3>
+                                    <p className="text-xs text-zinc-500">Wall #{walls.findIndex(w => w.id === plasterModal) + 1}</p>
+                                </div>
+                                <button onClick={() => setPlasterModal(null)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+                                    <X size={20} className="text-zinc-500" />
+                                </button>
+                            </div>
+                            {/* Body */}
+                            <div className="p-6 space-y-5">
+                                {/* Sides */}
+                                <div>
+                                    <label className="text-xs font-bold text-zinc-600 uppercase tracking-wide mb-2 block">Plastered Sides</label>
+                                    <div className="flex gap-2">
+                                        {[{ id: '0', label: 'None' }, { id: '1', label: '1 Side' }, { id: '2', label: '2 Sides' }].map(opt => (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => handleWallChange(plasterModal, 'plasterSides', opt.id)}
+                                                className={`flex-1 py-2 rounded-lg border text-xs font-bold transition-colors ${(pw.plasterSides || '0') === opt.id
+                                                    ? 'bg-emerald-600 text-white border-emerald-700'
+                                                    : 'bg-white text-zinc-600 border-zinc-200 hover:bg-emerald-50'
+                                                    }`}
+                                            >{opt.label}</button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Thickness + Mix — per-side columns when 2 sides */}
+                                {(pw.plasterSides === '1' || pw.plasterSides === '2') && (() => {
+                                    const twoSides = pw.plasterSides === '2';
+                                    const sides = twoSides
+                                        ? [{ label: 'Side A (Interior)', tKey: 'plasterThickness', mKey: 'plasterMix' }, { label: 'Side B (Exterior)', tKey: 'plasterThicknessB', mKey: 'plasterMixB' }]
+                                        : [{ label: 'Plaster Side', tKey: 'plasterThickness', mKey: 'plasterMix' }];
+                                    return (
+                                        <div className={`grid gap-4 ${twoSides ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                            {sides.map(({ label, tKey, mKey }) => (
+                                                <div key={tKey} className={`space-y-3 ${twoSides ? 'p-3 bg-zinc-50 rounded-lg border border-zinc-100' : ''}`}>
+                                                    {twoSides && <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">{label}</p>}
+                                                    <div>
+                                                        <label className="text-xs font-bold text-zinc-600 uppercase tracking-wide mb-1.5 block">Thickness</label>
+                                                        <div className="relative">
+                                                            <MathInput
+                                                                value={pw[tKey]}
+                                                                onChange={val => handleWallChange(plasterModal, tKey, val)}
+                                                                placeholder="10"
+                                                                className={`${INPUT_UI.TABLE_INPUT} pr-10`}
+                                                            />
+                                                            <span className="absolute right-3 top-2 text-xs text-zinc-400 font-medium">mm</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs font-bold text-zinc-600 uppercase tracking-wide mb-1.5 block">Mortar Mix</label>
+                                                        <div className="grid grid-cols-2 gap-1">
+                                                            {PLASTER_MIXES.map(mix => (
+                                                                <button
+                                                                    key={mix}
+                                                                    onClick={() => handleWallChange(plasterModal, mKey, mix)}
+                                                                    className={`py-1.5 rounded border text-[10px] font-bold font-mono transition-colors ${(pw[mKey] || '1:3') === mix
+                                                                        ? 'bg-emerald-600 text-white border-emerald-700'
+                                                                        : 'bg-white text-zinc-600 border-zinc-200 hover:bg-emerald-50'
+                                                                        }`}
+                                                                >{mix}</button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    );
+                                })()}
+                            </div>{/* end body p-6 */}
+                            {/* Footer */}
+                            <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end rounded-b-xl">
+                                <button onClick={() => setPlasterModal(null)} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 transition-colors">
+                                    Done
+                                </button>
+                            </div>
+                        </div>{/* end modal card */}
+                    </div>
+                );
+            })()}
 
             {/* CONTEXT MENU */}
             {contextMenu && (
@@ -294,25 +391,34 @@ export default function Masonry() { // Renamed to Masonry
                                             onChange={(val) => handleWallChange(wall.id, 'chbSize', val)}
                                             options={[
                                                 { id: "4", display: '4" (10cm)' },
-                                                { id: "6", display: '6" (15cm)' }
+                                                { id: "5", display: '5" (12.5cm)' },
+                                                { id: "6", display: '6" (15cm)' },
+                                                { id: "8", display: '8" (20cm)' },
                                             ]}
                                             placeholder="Select Size..."
                                             focusColor={THEME}
                                         />
                                     </td>
-                                    {/* Plaster Sides */}
-                                    <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={wall.plasterSides}
-                                            onChange={(val) => handleWallChange(wall.id, 'plasterSides', val)}
-                                            options={[
-                                                { id: "0", display: 'None' },
-                                                { id: "1", display: '1 Side' },
-                                                { id: "2", display: '2 Sides' }
-                                            ]}
-                                            placeholder="Select Plaster..."
-                                            focusColor={THEME}
-                                        />
+                                    {/* Plaster — modal button */}
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-emerald-50/20 text-center`}>
+                                        <button
+                                            onClick={() => setPlasterModal(wall.id)}
+                                            className="px-2 py-1.5 bg-white hover:bg-emerald-50 text-emerald-700 hover:text-emerald-800 rounded border border-emerald-200 hover:border-emerald-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[38px]"
+                                        >
+                                            <Edit2 size={11} className="opacity-70 flex-shrink-0" />
+                                            <span className="truncate font-mono">
+                                                {(() => {
+                                                    const s = wall.plasterSides || '0';
+                                                    const tA = wall.plasterThickness || '10';
+                                                    const mA = wall.plasterMix || '1:3';
+                                                    const tB = wall.plasterThicknessB || '10';
+                                                    const mB = wall.plasterMixB || '1:3';
+                                                    if (s === '0') return 'No Plaster';
+                                                    if (s === '1') return `1s / ${tA}mm / ${mA}`;
+                                                    return `2s | A:${tA}mm ${mA} | B:${tB}mm ${mB}`;
+                                                })()}
+                                            </span>
+                                        </button>
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput

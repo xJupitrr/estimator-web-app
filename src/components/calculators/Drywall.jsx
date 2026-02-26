@@ -263,7 +263,7 @@ export default function Drywall() {
                                         <SelectInput
                                             value={row.filler_material}
                                             onChange={(val) => handleRowChange(row.id, 'filler_material', val)}
-                                            options={FILLER_TYPES.map(t => ({ id: t.id, display: t.label }))}
+                                            options={FILLER_TYPES}
                                             focusColor={THEME}
                                             className="text-xs"
                                             placeholder="Filler..."

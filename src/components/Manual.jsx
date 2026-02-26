@@ -104,12 +104,37 @@ const Manual = () => {
             title: 'Masonry Works (CHB)',
             icon: <Box size={16} className="text-emerald-600" />,
             steps: [
-                "CHB Counting (Tiling Method): Blocks lengthwise = ceil(Length / 0.41m). Blocks heightwise = ceil(Height / 0.21m). Formula: ceil(L/0.41) × ceil(H/0.21).",
-                "Mortar (Laying): Area × 0.015 cu.m. per sqm (for 4\"/6\"). Mix 1:3: (Cement = Vol/1.25 * 10; Sand = Vol/1.25 * 3).",
-                "Plastering: Area × Sides × 0.01 cu.m. (assuming 10mm thickness). Mix 1:3.",
-                "Grout (Core Fill): Area × 0.005 cu.m. (4\") or 0.01 cu.m. (6\"). Mix 1:2:4 (includes gravel).",
-                "Reinforcements: Vertical = ceil(Length/Spacing). Horizontal = ceil(Height/(LayerSpacing*0.2)). 40d splices included.",
-                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
+                "CHB Count (Tiling Method): ceil(Length / 0.41m) × ceil(Height / 0.21m) × Quantity. Block pitch is 0.41m (L) × 0.21m (H) including 10mm mortar joint.",
+                "Mortar (Laying) — True Geometric Volume: V_bed = t × depth × (Area / 0.21). V_head = t × 0.19m × depth × (Area / (0.41 × 0.21)). Total wet mortar = V_bed + V_head, where t = 10mm joint thickness.",
+                <div className="mt-1 overflow-x-auto">
+                    <table className="w-full text-[11px] border-collapse">
+                        <thead>
+                            <tr className="bg-zinc-100 text-zinc-600">
+                                <th className="border border-zinc-200 px-2 py-1 text-left font-bold">CHB Size</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">Depth</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">Wet Mortar (m³/m²)</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">Grout Factor (m³/m²)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[
+                                ['4" (10cm)', '100mm', '≈0.00697', '0.0050'],
+                                ['5" (12.5cm)', '125mm', '≈0.00871', '0.0065'],
+                                ['6" (15cm)', '150mm', '≈0.01045', '0.0100'],
+                                ['8" (20cm)', '200mm', '≈0.01393', '0.0150'],
+                            ].map(([size, depth, mortar, grout], i) => (
+                                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}>
+                                    <td className="border border-zinc-200 px-2 py-1 font-semibold text-zinc-800">{size}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center font-mono text-zinc-600">{depth}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center font-mono text-emerald-700">{mortar}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center font-mono text-blue-700">{grout}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>,
+                "Dry Materials: wet_vol × 1.25 (yield) = dry_vol. At 1:3 mix → Cement = dry_vol/4 / 0.035 bags; Sand = dry_vol × 3/4 m³. Grout uses selected concrete mix (yields Cement + Sand + Gravel).",
+                "Reinforcements: Vertical = ceil(Length/Spacing). Horizontal = ceil(Height/LayerSpacing). 40d splices included. Tie Wire: intersections × 0.35m / 53m/kg + 5% waste."
             ]
         },
         {
@@ -150,10 +175,42 @@ const Manual = () => {
             title: 'Drywall Works',
             icon: <Columns size={16} className="text-emerald-600" />,
             steps: [
-                "Sheet Boards: Precision tiling method (orientation check). 5% waste.",
-                "Metal Tracks: Length × 2 (Top + Bottom). Converted to 3.0m commercial lengths.",
-                "Metal Studs: (ceil(Length / 0.4m spacing) + 1) × Height. Converted to 3.0m commercial lengths.",
-                "Accessories: 4 rivets per stud/track connection. Compound and mesh tape estimated per board area."
+                "Sheet Boards: Precision tiling method (orientation check) for Gypsum (9/12/15mm), Fiber Cement (3.5–12mm), Marine Plywood (1/4, 1/2, 3/4\"), WPC Fluted Panels, and Acoustic Boards. 5% waste included.",
+                "Metal Framing: Tracks = Length × 2 ÷ 3.0m. Studs = (ceil(L / 0.4m) + 1) × Height_per_stud ÷ 3.0m. Accessories: 4 rivets/connection, 1.5m mesh tape/m², 1 pail compound/40m².",
+                "Filler Materials — True Geometric Volume: Cavity Volume = Wall Area × Filler Thickness. Unit Volume = w × l × t. Quantity = Cavity Vol / Unit Vol.",
+                <div className="mt-1 overflow-x-auto">
+                    <table className="w-full text-[11px] border-collapse">
+                        <thead>
+                            <tr className="bg-zinc-100 text-zinc-600">
+                                <th className="border border-zinc-200 px-2 py-1 text-left font-bold">Material</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">W × L</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">Thickness</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">Unit</th>
+                                <th className="border border-zinc-200 px-2 py-1 text-center font-bold">Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {[
+                                ['Glasswool Roll', '1.2m × 15m', '50mm', 'rolls', 'Thermal'],
+                                ['PE Foam Roll', '1.0m × 50m', '12mm', 'rolls', 'Thermal'],
+                                ['EPS Foam Board', '1.2m × 2.4m', '50mm', 'pcs', 'Thermal'],
+                                ['Rockwool Slab', '0.6m × 1.2m', '50mm', 'pcs', 'Acoustical'],
+                                ['Acoustic Fiberglass', '0.6m × 1.2m', '50mm', 'pcs', 'Acoustical'],
+                            ].map(([name, dims, thk, unit, cat], i) => (
+                                <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-zinc-50'}>
+                                    <td className="border border-zinc-200 px-2 py-1 font-semibold text-zinc-800">{name}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center font-mono text-zinc-600">{dims}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center font-mono text-blue-700">{thk}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center text-zinc-500">{unit}</td>
+                                    <td className="border border-zinc-200 px-2 py-1 text-center">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${cat === 'Thermal' ? 'bg-orange-100 text-orange-700' : 'bg-indigo-100 text-indigo-700'
+                                            }`}>{cat}</span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>,
             ]
         },
         {
@@ -193,8 +250,11 @@ const Manual = () => {
             title: 'Steel Truss',
             icon: <Construction size={16} className="text-slate-600" />,
             steps: [
-                "Linear Optimization (1D Bin Packing): System identifies every unique cut length required. It then 'packs' these into 6.0m stock bars sequentially using First-Fit-Decreasing algorithm to minimize scrap scrap.",
-                "Kerf Allowance: 5mm is subtracted from stock per cut to account for saw thickness."
+                "Material Types: Angle Bar, C-Channel, Tubular Square, and Tubular Rectangular. Each part entry requires a Type, Size, and Thickness. All standard Philippine market sizes are available (e.g., Angle Bar 25×25 to 100×100mm, C-Channel 75×50 to 200×50mm, Tubulars in all common dimensions).",
+                "Cutting Lengths: Each part defines one or more cut patterns (length × quantity). The system aggregates all cuts per unique material specification.",
+                "Linear Optimization (1D Bin Packing): Cuts are packed into 6.0m stock bars using First-Fit-Decreasing algorithm to minimize scrap. 5mm kerf allowance is deducted per cut.",
+                "Cutting Pattern Map: Visual modal shows each 6m bar as a colored segment diagram with efficiency % and total waste (m) per material type.",
+                "Unit Prices: Pulled from the Materials Price List, keyed by exact type+size+thickness combination (e.g., angle_bar_50mm x 50mm (2\"x2\")_3.0mm)."
             ]
         },
         {
@@ -315,6 +375,9 @@ const Manual = () => {
                                     <div className="p-5 border-t border-zinc-100 bg-white">
                                         <ul className="text-xs text-zinc-600 space-y-3 list-disc list-inside px-2">
                                             {mod.steps.map((step, idx) => {
+                                                if (typeof step !== 'string') {
+                                                    return <li key={idx} className="leading-relaxed list-none -ml-4">{step}</li>;
+                                                }
                                                 const colonIndex = step.indexOf(':');
                                                 if (colonIndex > 0 && colonIndex < 40) {
                                                     const title = step.substring(0, colonIndex);

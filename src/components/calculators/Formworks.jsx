@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
-import { calculateFormworks, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
+import { calculateFormworks, PLYWOOD_OPTIONS, LUMBER_OPTIONS, FORM_TYPE_OPTIONS } from '../../utils/calculations/formworksCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import MathInput from '../common/MathInput';
@@ -21,6 +21,7 @@ const getInitialRow = (data = {}) => ({
     width_m: data.width_m || "",
     height_m: data.height_m || "",
     description: data.description || "",
+    formType: data.formType || "box",
     plywood_type: data.plywood_type || "",
     lumber_size: data.lumber_size || "",
     isExcluded: false,
@@ -37,6 +38,7 @@ export default function Formworks({ columns = [], beams = [] }) {
     const [includeBeams, setIncludeBeams] = useLocalStorage('formworks_include_beams', false);
     const [importPlywood, setImportPlywood] = useLocalStorage('formworks_import_plywood', 'plywood_phenolic_1_2');
     const [importLumber, setImportLumber] = useLocalStorage('formworks_import_lumber', 'lumber_2x3');
+    const [includeWallExtras, setIncludeWallExtras] = useLocalStorage('formworks_include_wall_extras', false);
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
 
     // Close context menu on click anywhere
@@ -104,6 +106,7 @@ export default function Formworks({ columns = [], beams = [] }) {
             wasteLumber,
             includeColumns,
             includeBeams,
+            includeWallExtras,
             importPlywood,
             importLumber,
             columns,
@@ -134,66 +137,6 @@ export default function Formworks({ columns = [], beams = [] }) {
 
     return (
         <div className="space-y-6">
-            {/* AUTOMATED IMPORT BARD */}
-            {/* AUTOMATED IMPORT BARD */}
-            <Card className="p-4 border-l-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm bg-white rounded-xl" style={{ borderLeft: '4px solid #ea580c' }}>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                    <h2 className={`font-bold text-${THEME}-900 flex items-center gap-2 text-sm whitespace-nowrap`}>
-                        <LayoutTemplate size={18} /> Automated Import
-                    </h2>
-
-                    <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors border border-transparent hover:border-gray-200">
-                            <input
-                                type="checkbox"
-                                checked={includeColumns}
-                                onChange={(e) => setIncludeColumns(e.target.checked)}
-                                className={`w-4 h-4 rounded text-${THEME}-600 focus:ring-${THEME}-500 border-gray-300`}
-                            />
-                            <span className="text-sm font-medium text-gray-700">Include Columns <span className="text-xs text-gray-400 font-normal">({columns.length})</span></span>
-                        </label>
-
-                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors border border-transparent hover:border-gray-200">
-                            <input
-                                type="checkbox"
-                                checked={includeBeams}
-                                onChange={(e) => setIncludeBeams(e.target.checked)}
-                                className={`w-4 h-4 rounded text-${THEME}-600 focus:ring-${THEME}-500 border-gray-300`}
-                            />
-                            <span className="text-sm font-medium text-gray-700">Include Beams <span className="text-xs text-gray-400 font-normal">({beams.length})</span></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-[10px] uppercase font-bold text-gray-400">Plywood</span>
-                        </div>
-                        <select
-                            value={importPlywood}
-                            onChange={(e) => setImportPlywood(e.target.value)}
-                            className={`bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-${THEME}-500 focus:border-${THEME}-500 block w-full pl-16 p-2 font-medium hover:bg-white transition-colors cursor-pointer`}
-                        >
-                            {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="text-[10px] uppercase font-bold text-gray-400">Lumber</span>
-                        </div>
-                        <select
-                            value={importLumber}
-                            onChange={(e) => setImportLumber(e.target.value)}
-                            className={`bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-${THEME}-500 focus:border-${THEME}-500 block w-full pl-14 p-2 font-medium hover:bg-white transition-colors cursor-pointer`}
-                        >
-                            {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
-                        </select>
-                    </div>
-                </div>
-            </Card>
-
             {/* CONTEXT MENU */}
             {contextMenu && (
                 <div
@@ -225,6 +168,7 @@ export default function Formworks({ columns = [], beams = [] }) {
                 </div>
             )}
 
+            {/* MANUAL FORMWORK ENTRY */}
             <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #ea580c' }}>
                 <SectionHeader
                     title="Manual Formwork Entry"
@@ -247,9 +191,10 @@ export default function Formworks({ columns = [], beams = [] }) {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Description</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length(M)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width(M)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height(M)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Form Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (M)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[110px]`} title="Wall/Retaining Wall: enter thickness here (optional — controls end caps)">Width / Thickness (M)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (M)</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Plywood</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Lumber</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
@@ -282,6 +227,16 @@ export default function Formworks({ columns = [], beams = [] }) {
                                         <input type="text" value={row.description} onChange={(e) => handleRowChange(row.id, 'description', e.target.value)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 placeholder:text-zinc-400 placeholder:font-normal placeholder:italic`} placeholder="e.g. Stair Formwork" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={row.formType || 'box'}
+                                            onChange={(val) => handleRowChange(row.id, 'formType', val)}
+                                            options={FORM_TYPE_OPTIONS}
+                                            focusColor={THEME}
+                                            className={`text-xs ${row.formType === 'wall' ? 'text-orange-700 font-bold' : ''
+                                                }`}
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput value={row.length_m} onChange={(val) => handleRowChange(row.id, 'length_m', val)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 text-center`} placeholder="0.00" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
@@ -296,7 +251,6 @@ export default function Formworks({ columns = [], beams = [] }) {
                                             onChange={(val) => handleRowChange(row.id, 'plywood_type', val)}
                                             options={PLYWOOD_OPTIONS.map(opt => ({ id: opt.id, display: opt.label }))}
                                             placeholder="Select Plywood..."
-                                            className="text-[10px] h-8"
                                             focusColor={THEME}
                                         />
                                     </td>
@@ -306,7 +260,6 @@ export default function Formworks({ columns = [], beams = [] }) {
                                             onChange={(val) => handleRowChange(row.id, 'lumber_size', val)}
                                             options={LUMBER_OPTIONS.map(opt => ({ id: opt.id, display: opt.label }))}
                                             placeholder="Select Lumber..."
-                                            className="text-[10px] h-8"
                                             focusColor={THEME}
                                         />
                                     </td>
@@ -339,6 +292,79 @@ export default function Formworks({ columns = [], beams = [] }) {
                         colorTheme={THEME}
 
                     />
+                </div>
+            </Card>
+
+            {/* AUTOMATED IMPORT */}
+            <Card className="p-4 border-l-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm bg-white rounded-xl" style={{ borderLeft: '4px solid #ea580c' }}>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                    <h2 className={`font-bold text-${THEME}-900 flex items-center gap-2 text-sm whitespace-nowrap`}>
+                        <LayoutTemplate size={18} /> Automated Import
+                    </h2>
+
+                    <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors border border-transparent hover:border-gray-200">
+                            <input
+                                type="checkbox"
+                                checked={includeColumns}
+                                onChange={(e) => setIncludeColumns(e.target.checked)}
+                                className={`w-4 h-4 rounded text-${THEME}-600 focus:ring-${THEME}-500 border-gray-300`}
+                            />
+                            <span className="text-sm font-medium text-gray-700">Include Columns <span className="text-xs text-gray-400 font-normal">({columns.length})</span></span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1.5 rounded-md transition-colors border border-transparent hover:border-gray-200">
+                            <input
+                                type="checkbox"
+                                checked={includeBeams}
+                                onChange={(e) => setIncludeBeams(e.target.checked)}
+                                className={`w-4 h-4 rounded text-${THEME}-600 focus:ring-${THEME}-500 border-gray-300`}
+                            />
+                            <span className="text-sm font-medium text-gray-700">Include Beams <span className="text-xs text-gray-400 font-normal">({beams.length})</span></span>
+                        </label>
+
+                        {/* Retaining Wall extras confirmation toggle */}
+                        <label className={`flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-md transition-colors border ${includeWallExtras ? 'bg-orange-50 border-orange-300' : 'border-transparent hover:bg-orange-50 hover:border-orange-200'}`}>
+                            <input
+                                type="checkbox"
+                                checked={includeWallExtras}
+                                onChange={(e) => setIncludeWallExtras(e.target.checked)}
+                                className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-gray-300"
+                            />
+                            <span className={`text-sm font-medium ${includeWallExtras ? 'text-orange-700' : 'text-gray-700'}`}>
+                                Include Retaining Wall Extras
+                                <span className="block text-[10px] font-normal text-gray-400">Snap Ties &amp; Kicker Braces</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-[10px] uppercase font-bold text-gray-400">Plywood</span>
+                        </div>
+                        <select
+                            value={importPlywood}
+                            onChange={(e) => setImportPlywood(e.target.value)}
+                            className={`bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-${THEME}-500 focus:border-${THEME}-500 block w-full pl-16 p-2 font-medium hover:bg-white transition-colors cursor-pointer`}
+                        >
+                            {PLYWOOD_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
+
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-[10px] uppercase font-bold text-gray-400">Lumber</span>
+                        </div>
+                        <select
+                            value={importLumber}
+                            onChange={(e) => setImportLumber(e.target.value)}
+                            className={`bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg focus:ring-${THEME}-500 focus:border-${THEME}-500 block w-full pl-14 p-2 font-medium hover:bg-white transition-colors cursor-pointer`}
+                        >
+                            {LUMBER_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
+                        </select>
+                    </div>
                 </div>
             </Card>
 
