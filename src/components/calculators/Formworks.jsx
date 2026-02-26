@@ -27,7 +27,7 @@ const getInitialRow = (data = {}) => ({
     isExcluded: false,
 });
 
-export default function Formworks({ columns = [], beams = [] }) {
+export default function Formworks({ columns = [], beams = [], retainingWalls = [] }) {
     const [rows, setRows] = useLocalStorage('formworks_rows', [getInitialRow()]);
     const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('formworks_result', null);
@@ -38,7 +38,7 @@ export default function Formworks({ columns = [], beams = [] }) {
     const [includeBeams, setIncludeBeams] = useLocalStorage('formworks_include_beams', false);
     const [importPlywood, setImportPlywood] = useLocalStorage('formworks_import_plywood', 'plywood_phenolic_1_2');
     const [importLumber, setImportLumber] = useLocalStorage('formworks_import_lumber', 'lumber_2x3');
-    const [includeWallExtras, setIncludeWallExtras] = useLocalStorage('formworks_include_wall_extras', false);
+    const [includeRetainingWalls, setIncludeRetainingWalls] = useLocalStorage('formworks_include_retaining_walls', false);
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
 
     // Close context menu on click anywhere
@@ -106,11 +106,12 @@ export default function Formworks({ columns = [], beams = [] }) {
             wasteLumber,
             includeColumns,
             includeBeams,
-            includeWallExtras,
+            includeRetainingWalls,
             importPlywood,
             importLumber,
             columns,
-            beams
+            beams,
+            retainingWalls,
         };
         const calcResult = calculateFormworks(rows, config, prices);
 
@@ -323,17 +324,19 @@ export default function Formworks({ columns = [], beams = [] }) {
                             <span className="text-sm font-medium text-gray-700">Include Beams <span className="text-xs text-gray-400 font-normal">({beams.length})</span></span>
                         </label>
 
-                        {/* Retaining Wall extras confirmation toggle */}
-                        <label className={`flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-md transition-colors border ${includeWallExtras ? 'bg-orange-50 border-orange-300' : 'border-transparent hover:bg-orange-50 hover:border-orange-200'}`}>
+                        {/* Import from Retaining/Shear Wall tab — extras always included */}
+                        <label className={`flex items-center gap-2 cursor-pointer px-2 py-1.5 rounded-md transition-colors border ${includeRetainingWalls ? 'bg-orange-50 border-orange-300' : 'border-transparent hover:bg-orange-50 hover:border-orange-200'}`}>
                             <input
                                 type="checkbox"
-                                checked={includeWallExtras}
-                                onChange={(e) => setIncludeWallExtras(e.target.checked)}
+                                checked={includeRetainingWalls}
+                                onChange={(e) => setIncludeRetainingWalls(e.target.checked)}
                                 className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-gray-300"
                             />
-                            <span className={`text-sm font-medium ${includeWallExtras ? 'text-orange-700' : 'text-gray-700'}`}>
-                                Include Retaining Wall Extras
-                                <span className="block text-[10px] font-normal text-gray-400">Snap Ties &amp; Kicker Braces</span>
+                            <span className={`text-sm font-medium ${includeRetainingWalls ? 'text-orange-700' : 'text-gray-700'}`}>
+                                Import Retaining Walls
+                                <span className="block text-[10px] font-normal text-gray-400">
+                                    Snap Ties &amp; Kicker Braces included · ({retainingWalls.length} walls)
+                                </span>
                             </span>
                         </label>
                     </div>

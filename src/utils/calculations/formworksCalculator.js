@@ -11,6 +11,7 @@ export const DEFAULT_PRICES = {
     common_nails_kg: MATERIAL_DEFAULTS.common_nails_kg.price,
     snap_tie: MATERIAL_DEFAULTS.snap_tie.price,
     form_kicker_set: MATERIAL_DEFAULTS.form_kicker_set.price,
+    shoring_prop: MATERIAL_DEFAULTS.shoring_prop?.price || 0,
 };
 
 export const PLYWOOD_OPTIONS = [
@@ -120,6 +121,7 @@ export const calculateFormworks = (rows, config, prices) => {
     let totalAreaAccumulator = 0;
     let totalSnapTies = 0; // wall forms only
     let totalKickerSets = 0; // wall forms only
+    let totalShoringProps = 0; // soffit forms only
     const plywoodByType = {};
     const lumberByType = {};
 
@@ -146,17 +148,36 @@ export const calculateFormworks = (rows, config, prices) => {
             if (!lumberByType[lType]) {
                 lumberByType[lType] = { linear: 0, spec: LUMBER_OPTIONS.find(l => l.id === lType) };
             }
+
+            // Dynamic spacing based on plywood thickness (prevent bulging)
+            const isThin = (pSpec?.thickness_in || 0.75) <= 0.5;
+
             if (faceType === 'soffit') {
-                const jSpacing = 0.40, sSpacing = 0.60;
+                // Joist spacing: thin=300mm, thick=400mm
+                // Stringer spacing: fixed 600mm
+                const jSpacing = isThin ? 0.30 : 0.40;
+                const sSpacing = 0.60;
+
                 const nJoists = Math.ceil(faceL / jSpacing) + 1;
                 const nStringers = Math.ceil(faceH / sSpacing) + 1;
                 lumberByType[lType].linear +=
                     (nJoists * (faceH + 0.10) + nStringers * (faceL + 0.10)) * qty;
+
+                // Shoring Props (Adjustable Floor Jacks)
+                // Spacing: 1.2m x 1.2m grid for overhead soffits
+                const propSpacing = 1.20;
+                const cols = Math.ceil(faceL / propSpacing) + 1;
+                const rows = Math.ceil(faceH / propSpacing) + 1;
+                totalShoringProps += (cols * rows) * qty;
             } else {
-                const sp = 0.60;
+                // Vertical Stud spacing: thin=400mm, thick=600mm
+                // Waler spacing: fixed 600mm
+                const sp = isThin ? 0.40 : 0.60;
+                const walerSp = 0.60;
+
                 lumberByType[lType].linear +=
                     ((Math.ceil(faceL / sp) + 1) * faceH +
-                        (Math.ceil(faceH / sp) + 1) * faceL) * qty;
+                        (Math.ceil(faceH / walerSp) + 1) * faceL) * qty;
             }
         });
     };
@@ -179,8 +200,8 @@ export const calculateFormworks = (rows, config, prices) => {
         if (hasMinDims) {
             processItem(facesForRow(L, W, H, FT), Q, row.plywood_type, row.lumber_size);
 
-            // Wall / Retaining Wall: snap ties + kicker braces (if enabled)
-            if (FT === 'wall' && config.includeWallExtras) {
+            // Wall rows: always compute snap ties + kicker braces
+            if (FT === 'wall') {
                 // Snap ties on each face: grid of H×V spacing
                 const tiesPerFace = (Math.ceil(L / TIE_SPACING_H) + 1) *
                     (Math.ceil(H / TIE_SPACING_V) + 1);
@@ -220,6 +241,30 @@ export const calculateFormworks = (rows, config, prices) => {
                     { l: L, w: D, type: 'vertical' },
                     { l: L, w: B, type: 'soffit' }, // bottom soffit
                 ], Q, config.importPlywood, config.importLumber);
+        });
+    }
+
+    // ── 4. Imported Retaining/Shear Walls from the ConcreteWall tab ───────────
+    // ConcreteWall fields: length (L), height (H), thickness (W), quantity
+    if (config.includeRetainingWalls) {
+        const retainingWalls = config.retainingWalls || [];
+        retainingWalls.forEach(wall => {
+            if (wall.isExcluded) return;
+            const Q = parseInt(wall.quantity) || 1;
+            const L = parseFloat(wall.length) || 0;  // wall run length
+            const H = parseFloat(wall.height) || 0;  // wall height
+            const W = parseFloat(wall.thickness) || 0;  // wall thickness (end caps)
+            if (Q > 0 && L > 0 && H > 0) {
+                processItem(facesForRow(L, W, H, 'wall'), Q, config.importPlywood, config.importLumber);
+
+                // Snap ties + kicker braces always included for imported walls
+                if (true) {
+                    const tiesPerFace = (Math.ceil(L / TIE_SPACING_H) + 1) *
+                        (Math.ceil(H / TIE_SPACING_V) + 1);
+                    totalSnapTies += tiesPerFace * Q;
+                    totalKickerSets += (Math.ceil(L / KICKER_SPACING) + 1) * Q;
+                }
+            }
         });
     }
 
@@ -274,6 +319,21 @@ export const calculateFormworks = (rows, config, prices) => {
         const kickerTotal = totalKickerSets * kickerPrice;
         grandTotal += kickerTotal;
         finalItems.push({ name: MATERIAL_DEFAULTS['form_kicker_set'].name, qty: totalKickerSets, unit: 'sets', priceKey: 'form_kicker_set', price: kickerPrice, total: kickerTotal });
+    }
+
+    // Shoring Props (Soffits)
+    if (totalShoringProps > 0) {
+        const propPrice = prices['shoring_prop'] ?? (MATERIAL_DEFAULTS['shoring_prop']?.price || 0);
+        const propTotal = totalShoringProps * propPrice;
+        grandTotal += propTotal;
+        finalItems.push({
+            name: MATERIAL_DEFAULTS['shoring_prop']?.name || 'Adjustable Shoring Prop',
+            qty: totalShoringProps,
+            unit: 'pcs',
+            priceKey: 'shoring_prop',
+            price: propPrice,
+            total: propTotal
+        });
     }
 
     return { totalArea: totalAreaAccumulator, items: finalItems, grandTotal, total: grandTotal };

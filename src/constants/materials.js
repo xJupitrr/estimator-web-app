@@ -34,6 +34,7 @@ export const MATERIAL_DEFAULTS = {
     common_nails_kg: { name: "Common Nails (Assorted)", price: 85, unit: "kg" },
     snap_tie: { name: "Snap Tie / Form Tie (w/ washers)", price: 25, unit: "pcs" },
     form_kicker_set: { name: "Form Kicker Brace (lumber set)", price: 55, unit: "set" },
+    shoring_prop: { name: "Adjustable Shoring Prop (Floor Jack)", price: 1200, unit: "pcs" },
 
     // Tiles & Finishes
     tile_adhesive_25kg: { name: "Tile Adhesive (25kg)", price: 320, unit: "bags" },

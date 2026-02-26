@@ -161,6 +161,7 @@ export default function App() {
     // Unified State - Syncing with component local storage keys for cross-tab availability
     const [columns, setColumns] = useLocalStorage('app_columns', [getInitialColumn()]);
     const [beams, setBeams] = useLocalStorage('app_beams', [getInitialBeam()]);
+    const [retainingWalls] = useLocalStorage('concrete_walls', []);
     const [projectName, setProjectName] = useLocalStorage('project_name', 'Untitled Project');
     const [lastSaveInfo, setLastSaveInfo] = useLocalStorage('last_save_info', { date: '', count: 0 });
 
@@ -668,6 +669,7 @@ export default function App() {
                             } else if (activeTab.id === 'formworks') {
                                 props.columns = columns;
                                 props.beams = beams;
+                                props.retainingWalls = retainingWalls;
                             }
                             return <Component {...props} />;
                         })()

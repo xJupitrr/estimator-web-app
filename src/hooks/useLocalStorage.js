@@ -37,8 +37,6 @@ export default function useLocalStorage(key, initialValue) {
             setStoredValue(valueToStore);
             setSessionData(key, valueToStore);
 
-            // Notify other components using the same key
-            const context = { undo, redo, captureChange, broadcastChange, subscribe, clearHistory };
             if (broadcastChange) broadcastChange(key, valueToStore);
 
             // Trigger update for listeners (like totals)
