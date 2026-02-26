@@ -11,6 +11,8 @@ import TablePriceInput from '../common/TablePriceInput';
 import SelectInput from '../common/SelectInput';
 import MathInput from '../common/MathInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { getDefaultPrices } from '../../constants/materials';
 
 const THEME = THEME_COLORS.concrete_wall;
 
@@ -30,22 +32,14 @@ const getInitialWall = () => ({
     vertRebarSpec: "",
     horizRebarSpec: "",
     layers: "",
+    mix: "",
     isExcluded: false,
     quantity: "1"
 });
 
 export default function ConcreteWall() {
     const [walls, setWalls] = useLocalStorage('concrete_walls', [getInitialWall()]);
-    const [prices, setPrices] = useLocalStorage('concrete_wall_prices', {
-        cement: 265,
-        sand: 1200,
-        gravel: 1400,
-        rebar10mmPrice: 185,
-        rebar12mmPrice: 285,
-        rebar16mmPrice: 515,
-        rebar20mmPrice: 835,
-        tieWire: 85,
-    });
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
 
     const [result, setResult] = useLocalStorage('concrete_wall_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('concrete_wall_has_estimated', false);
@@ -202,6 +196,7 @@ export default function ConcreteWall() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Vert. Rebar</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>V-Sp (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Horiz. Rebar</th>
@@ -236,6 +231,16 @@ export default function ConcreteWall() {
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput value={wall.thickness} onChange={(v) => handleWallChange(wall.id, 'thickness', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.20" />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={wall.mix}
+                                            onChange={(val) => handleWallChange(wall.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput

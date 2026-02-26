@@ -10,6 +10,8 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { MATERIAL_DEFAULTS, getDefaultPrices } from '../../constants/materials';
 
 const THEME = THEME_COLORS.lintel;
 
@@ -36,6 +38,7 @@ const DEFAULT_SPECS = {
     mainBarCount: "",
     tieSku: '',
     tieSpacing: "", // mm
+    mix: DEFAULT_MIX,
 };
 
 const AVAILABLE_REBAR_SKUS = [
@@ -89,17 +92,10 @@ export default function LintelBeam() {
         mainBarCount: "",
         tieSku: '',      // e.g. '10_6.0'
         tieSpacing: "", // mm
+        mix: "",
     });
 
-    const [prices, setPrices] = useLocalStorage('lintelbeam_prices', {
-        cement: 240,
-        sand: 1200,
-        gravel: 1400,
-        rebar_10: 185,
-        rebar_12: 260,
-        rebar_16: 480,
-        tie_wire: 85,
-    });
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
 
     const [showResult, setShowResult] = useLocalStorage('lintelbeam_show_result', false);
     const [resultData, setResultData] = useLocalStorage('lintelbeam_result', null); // For Global Sync logic
@@ -121,13 +117,14 @@ export default function LintelBeam() {
                 mainBarCount: parseInt(specs.mainBarCount) || 2,
                 tieSku: specs.tieSku,
                 tieSpacing: parseInt(specs.tieSpacing) || 150, // mm
+                mix: specs.mix, // Add mix to each lintel beam object
             }));
     }, [doorsWindowsItems, specs]);
 
     // Reset results when input data changes
     useEffect(() => {
         setShowResult(false);
-    }, [doorsWindowsItems]);
+    }, [doorsWindowsItems, specs.lintelDepth, specs.lintelHeight, specs.mainBarSku, specs.mainBarCount, specs.tieSku, specs.tieSpacing, specs.mix]);
 
     const handleCalculate = () => {
         if (!specs.mainBarSku || !specs.tieSku) {
@@ -185,13 +182,14 @@ export default function LintelBeam() {
                     <table className={TABLE_UI.INPUT_TABLE}>
                         <thead className="bg-slate-100">
                             <tr>
-                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50 text-cyan-900`} colSpan="2">Dimensions (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50 text-cyan-900`} colSpan="3">Dimensions (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50 text-orange-900`} colSpan="2">Main Reinforcement</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50 text-emerald-900`} colSpan="2">Ties / Stirrups</th>
                             </tr>
                             <tr>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50/50`}>Depth (W)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50/50`}>Height (H)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50/70`}>Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50/50`}>Bar Size</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50/50`}>Count</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50/50`}>Tie Size</th>
@@ -214,6 +212,16 @@ export default function LintelBeam() {
                                         onChange={(v) => handleSpecChange('lintelHeight', v)}
                                         placeholder="0.20"
                                         className="text-center"
+                                    />
+                                </td>
+                                <td className={`${TABLE_UI.INPUT_CELL} bg-cyan-50/20`}>
+                                    <SelectInput
+                                        value={specs.mix}
+                                        onChange={(v) => handleSpecChange('mix', v)}
+                                        options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                        placeholder="Mix"
+                                        focusColor={THEME}
+                                        className="text-center text-xs"
                                     />
                                 </td>
                                 <td className={`${TABLE_UI.INPUT_CELL} bg-orange-50/10`}>
@@ -411,7 +419,7 @@ export default function LintelBeam() {
                         <div className="mt-4 flex items-start gap-2 text-gray-400 px-1">
                             <Info size={14} className="mt-0.5 flex-shrink-0" />
                             <p className="text-[11px] italic leading-relaxed">
-                                Lintel length = opening width + 0.40m (200mm bearing each side). Calculations use Concrete Class A (1:2:4) with 5% waste factor.
+                                Lintel length = opening width + 0.40m (200mm bearing each side). Material quantities are based on the selected Concrete Mix with a 5% waste factor.
                                 Rebar quantities include 40D anchorage length. Formworks are excluded here as they are handled in the Formworks tab.
                             </p>
                         </div>

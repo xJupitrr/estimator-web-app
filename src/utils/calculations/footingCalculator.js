@@ -1,3 +1,5 @@
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { getHookLength } from '../rebarUtils';
 
 export const DEFAULT_PRICES = {
     cement: 240,
@@ -36,11 +38,14 @@ export const calculateFooting = (footings, prices) => {
         const vol = X * Y * Z * Q;
         totalConcreteVol += vol;
 
-        // Class A Concrete with 5% Waste
+        // Fetch Mix Proportions
+        const mixId = f.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1]; // Fallback to Class A
+
         const wasteMult = 1.05;
-        totalCementBags += vol * 9.0 * wasteMult;
-        totalSandCum += vol * 0.5 * wasteMult;
-        totalGravelCum += vol * 1.0 * wasteMult;
+        totalCementBags += vol * mixSpec.cement * wasteMult;
+        totalSandCum += vol * mixSpec.sand * wasteMult;
+        totalGravelCum += vol * mixSpec.gravel * wasteMult;
 
         // Rebar
         const spec = f.rebarSpec || "12mm x 6.0m";
@@ -51,11 +56,12 @@ export const calculateFooting = (footings, prices) => {
         const countX = parseInt(f.rebar_x_count) || 0;
         const countY = parseInt(f.rebar_y_count) || 0;
 
-        // Individual cut lengths with hooks (0.1m per side = 0.2m total hook)
-        const cutX = X + 0.2;
-        const cutY = Y + 0.2;
+        // Individual cut lengths with hooks (Standard 90-degree hook per side)
+        const hookLen = getHookLength(diameter, 'main_90');
+        const cutX = X + (2 * hookLen);
+        const cutY = Y + (2 * hookLen);
 
-        const priceKey = `rebar${diameter}`;
+        const priceKey = `rebar_${diameter}mm`;
         if (!totalRebarPcs[priceKey]) {
             totalRebarPcs[priceKey] = {
                 qty: 0,
@@ -110,16 +116,29 @@ export const calculateFooting = (footings, prices) => {
         items.push({ name, qty, unit, priceKey, price, total });
     };
 
-    addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement", DEFAULT_PRICES.cement);
-    addItem("Wash Sand (S1)", Math.ceil(totalSandCum * 100) / 100, "cu.m", "sand", DEFAULT_PRICES.sand);
-    addItem("Crushed Gravel (3/4)", Math.ceil(totalGravelCum * 100) / 100, "cu.m", "gravel", DEFAULT_PRICES.gravel);
+    addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement_40kg", 240);
+    addItem("Wash Sand (S1)", Math.ceil(totalSandCum * 100) / 100, "cu.m", "sand_wash", 1200);
+    addItem("Crushed Gravel (3/4)", Math.ceil(totalGravelCum * 100) / 100, "cu.m", "gravel_3_4", 1400);
 
     Object.keys(totalRebarPcs).forEach(key => {
         const data = totalRebarPcs[key];
         addItem(data.name, data.qty, "pcs", key, DEFAULT_PRICES[key] || 200);
     });
 
-    addItem("G.I. Tie Wire (#16)", Math.ceil(totalConcreteVol * 2), "kg", "tieWire", DEFAULT_PRICES.tieWire);
+    // Precision Tie Wire Calculation: (Intersections X * Y) * 0.35m per tie / 53m/kg + 5% waste
+    let totalIntersections = 0;
+    footings.forEach(f => {
+        if (f.isExcluded) return;
+        const Q = parseFloat(f.quantity) || 0;
+        const nX = parseInt(f.rebar_x_count) || 0;
+        const nY = parseInt(f.rebar_y_count) || 0;
+        if (Q > 0 && nX > 0 && nY > 0) {
+            totalIntersections += (nX * nY * Q);
+        }
+    });
+
+    const tieWireWeight = (totalIntersections * 0.35) / 53 * 1.05;
+    addItem("G.I. Tie Wire (#16)", Math.ceil(tieWireWeight), "kg", "tie_wire_kg", 85);
 
     return {
         volume: totalConcreteVol.toFixed(2),

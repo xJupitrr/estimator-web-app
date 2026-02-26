@@ -10,6 +10,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 const THEME = THEME_COLORS.masonry;
 
@@ -39,6 +40,7 @@ const getInitialWall = () => ({
     vertSpacing: "", // Spacing along the height (controls horizontal bars)
     horizRebarSpec: "", // 10mm x 6.0m
     vertRebarSpec: "", // 12mm x 6.0m
+    mix: "",
     isExcluded: false,
 });
 
@@ -50,7 +52,7 @@ export default function Masonry() { // Renamed to Masonry
     const [walls, setWalls] = useLocalStorage('masonry_walls', [getInitialWall()]);
 
     // Material Prices
-    const [wallPrices, setWallPrices] = useLocalStorage('masonry_prices', getDefaultPrices());
+    const [wallPrices, setWallPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
 
     const [wallResult, setWallResult] = useLocalStorage('masonry_result', null);
     // Track if an estimate has been run at least once to enable auto-recalc
@@ -117,16 +119,9 @@ export default function Masonry() { // Renamed to Masonry
         setWallResult(null);
     };
 
-    // Auto-update suggested price for the *first* wall when size changes
-    useEffect(() => {
-        const firstWallSize = walls[0]?.chbSize;
-        if (firstWallSize) {
-            setWallPrices(prev => ({
-                ...prev,
-                chb: firstWallSize === "4" ? 15 : 22
-            }));
-        }
-    }, [walls[0]?.chbSize]); // Only trigger if CHB size changes
+    // Auto-update suggested price for the *first* wall when size changes - OBSOLETE in global sync but kept for local ref if needed
+    // However, it's better to NOT overwrite global prices automatically.
+    // The user can edit them in the directory or the result table.
 
     // Re-calculate automatically when prices change IF we already have a result
     useEffect(() => {
@@ -231,6 +226,7 @@ export default function Masonry() { // Renamed to Masonry
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Height (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>CMU Size</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Plaster</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Concrete Mix</th>
 
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Vert. Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>V. Rebar Spacing</th>
@@ -315,6 +311,15 @@ export default function Masonry() { // Renamed to Masonry
                                                 { id: "2", display: '2 Sides' }
                                             ]}
                                             placeholder="Select Plaster..."
+                                            focusColor={THEME}
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={wall.mix}
+                                            onChange={(val) => handleWallChange(wall.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
                                             focusColor={THEME}
                                         />
                                     </td>

@@ -9,6 +9,7 @@ import { calculateLintelBeam } from './calculations/lintelBeamCalculator';
 import { calculateTiles } from './calculations/tilesCalculator';
 import { calculatePainting } from './calculations/paintingCalculator';
 import { calculateCeiling } from './calculations/ceilingCalculator';
+import { calculateDrywall } from './calculations/drywallCalculator';
 import { calculateDoorsWindows } from './calculations/doorsWindowsCalculator';
 import { calculateFormworks } from './calculations/formworksCalculator';
 import { calculateSuspendedSlab } from './calculations/suspendedSlabCalculator';
@@ -114,6 +115,15 @@ const MODULES = [
         totalKey: 'ceiling_total',
         calculator: calculateCeiling
     },
+    {
+        name: 'Drywall',
+        dataKey: 'drywall_rows',
+        priceKey: 'drywall_prices',
+        resultKey: 'drywall_result',
+        totalKey: 'drywall_total',
+        calculator: calculateDrywall
+    },
+
     {
         name: 'Electrical',
         dataKey: 'electrical_rows',

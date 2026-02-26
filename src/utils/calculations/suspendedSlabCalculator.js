@@ -1,3 +1,5 @@
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { getHookLength } from '../rebarUtils';
 
 export const rebarDiameters = ["10mm", "12mm", "16mm", "20mm"];
 export const commonLengths = [6.0, 7.5, 9.0, 10.5, 12.0];
@@ -127,6 +129,9 @@ const processRebarRun = (requiredLength, spec, qty, rebarStock) => {
  */
 export const calculateSuspendedSlab = (slabs, prices) => {
     let totalConcreteVol = 0;
+    let totalCementBags = 0;
+    let totalSandCum = 0;
+    let totalGravelCum = 0;
     let totalTiePoints = 0;
     const rebarStock = new Map();
     const materialCounts = {}; // Generic counter for variable price keys
@@ -155,6 +160,14 @@ export const calculateSuspendedSlab = (slabs, prices) => {
         // 1. Concrete Volume
         const vol = L * W * T * Q;
         totalConcreteVol += vol;
+
+        const wasteMult = 1.05;
+        const mixId = s.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1];
+
+        totalCementBags += vol * mixSpec.cement * wasteMult;
+        totalSandCum += vol * mixSpec.sand * wasteMult;
+        totalGravelCum += vol * mixSpec.gravel * wasteMult;
 
         // 2. Decking / Formwork
         if (s.deckingType !== 'none') {
@@ -251,14 +264,17 @@ export const calculateSuspendedSlab = (slabs, prices) => {
         const tempBarDia = extractDiameterMeters(s.tempBarSpec);
         const effectiveDepth = T - (2 * CONCRETE_COVER);
 
-        // Formula: L + (2 * 0.42 * d) + (2 * 12db Hooks)
+        // Hook Allowances (Ends only)
+        const mainHook = getHookLength(mainBarDia * 1000, 'main_180');
+        const tempHook = getHookLength(tempBarDia * 1000, 'main_180');
+
+        // Formula: L + (2 * 0.42 * d) + (2 * Hooks)
         const crankAddOn = effectiveDepth > 0
-            ? (2 * CRANK_FACTOR * effectiveDepth) + (2 * HOOK_MULTIPLIER * mainBarDia)
+            ? (2 * CRANK_FACTOR * effectiveDepth) + (2 * mainHook)
             : 0;
 
-        // Hook Allowances (Ends only)
-        const mainHookAllowance = 2 * HOOK_MULTIPLIER * mainBarDia;
-        const tempHookAllowance = 2 * HOOK_MULTIPLIER * tempBarDia;
+        const mainHookAllowance = 2 * mainHook;
+        const tempHookAllowance = 2 * tempHook;
 
         if (type === "Two-Way") {
             // Two-Way: Main bars in BOTH directions
@@ -311,15 +327,14 @@ export const calculateSuspendedSlab = (slabs, prices) => {
 
     // Final Totals
     const waste = 1.05;
-    const dryVol = totalConcreteVol * 1.54;
-    const cementBags = Math.ceil((dryVol * (1 / 7)) / 0.035 * waste);
-    const sandCuM = (dryVol * (2 / 7) * waste).toFixed(2);
-    const gravelCuM = (dryVol * (4 / 7) * waste).toFixed(2);
+    const cementBags = Math.ceil(totalCementBags);
+    const sandCuM = totalSandCum.toFixed(2);
+    const gravelCuM = totalGravelCum.toFixed(2);
 
     const items = [
-        { name: "Portland Cement (40kg)", qty: cementBags, unit: "bags", price: prices.cement, priceKey: "cement" },
-        { name: "Wash Sand", qty: sandCuM, unit: "cu.m", price: prices.sand, priceKey: "sand" },
-        { name: "Crushed Gravel (3/4)", qty: gravelCuM, unit: "cu.m", price: prices.gravel, priceKey: "gravel" },
+        { name: "Portland Cement (40kg)", qty: cementBags, unit: "bags", price: prices.cement_40kg, priceKey: "cement_40kg" },
+        { name: "Wash Sand", qty: sandCuM, unit: "cu.m", price: prices.sand_wash, priceKey: "sand_wash" },
+        { name: "Crushed Gravel (3/4)", qty: gravelCuM, unit: "cu.m", price: prices.gravel_3_4, priceKey: "gravel_3_4" },
     ];
 
     // Add calculated materials (Deck, Form, Lumber)
@@ -336,7 +351,7 @@ export const calculateSuspendedSlab = (slabs, prices) => {
     // Add Rebar
     rebarStock.forEach((val, spec) => {
         const size = spec.split('mm')[0];
-        const pKey = `rebar${size}mm`;
+        const pKey = `rebar_${size}mm`;
         items.push({
             name: `Corrugated Rebar (${spec})`,
             qty: Math.ceil(val.purchased * 1.05), // Added 5% waste buffer
@@ -347,8 +362,8 @@ export const calculateSuspendedSlab = (slabs, prices) => {
     });
 
     const METERS_PER_KG = 53; // Standard #16 GI Wire
-    const tieWireKg = Math.ceil((totalTiePoints * 0.3 * (1 / METERS_PER_KG)) * waste);
-    items.push({ name: "G.I. Tie Wire (#16)", qty: tieWireKg, unit: "kg", price: prices.tieWire, priceKey: "tieWire" });
+    const tieWireKg = Math.ceil((totalTiePoints * 0.35 / METERS_PER_KG) * 1.05);
+    items.push({ name: "G.I. Tie Wire (#16)", qty: tieWireKg, unit: "kg", price: prices.tie_wire_kg, priceKey: "tie_wire_kg" });
 
     const itemsWithTotal = items.map(it => ({ ...it, total: it.qty * it.price }));
     const grandTotal = itemsWithTotal.reduce((acc, it) => acc + it.total, 0);

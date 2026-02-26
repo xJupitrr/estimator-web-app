@@ -12,7 +12,7 @@ import { getSessionData, setSessionData } from '../utils/sessionCache';
 export { getSessionData, setSessionData };
 
 export default function useLocalStorage(key, initialValue) {
-    const { captureChange, subscribe } = useHistory();
+    const { captureChange, broadcastChange, subscribe } = useHistory();
 
     // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
     const [storedValue, setStoredValue] = useState(() => {
@@ -37,13 +37,17 @@ export default function useLocalStorage(key, initialValue) {
             setStoredValue(valueToStore);
             setSessionData(key, valueToStore);
 
+            // Notify other components using the same key
+            const context = { undo, redo, captureChange, broadcastChange, subscribe, clearHistory };
+            if (broadcastChange) broadcastChange(key, valueToStore);
+
             // Trigger update for listeners (like totals)
             window.dispatchEvent(new CustomEvent('storage-update', { detail: { key, value: valueToStore } }));
 
         } catch (error) {
             console.error(`Error setting session key "${key}":`, error);
         }
-    }, [key, storedValue, captureChange]);
+    }, [key, storedValue, captureChange, broadcastChange]);
     // 1. Subscribe to external updates (Undo/Redo)
     useEffect(() => {
         const unsubscribe = subscribe(key, (newValue) => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, DoorOpen } from 'lucide-react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import { getDefaultPrices } from '../../constants/materials';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import SelectInput from '../common/SelectInput';
 import Card from '../common/Card';
@@ -8,14 +9,10 @@ import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
+import { calculateDoorsWindows, itemTypes, frameMaterials, groupedFrameOptions, leafMaterials, groupedLeafOptions } from '../../utils/calculations/doorsWindowsCalculator';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.doors;
-
-
-
-
-import { calculateDoorsWindows, itemTypes, frameMaterials, leafMaterials } from '../../utils/calculations/doorsWindowsCalculator';
 
 // --- Constants (Imported from Utility) ---
 // itemTypes, frameMaterials, leafMaterials are now imported.
@@ -37,6 +34,7 @@ const getInitialItem = () => ({
 
 export default function DoorsWindows() {
     const [items, setItems] = useLocalStorage('doorswindows_rows', [getInitialItem()]);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('doorswindows_result', null);
     const [error, setError] = useState(null);
 
@@ -46,14 +44,12 @@ export default function DoorsWindows() {
         "Awning Window": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
         "Fixed Window": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
         "Jalousie Window": { frame: "Aluminum (Powder Coated)", leaf: "Jalousie (Glass Blades Only)" },
-        "Main Door (Swing)": { frame: "Wood (Mahogany)", leaf: "Mahogany Door Leaf" },
-        "Main Door (Flush)": { frame: "Wood (Tanguile)", leaf: "Flush Door (Hollow Core)" },
-        "Panel Door": { frame: "Wood (Tanguile)", leaf: "Tanguile Door Leaf" },
+        "Swing Door": { frame: "Wood (Mahogany)", leaf: "Mahogany Door Leaf" },
+        "Flush Door": { frame: "Wood (Tanguile)", leaf: "Flush Door (Hollow Core)" },
         "Sliding Door": { frame: "Aluminum (Powder Coated)", leaf: "Sliding Panel (Aluminum/Glass)" },
         "Bi-Fold Door": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
         "French Door": { frame: "Wood (Mahogany)", leaf: "Tempered Glass (6mm)" },
         "Screen Door": { frame: "Aluminum (Anodized)", leaf: "Clear Glass (6mm)" },
-        "PVC Door": { frame: "PVC/UPVC (White)", leaf: "PVC Door (Full Panel)" },
     };
 
     const handleItemChange = (id, field, value) => {
@@ -144,18 +140,27 @@ export default function DoorsWindows() {
         }
         setError(null);
 
-        const calcResult = calculateDoorsWindows(items);
+        const calcResult = calculateDoorsWindows(items, prices);
 
         if (calcResult) {
-            setResult({
-                totalArea: calcResult.totalArea,
-                items: calcResult.items,
-                grandTotal: calcResult.grandTotal
-            });
+            setResult(calcResult);
         } else {
             setResult(null);
         }
     };
+
+    const updatePrice = (key, value) => {
+        if (!key) return;
+        setPrices(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
+    };
+
+    // Auto-recalculate if prices change and we have a result
+    useEffect(() => {
+        if (result) {
+            const calcResult = calculateDoorsWindows(items, prices);
+            if (calcResult) setResult(calcResult);
+        }
+    }, [prices]);
 
     // Global Cost Sync
     useEffect(() => {
@@ -202,7 +207,7 @@ export default function DoorsWindows() {
                 </div>
             )}
 
-            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #059669' }}>
                 <SectionHeader
                     title={`Door & Window Specification (${items.length} Total)`}
                     icon={DoorOpen}
@@ -290,7 +295,7 @@ export default function DoorsWindows() {
                                         <SelectInput
                                             value={item.frameMaterial}
                                             onChange={(val) => handleItemChange(item.id, 'frameMaterial', val)}
-                                            options={frameMaterials.map(mat => ({ id: mat.name, display: `${mat.name} (₱${mat.pricePerLM.toLocaleString()}/LM)` }))}
+                                            options={groupedFrameOptions}
                                             placeholder="Select Frame..."
                                             focusColor={THEME}
                                             className="text-xs"
@@ -300,7 +305,7 @@ export default function DoorsWindows() {
                                         <SelectInput
                                             value={item.leafMaterial}
                                             onChange={(val) => handleItemChange(item.id, 'leafMaterial', val)}
-                                            options={leafMaterials.map(mat => ({ id: mat.name, display: `${mat.name} (₱${mat.pricePerSqm.toLocaleString()}/sqm)` }))}
+                                            options={groupedLeafOptions}
                                             placeholder="Select Leaf..."
                                             focusColor={THEME}
                                             className="text-xs"
@@ -361,7 +366,7 @@ export default function DoorsWindows() {
 
             {/* RESULT CARD */}
             {result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
@@ -418,10 +423,12 @@ export default function DoorsWindows() {
                                                 <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold uppercase text-gray-500">{item.unit}</span>
                                             </td>
                                             <td className={`${TABLE_UI.CELL} border-r-0`}>
-                                                {item.priceType === 'hardware' || item.priceType === 'frame' || item.priceType === 'leaf' ? (
-                                                    <TablePriceInput
-                                                        value={item.price}
-                                                        onChange={(newValue) => {
+                                                <TablePriceInput
+                                                    value={item.price}
+                                                    onChange={(newValue) => {
+                                                        if (item.priceKey) {
+                                                            updatePrice(item.priceKey, newValue);
+                                                        } else {
                                                             let priceField;
                                                             if (item.priceType === 'frame') priceField = 'customFramePrice';
                                                             else if (item.priceType === 'leaf') priceField = 'customLeafPrice';
@@ -431,14 +438,10 @@ export default function DoorsWindows() {
                                                                 handleItemChange(item.itemId, priceField, newValue);
                                                                 setTimeout(() => calculateMaterials(), 50);
                                                             }
-                                                        }}
-                                                        colorTheme={THEME}
-                                                    />
-                                                ) : (
-                                                    <div className="text-right text-sm text-gray-500 font-bold px-2 py-1.5">
-                                                        ₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    </div>
-                                                )}
+                                                        }
+                                                    }}
+                                                    colorTheme={THEME}
+                                                />
                                             </td>
                                             <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                         </tr>

@@ -4,9 +4,10 @@ import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import SelectInput from '../common/SelectInput';
-import { calculateFooting, DEFAULT_PRICES } from '../../utils/calculations/footingCalculator';
+import { calculateFooting } from '../../utils/calculations/footingCalculator';
 import { optimizeCuts } from '../../utils/optimization/cuttingStock';
-import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { MATERIAL_DEFAULTS, getDefaultPrices } from '../../constants/materials';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
@@ -43,12 +44,13 @@ const getInitialFooting = () => ({
     rebar_x_count: "",
     rebar_y_count: "",
     description: "",
+    mix: "",
     isExcluded: false,
 });
 
 export default function Footing() {
     const [footings, setFootings] = useLocalStorage('footing_rows', [getInitialFooting()]);
-    const [footingPrices, setFootingPrices] = useLocalStorage('footing_prices', DEFAULT_PRICES);
+    const [footingPrices, setFootingPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [footingResult, setFootingResult] = useLocalStorage('footing_result', null);
     const [error, setError] = useState(null);
     const [showAnalysis, setShowAnalysis] = useState(false);
@@ -208,6 +210,7 @@ export default function Footing() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>X-Len (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Y-Wid (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Z-Dep (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Rebars along X</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Rebars along Y</th>
@@ -273,6 +276,16 @@ export default function Footing() {
                                             onChange={(val) => handleFootingChange(footing.id, 'z_depth', val)}
                                             className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.00"
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={footing.mix}
+                                            onChange={(val) => handleFootingChange(footing.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
+                                            focusColor={THEME}
+                                            className="text-xs"
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>

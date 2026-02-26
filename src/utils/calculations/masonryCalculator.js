@@ -1,5 +1,5 @@
-
-import { processSingleRun } from '../rebarUtils';
+import { processSingleRun, getHookLength, extractDiameterMeters } from '../rebarUtils';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 export const calculateMasonry = (walls, wallPrices) => {
     if (!walls || walls.length === 0) return null;
@@ -11,6 +11,10 @@ export const calculateMasonry = (walls, wallPrices) => {
     let totalVolumeMortarPlaster = 0; // Uses Cement and Sand only
     let totalVolumeGroutFiller = 0;   // Uses Cement, Sand, and Gravel
     let totalTiePoints = 0;
+
+    let totalCementBagsGrout = 0;
+    let totalSandCumGrout = 0;
+    let totalGravelCumGrout = 0;
 
     const rebarStock = new Map();
 
@@ -60,21 +64,37 @@ export const calculateMasonry = (walls, wallPrices) => {
         // Accumulate Grout (Cement + Sand + Gravel)
         totalVolumeGroutFiller += currentGroutVolume;
 
+        const mixId = wall.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1];
+
+        // 1.05 is the waste factor (standardized)
+        totalCementBagsGrout += currentGroutVolume * mixSpec.cement;
+        totalSandCumGrout += currentGroutVolume * mixSpec.sand;
+        totalGravelCumGrout += currentGroutVolume * mixSpec.gravel;
+
         // --- 3. Rebar Inventory ---
         const parsedVertSpacing = parseFloat(wall.vertSpacing) || 0.60;
         const parsedHorizSpacing = parseFloat(wall.horizSpacing) || 0.60;
 
         const numHorizRuns = Math.floor(height / parsedVertSpacing) + 1;
+        const horizDia = extractDiameterMeters(wall.horizRebarSpec) * 1000;
+        const horizHook = getHookLength(horizDia, 'main_90');
+        const horizCut = length + (2 * horizHook);
+
         for (let q = 0; q < quantity; q++) {
             for (let i = 0; i < numHorizRuns; i++) {
-                if (wall.horizRebarSpec) processSingleRun(length, wall.horizRebarSpec, rebarStock);
+                if (wall.horizRebarSpec) processSingleRun(horizCut, wall.horizRebarSpec, rebarStock);
             }
         }
 
         const numVertRuns = Math.floor(length / parsedHorizSpacing) + 1;
+        const vertDia = extractDiameterMeters(wall.vertRebarSpec) * 1000;
+        const vertHook = getHookLength(vertDia, 'main_180');
+        const vertCut = height + vertHook;
+
         for (let q = 0; q < quantity; q++) {
             for (let i = 0; i < numVertRuns; i++) {
-                if (wall.vertRebarSpec) processSingleRun(height, wall.vertRebarSpec, rebarStock);
+                if (wall.vertRebarSpec) processSingleRun(vertCut, wall.vertRebarSpec, rebarStock);
             }
         }
 
@@ -99,24 +119,22 @@ export const calculateMasonry = (walls, wallPrices) => {
     const V_cement_mortar = V_dry_mortar * (1 / 4);
     const V_sand_mortar = V_dry_mortar * (3 / 4);
 
-    // 2. Grout Mix (C:S:G = 1:2:4) -> Uses Cement, Sand, and Gravel
-    const V_dry_grout = totalVolumeGroutFiller * GROUT_YIELD_FACTOR;
-    const V_cement_grout = V_dry_grout * (1 / 7);
-    const V_sand_grout = V_dry_grout * (2 / 7);
-    const V_gravel_grout = V_dry_grout * (4 / 7);
+    // 2. Grout Mix (Dynamic based on each wall selection)
+    // totalCementBagsGrout, totalSandCumGrout, totalGravelCumGrout are already calculated in bags/m3
 
     // 3. Totals
-    const totalCementVolume = V_cement_mortar + V_cement_grout;
-    const totalSandVolume = V_sand_mortar + V_sand_grout;
-    const totalGravelVolume = V_gravel_grout; // Only from grout
+    const totalCementBags = (V_cement_mortar / CEMENT_BAG_VOLUME) + totalCementBagsGrout;
+    const totalSandVolume = V_sand_mortar + totalSandCumGrout;
+    const totalGravelVolume = totalGravelCumGrout; // Only from grout
 
     // Final Material Quantities (5% allowance added implicitly via Math.ceil/rounding)
-    const finalCement = Math.ceil(totalCementVolume / CEMENT_BAG_VOLUME * 1.05); // bags + 5% allowance
+    const finalCement = Math.ceil(totalCementBags * 1.05); // bags + 5% allowance
     const finalSand = (totalSandVolume * 1.05).toFixed(2); // m³ + 5% allowance
     const finalGravel = (totalGravelVolume * 1.05).toFixed(2); // m³ + 5% allowance
 
     // --- Cost Calculation ---
-    const costCHB = totalChbCount * wallPrices.chb;
+    const chbKey = walls[0]?.chbSize === "4" ? "chb_4" : "chb_6";
+    const costCHB = totalChbCount * (wallPrices[chbKey] || 0);
     const costCement = finalCement * wallPrices.cement_40kg;
     const costSand = parseFloat(finalSand) * wallPrices.sand_wash;
     const costGravel = parseFloat(finalGravel) * wallPrices.gravel_3_4;
@@ -155,7 +173,7 @@ export const calculateMasonry = (walls, wallPrices) => {
         });
     });
 
-    const TIE_WIRE_PER_INTERSECTION = 0.4;
+    const TIE_WIRE_PER_INTERSECTION = 0.35;
     const METERS_PER_KG = 53; // Standard #16 GI Wire
     const KG_PER_LM = 1 / METERS_PER_KG;
     const totalLMTieWire = totalTiePoints * TIE_WIRE_PER_INTERSECTION;
@@ -171,7 +189,7 @@ export const calculateMasonry = (walls, wallPrices) => {
     finalRebarItems.sort((a, b) => a.name.localeCompare(b.name));
 
     const items = [
-        { name: chbName, qty: totalChbCount, unit: 'pcs', price: wallPrices.chb, priceKey: 'chb', total: costCHB },
+        { name: chbName, qty: totalChbCount, unit: 'pcs', price: wallPrices[chbKey], priceKey: chbKey, total: costCHB },
         { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: wallPrices.cement_40kg, priceKey: 'cement_40kg', total: costCement },
         { name: 'Wash Sand (S1)', qty: finalSand, unit: 'cu.m', price: wallPrices.sand_wash, priceKey: 'sand_wash', total: costSand },
         { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: wallPrices.gravel_3_4, priceKey: 'gravel_3_4', total: costGravel },

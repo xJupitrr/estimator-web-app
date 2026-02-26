@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Settings, Calculator, PlusCircle, Trash2, Box, ClipboardCopy, Download, AlertCircle, Tent, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Layout, Eye, EyeOff, ArrowUp, Copy, MoveHorizontal } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateRoofing as calculateRoofingUtil } from '../../utils/calculations/roofingCalculator';
+import { calculateDrywall, DRYWALL_TYPES, FILLER_TYPES } from '../../utils/calculations/drywallCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 
 import Card from '../common/Card';
@@ -13,43 +13,24 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
-const THEME = THEME_COLORS.roofing;
+const THEME = THEME_COLORS.drywall || 'emerald';
 
-const ROOFING_TYPES = [
-    { id: 'rib_type', label: 'Rib-Type (Long Span)', eff_width: 1.0, default_price: 480 },
-    { id: 'corrugated', label: 'Corrugated (Standard)', eff_width: 0.75, default_price: 350 },
-    { id: 'tile_span', label: 'Tile Span (Red/Green)', eff_width: 1.0, default_price: 550 },
-    { id: 'gi_sheet', label: 'G.I. Sheet (Plain)', eff_width: 0.8, default_price: 320 },
-];
-
-const DEFAULT_DEFAULTS = {
-    wasteFactor: 5, // percent
-};
-
-const DEFAULT_PRICES = {
-    umbrella_screws: 2.50,
-    tekscrews: 1.50,
-    sealant: 280,
-};
-ROOFING_TYPES.forEach(t => {
-    DEFAULT_PRICES[`roof_${t.id}`] = t.default_price;
-});
-
-const getInitialRow = (data = {}) => ({
+const getInitialRow = () => ({
     id: Date.now() + Math.random(),
-    quantity: data.quantity || "",
-    type: "",
-    length_m: data.length_m || "",
-    width_m: data.width_m || "",
-    description: data.description || "",
+    quantity: "",
+    length_m: "",
+    width_m: "", // Used as height
+    drywall_type_side_a: "",
+    drywall_type_side_b: "",
+    filler_material: "",
+    description: "",
     isExcluded: false,
 });
 
-export default function Roofing() {
-    const [rows, setRows] = useLocalStorage('roofing_rows', [getInitialRow()]);
+export default function Drywall() {
+    const [rows, setRows] = useLocalStorage('drywall_rows', [getInitialRow()]);
     const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
-    const [globalSettings, setGlobalSettings] = useLocalStorage('roofing_settings', DEFAULT_DEFAULTS);
-    const [result, setResult] = useLocalStorage('roofing_result', null);
+    const [result, setResult] = useLocalStorage('drywall_result', null);
     const [error, setError] = useState(null);
 
     const handleRowChange = (id, field, value) => {
@@ -64,7 +45,6 @@ export default function Roofing() {
 
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
 
-    // Close context menu on click anywhere
     useEffect(() => {
         const handleClick = () => setContextMenu(null);
         window.addEventListener('click', handleClick);
@@ -114,23 +94,15 @@ export default function Roofing() {
     };
 
     const handleCalculate = () => {
-        // Validation
-        const isValid = rows.some(row => {
-            const Q = parseInt(row.quantity) || 0;
-            const L = parseFloat(row.length_m) || 0;
-            const W = parseFloat(row.width_m) || 0;
-            return Q > 0 && L > 0 && W > 0;
-        });
-
-        if (!isValid) {
-            setError("Please fill in quantity and dimensions for at least one roof area.");
+        const hasEmptyFields = rows.some(r => !r.isExcluded && (!r.length_m || !r.width_m || !r.quantity));
+        if (hasEmptyFields) {
+            setError("Please fill in quantity, length, and height for all included walls.");
             setResult(null);
             return;
         }
         setError(null);
 
-        const calcResult = calculateRoofingUtil(rows, prices, globalSettings);
-
+        const calcResult = calculateDrywall(rows, prices);
         if (calcResult) {
             setResult(calcResult);
         } else {
@@ -138,12 +110,11 @@ export default function Roofing() {
         }
     };
 
-    // Global Cost Sync
     useEffect(() => {
         if (result) {
-            setSessionData('roofing_total', result.grandTotal);
+            setSessionData('drywall_total', result.total);
         } else {
-            setSessionData('roofing_total', null);
+            setSessionData('drywall_total', null);
         }
         window.dispatchEvent(new CustomEvent('project-total-update'));
     }, [result]);
@@ -163,19 +134,19 @@ export default function Roofing() {
                 >
                     <button
                         onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors`}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                     >
                         <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
                     </button>
                     <button
                         onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-${THEME}-50 transition-colors border-b border-slate-50`}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
                     >
                         <ArrowUp size={14} className="text-slate-400" /> Add Row Above
                     </button>
                     <button
                         onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-${THEME}-50 transition-colors`}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
                     >
                         {rows.find(r => r.id === contextMenu.id)?.isExcluded
                             ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
@@ -185,10 +156,10 @@ export default function Roofing() {
                 </div>
             )}
 
-            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #2563eb' }}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #059669' }}>
                 <SectionHeader
-                    title="Roofing Configuration"
-                    icon={Tent}
+                    title="Drywall Area Configuration"
+                    icon={Layout}
                     colorTheme={THEME}
                     actions={
                         <ActionButton
@@ -206,10 +177,12 @@ export default function Roofing() {
                             <tr>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Roofing Type</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Length (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Width (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Side A Material</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Side B Material</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Filler Material</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
@@ -247,16 +220,7 @@ export default function Roofing() {
                                             value={row.description}
                                             onChange={(e) => handleRowChange(row.id, 'description', e.target.value)}
                                             className={INPUT_UI.TABLE_INPUT}
-                                            placeholder="e.g., Main Roof"
-                                        />
-                                    </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={row.type}
-                                            onChange={(val) => handleRowChange(row.id, 'type', val)}
-                                            options={ROOFING_TYPES.map(t => ({ id: t.id, display: t.label }))}
-                                            focusColor={THEME}
-                                            placeholder="Select Type..."
+                                            placeholder="e.g. Partition Wall A"
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
@@ -273,6 +237,36 @@ export default function Roofing() {
                                             onChange={(val) => handleRowChange(row.id, 'width_m', val)}
                                             className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.00"
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={row.drywall_type_side_a}
+                                            onChange={(val) => handleRowChange(row.id, 'drywall_type_side_a', val)}
+                                            options={DRYWALL_TYPES.map(t => ({ id: t.id, display: t.label }))}
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                            placeholder="Side A..."
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={row.drywall_type_side_b}
+                                            onChange={(val) => handleRowChange(row.id, 'drywall_type_side_b', val)}
+                                            options={DRYWALL_TYPES.map(t => ({ id: t.id, display: t.label }))}
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                            placeholder="Side B..."
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={row.filler_material}
+                                            onChange={(val) => handleRowChange(row.id, 'filler_material', val)}
+                                            options={FILLER_TYPES.map(t => ({ id: t.id, display: t.label }))}
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                            placeholder="Filler..."
                                         />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
@@ -308,51 +302,28 @@ export default function Roofing() {
             </Card>
 
             {!result && !error && (
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50 mt-6">
+                <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <Tent size={40} className={`text-${THEME}-400`} />
+                        <MoveHorizontal size={40} className={`text-${THEME}-400`} />
                     </div>
                     <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
                     <p className="max-w-md mx-auto text-sm">
-                        Enter your roof dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
+                        Enter your drywall dimensions and specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
                     </p>
                 </div>
             )}
 
             {result && (
-                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 mt-6 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
+                <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800">Estimation Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Roof Area: <strong className="text-gray-700">{parseFloat(result.area || 0).toFixed(2)} m²</strong></p>
+                                <h3 className="font-bold text-2xl text-gray-800">Drywall Result</h3>
+                                <p className="text-sm text-gray-500 mt-1">Total Drywall Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
                             </div>
-                            <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
-                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'roofing_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
-                                </div>
+                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             </div>
                         </div>
 
@@ -364,17 +335,15 @@ export default function Roofing() {
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Quantity</th>
                                         <th className={TABLE_UI.HEADER_CELL}>Unit</th>
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Unit Price</th>
-                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-gray-100/50`}>Total</th>
+                                        <th className={`${TABLE_UI.HEADER_CELL_RIGHT} bg-${THEME}-100/50`}>Total</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-gray-100 font-medium">
                                     {result.items.map((item, idx) => (
                                         <tr key={idx} className={TABLE_UI.BODY_ROW}>
-                                            <td className={`${TABLE_UI.CELL} font-medium text-gray-800`}>{item.name}</td>
+                                            <td className={`${TABLE_UI.CELL} text-${THEME}-900`}>{item.name}</td>
                                             <td className={TABLE_UI.CELL_RIGHT}>{item.qty}</td>
-                                            <td className={TABLE_UI.CELL_CENTER}>
-                                                <span className={`bg-${THEME}-100 px-2 py-1 rounded text-xs font-bold uppercase text-${THEME}-700`}>{item.unit}</span>
-                                            </td>
+                                            <td className={TABLE_UI.CELL_CENTER}><span className={`bg-${THEME}-100 px-2 py-1 rounded text-[10px] text-${THEME}-600 uppercase font-bold`}>{item.unit}</span></td>
                                             <td className={`${TABLE_UI.CELL} border-r-0`}>
                                                 <TablePriceInput
                                                     value={prices[item.priceKey] || 0}
@@ -382,9 +351,7 @@ export default function Roofing() {
                                                     colorTheme={THEME}
                                                 />
                                             </td>
-                                            <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
-                                                ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </td>
+                                            <td className={`${TABLE_UI.CELL_RIGHT} text-${THEME}-900 font-extrabold bg-${THEME}-50/30`}>₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -396,6 +363,3 @@ export default function Roofing() {
         </div>
     );
 }
-
-
-

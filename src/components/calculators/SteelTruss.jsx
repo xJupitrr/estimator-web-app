@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Plus, Trash2, Calculator, PlusCircle, AlertCircle, Copy, ArrowUp, Eye, EyeOff, Scissors, X, Box } from 'lucide-react';
+import { Plus, Trash2, Calculator, PlusCircle, AlertCircle, Copy, ArrowUp, Eye, EyeOff, Scissors, X, Box, ClipboardCopy, Download } from 'lucide-react';
 import { calculateSteelTruss } from '../../utils/calculations/steelTrussCalculator';
+import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
-import SelectInput from '../common/SelectInput';
+import { getDefaultPrices } from '../../constants/materials';
 import MathInput from '../common/MathInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
 
@@ -68,7 +69,7 @@ const INITIAL_TRUSS_PART = {
 
 export default function SteelTruss() {
     const [trussParts, setTrussParts] = useLocalStorage('steel_truss_parts', [INITIAL_TRUSS_PART]);
-    const [unitPrices, setUnitPrices] = useLocalStorage('steel_truss_prices', {});
+    const [unitPrices, setUnitPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [estimationResults, setEstimationResults] = useLocalStorage('steel_truss_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('steel_truss_has_estimated', false);
     const [error, setError] = useState(null);
@@ -473,7 +474,11 @@ export default function SteelTruss() {
                                                     value={unitPrices[item.priceKey] || 0}
                                                     onChange={(v) => {
                                                         const key = item.priceKey;
+                                                        const newPrices = { ...unitPrices, [key]: parseFloat(v) || 0 };
                                                         setUnitPrices(prev => ({ ...prev, [key]: parseFloat(v) || 0 }));
+                                                        // Recalculate immediately with new price
+                                                        const freshRes = calculateSteelTruss(trussParts, newPrices);
+                                                        if (freshRes) setEstimationResults(freshRes);
                                                     }}
                                                     colorTheme={THEME}
                                                 />

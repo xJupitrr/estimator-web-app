@@ -9,8 +9,9 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { MATERIAL_DEFAULTS, getDefaultPrices } from '../../constants/materials';
 import { calculateBeam, calculateLumberVolumeBF } from '../../utils/calculations/beamCalculator';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 const THEME = THEME_COLORS.beam;
 
@@ -84,6 +85,7 @@ const getInitialElement = () => ({
     tie_spacing_mm: "",
     cut_support_cuts: [{ sku: '', length: '', quantity: '' }],
     cut_midspan_cuts: [{ sku: '', length: '', quantity: '' }],
+    mix: "",
     isExcluded: false,
 });
 
@@ -110,7 +112,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
     const beams = propBeams || localBeams;
     const setBeams = propSetBeams || setLocalBeams;
 
-    const [prices, setPrices] = useLocalStorage('beam_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [showResult, setShowResult] = useLocalStorage('beam_show_result', false);
     const [error, setError] = useState(null);
     const [viewingPatterns, setViewingPatterns] = useState(false);
@@ -398,6 +400,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`} rowSpan="3">#</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[70px]`} rowSpan="3">Qty</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-cyan-50 text-cyan-900`} colSpan="3">Dimensions (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px] bg-cyan-50 text-cyan-900`} rowSpan="3">Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-orange-50 text-orange-900 w-[160px]`} rowSpan="3">Main Rebar</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-emerald-50 text-emerald-900`} colSpan="2">Ties/Stirrups</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-fuchsia-50 text-fuchsia-900`} colSpan="4">Cut Bars</th>
@@ -445,6 +448,16 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                     <td className={TABLE_UI.INPUT_CELL}><TableNumberInput value={col.length_m} onChange={(v) => handleBeamChange(col.id, 'length_m', v)} placeholder="0.30" /></td>
                                     <td className={TABLE_UI.INPUT_CELL}><TableNumberInput value={col.width_m} onChange={(v) => handleBeamChange(col.id, 'width_m', v)} placeholder="0.50" /></td>
                                     <td className={TABLE_UI.INPUT_CELL}><TableNumberInput value={col.height_m} onChange={(v) => handleBeamChange(col.id, 'height_m', v)} placeholder="6.00" /></td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={col.mix}
+                                            onChange={(val) => handleBeamChange(col.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
+                                            focusColor={THEME}
+                                            className="text-[10px] h-9"
+                                        />
+                                    </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} bg-orange-50/20 text-center`}>
                                         <button
                                             onClick={() => setEditingCutsConfig({ id: col.id, field: 'main_rebar_cuts', title: 'Manage Main Rebar' })}

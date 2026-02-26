@@ -4,7 +4,8 @@ import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, Clipb
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateTiles, TILE_CONSUMABLES, DEFAULT_PRICES } from '../../utils/calculations/tilesCalculator';
+import { calculateTiles, TILE_CONSUMABLES } from '../../utils/calculations/tilesCalculator';
+import { getDefaultPrices } from '../../constants/materials';
 
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
@@ -26,7 +27,7 @@ const getInitialRow = () => ({
 
 export default function Tiles() {
     const [rows, setRows] = useLocalStorage('tiles_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('tiles_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('tiles_result', null);
     const [error, setError] = useState(null);
 

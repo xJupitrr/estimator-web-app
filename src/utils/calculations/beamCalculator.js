@@ -1,5 +1,7 @@
 import { optimizeCuts } from '../optimization/cuttingStock';
 import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { getHookLength } from '../rebarUtils';
 
 // Constants
 const CONCRETE_WASTE_PCT = 5;
@@ -14,7 +16,7 @@ const L_ANCHOR_DEV_FACTOR = 40;
 const getSkuDetails = (skuId) => {
     if (!skuId) return { diameter: 0, length: 0, priceKey: '' };
     const [diameter, length] = skuId.split('_').map(Number);
-    return { diameter, length, priceKey: `rebar_${diameter}` };
+    return { diameter, length, priceKey: `rebar_${diameter}mm` };
 };
 
 /**
@@ -99,9 +101,14 @@ export const calculateBeam = (beams, prices) => {
         const vol = W_cross * D_cross * L_elem * qty;
         totalVolConcrete += vol;
         const wasteMult = 1 + (CONCRETE_WASTE_PCT / 100);
-        totalCementBags += vol * 9.0 * wasteMult;
-        totalSandCum += vol * 0.5 * wasteMult;
-        totalGravelCum += vol * 1.0 * wasteMult;
+
+        // Fetch Mix Proportions
+        const mixId = col.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1]; // Fallback to Class A
+
+        totalCementBags += vol * mixSpec.cement * wasteMult;
+        totalSandCum += vol * mixSpec.sand * wasteMult;
+        totalGravelCum += vol * mixSpec.gravel * wasteMult;
 
         // 2. Formwork Area (Sides + Bottom)
         totalAreaFormwork += (2 * D_cross * L_elem + W_cross * L_elem) * qty;
@@ -143,7 +150,7 @@ export const calculateBeam = (beams, prices) => {
         const tieSkuDetails = getSkuDetails(col.tie_bar_sku);
         const W_tie = W_cross - (2 * concreteCover);
         const D_tie = D_cross - (2 * concreteCover);
-        const hookLength = Math.max(12 * (tieSkuDetails.diameter / 1000), 0.075);
+        const hookLength = getHookLength(tieSkuDetails.diameter, 'stirrup_135');
         const tieCutLength = (2 * (W_tie + D_tie)) + (2 * hookLength);
 
         if (W_tie > 0 && D_tie > 0) {
@@ -157,7 +164,8 @@ export const calculateBeam = (beams, prices) => {
 
             // Formula: (Main Bars + 2*Support Bars (Top) + Midspan Bars (Bottom)) * Ties * Qty
             const intersections = (mainCount + (supportBarsCount * 2) + midspanBarsCount) * tiesPerBeam * qty;
-            totalTieWireKg += (intersections * 0.35) / wireMetersPerKg;
+            // 1.05 is the 5% waste factor
+            totalTieWireKg += (intersections * 0.35) / wireMetersPerKg * 1.05;
         }
 
         // 5. Cut Bars - Support
@@ -211,9 +219,9 @@ export const calculateBeam = (beams, prices) => {
     };
 
     // Concrete
-    addItem(MATERIAL_DEFAULTS.cement_40kg.name, Math.ceil(totalCementBags), "bags", "cement", 240);
-    addItem(MATERIAL_DEFAULTS.sand_wash.name, totalSandCum, "cu.m", "sand", 1200);
-    addItem(MATERIAL_DEFAULTS.gravel_3_4.name, totalGravelCum, "cu.m", "gravel", 1400);
+    addItem(MATERIAL_DEFAULTS.cement_40kg.name, Math.ceil(totalCementBags), "bags", "cement_40kg", 240);
+    addItem(MATERIAL_DEFAULTS.sand_wash.name, totalSandCum, "cu.m", "sand_wash", 1200);
+    addItem(MATERIAL_DEFAULTS.gravel_3_4.name, totalGravelCum, "cu.m", "gravel_3_4", 1400);
 
     // Formworks hidden from results as per user request
 
@@ -245,7 +253,7 @@ export const calculateBeam = (beams, prices) => {
         }
     });
 
-    addItem(MATERIAL_DEFAULTS.tie_wire_kg.name, Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
+    addItem(MATERIAL_DEFAULTS.tie_wire_kg.name, Math.ceil(totalTieWireKg), "kg", "tie_wire_kg", 85);
 
     return { volume: totalVolConcrete.toFixed(2), areaFormwork: totalAreaFormwork.toFixed(2), items, grandTotal: subTotal };
 };

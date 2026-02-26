@@ -1,3 +1,5 @@
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { getHookLength } from '../rebarUtils';
 
 // Constants
 const CONCRETE_WASTE_PCT = 5;
@@ -7,7 +9,7 @@ const BEARING_LENGTH = 0.20; // 200mm bearing each side (Total 400mm added to op
 const getSkuDetails = (skuId) => {
     if (!skuId) return { diameter: 0, length: 0, priceKey: '' };
     const [diameter, length] = skuId.split('_').map(Number);
-    return { diameter, length, priceKey: `rebar_${diameter}` };
+    return { diameter, length, priceKey: `rebar_${diameter}mm` };
 };
 
 export const calculateLintelBeam = (inputs, prices, specs = null) => {
@@ -38,6 +40,7 @@ export const calculateLintelBeam = (inputs, prices, specs = null) => {
                 mainBarCount: parseInt(specs.mainBarCount) || 2,
                 tieSku: specs.tieSku,
                 tieSpacing: parseInt(specs.tieSpacing) || 150, // mm
+                mix: specs.mix || DEFAULT_MIX,
             }));
     } else {
         // Assume inputs is already lintelBeams (Component usage might prefer this if it does useMemo locally)
@@ -89,10 +92,14 @@ export const calculateLintelBeam = (inputs, prices, specs = null) => {
         // 1. Concrete
         const vol = W * D * H * qty;
         totalVolConcrete += vol;
-        const wasteMult = 1 + (CONCRETE_WASTE_PCT / 100);
-        totalCementBags += vol * 9.0 * wasteMult;
-        totalSandCum += vol * 0.5 * wasteMult;
-        totalGravelCum += vol * 1.0 * wasteMult;
+
+        const wasteMult = 1.05;
+        const mixId = lintel.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1];
+
+        totalCementBags += vol * mixSpec.cement * wasteMult;
+        totalSandCum += vol * mixSpec.sand * wasteMult;
+        totalGravelCum += vol * mixSpec.gravel * wasteMult;
 
         // 2. Main Rebar
         const mainSkuDetails = getSkuDetails(lintel.mainBarSku);
@@ -106,7 +113,7 @@ export const calculateLintelBeam = (inputs, prices, specs = null) => {
         const tieSkuDetails = getSkuDetails(lintel.tieSku);
         const H_tie = H - (2 * concreteCover);
         const D_tie = D - (2 * concreteCover);
-        const hookLength = Math.max(12 * (tieSkuDetails.diameter / 1000), 0.075);
+        const hookLength = getHookLength(tieSkuDetails.diameter, 'stirrup_135');
         const tieCutLength = (2 * (H_tie + D_tie)) + (2 * hookLength);
 
         if (H_tie > 0 && D_tie > 0) {
@@ -116,7 +123,8 @@ export const calculateLintelBeam = (inputs, prices, specs = null) => {
 
             // Tie Wire
             const intersections = lintel.mainBarCount * tiesPerBeam * qty;
-            totalTieWireKg += (intersections * 0.30) / wireMetersPerKg;
+            // 1.05 is the 5% waste factor
+            totalTieWireKg += (intersections * 0.35) / wireMetersPerKg * 1.05;
         }
     });
 
@@ -134,9 +142,9 @@ export const calculateLintelBeam = (inputs, prices, specs = null) => {
     };
 
     // Concrete
-    addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement", 240);
-    addItem("Wash Sand (S1)", totalSandCum, "cu.m", "sand", 1200);
-    addItem("Crushed Gravel (3/4)", totalGravelCum, "cu.m", "gravel", 1400);
+    addItem("Portland Cement (40kg)", Math.ceil(totalCementBags), "bags", "cement_40kg", 240);
+    addItem("Wash Sand (S1)", totalSandCum, "cu.m", "sand_wash", 1200);
+    addItem("Crushed Gravel (3/4)", totalGravelCum, "cu.m", "gravel_3_4", 1400);
 
     // Rebar
     Object.keys(rebarRequirements).forEach(skuId => {
@@ -163,7 +171,7 @@ export const calculateLintelBeam = (inputs, prices, specs = null) => {
         if (totalBars > 0) addItem(`Corrugated Rebar (${diameter}mm x ${commercialLength}m)`, totalBars, "pcs", priceKey, 200);
     });
 
-    addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
+    addItem("G.I. Tie Wire (#16)", Math.ceil(totalTieWireKg), "kg", "tie_wire_kg", 85);
 
     return { volume: totalVolConcrete.toFixed(3), items, grandTotal: subTotal };
 };

@@ -3,7 +3,7 @@ import {
     Layers, Box, SquareStack, LayoutTemplate, Columns, PenTool,
     Tent, Hammer, Grid3X3, Paintbrush, Cloud, DoorOpen,
     ArrowRight, Star, Zap, Shield, ChevronRight, Upload, Plus, X,
-    LayoutGrid, Brush, HardHat, Terminal, Cpu, Database, SaveAll
+    LayoutGrid, Brush, HardHat, Terminal, Cpu, Database, SaveAll, Info
 } from 'lucide-react';
 
 export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
@@ -68,6 +68,15 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             color: "amber",
             icon: Cpu,
             tools: ['electrical', 'plumbing']
+        },
+        {
+            title: "Help & Docs",
+            id: "help",
+            code: "HLP-05",
+            description: "System Manuals & Rates",
+            color: "slate",
+            icon: Info,
+            tools: ['manual', 'price-list']
         }
     ];
 
@@ -162,7 +171,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                         {categories.map((category) => {
                             const Icon = category.icon;
                             const isActive = activeCategory === category.id;

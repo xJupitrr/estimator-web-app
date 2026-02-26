@@ -13,22 +13,22 @@ export const CEILING_TYPES = Object.keys(MATERIAL_TYPES).map(key => ({
 }));
 
 export const DEFAULT_PRICES = {
-    gypsum: 450,
-    hardiflex: 420,
-    plywood: 380,
+    ceiling_gypsum_9mm: 450,
+    ceiling_hardiflex_1_4: 420,
+    ceiling_marine_plywood_1_4: 380,
     spandrel: 550,
     pvc: 480,
-    wall_angle: 65,
-    carrying: 180,
-    furring: 165,
-    w_clip: 8,
+    ceiling_wall_angle: 65,
+    ceiling_carrying_channel: 180,
+    ceiling_metal_furring: 165,
+    ceiling_w_clip: 8,
     screw_gypsum: 0.75,
     screw_hardiflex: 0.85,
     screw_metal: 0.65,
     rivets: 1.20,
     clips: 2.50,
-    mesh_tape: 250,
-    jointing_compound: 850,
+    ceiling_mesh_tape: 250,
+    ceiling_joint_compound: 850,
     spandrel_molding: 180,
     pvc_u_molding: 120,
     pvc_h_clip: 150
@@ -130,16 +130,16 @@ export const calculateCeiling = (rooms, prices, config = {}) => {
         itemList.push({ name, qty: Math.ceil(qty), unit, priceKey: key, price, total: Math.ceil(qty) * price });
     };
 
-    addItem('gypsum', materials.gypsum, 'pcs', MATERIAL_TYPES.gypsum.label);
-    addItem('hardiflex', materials.hardiflex, 'pcs', MATERIAL_TYPES.hardiflex.label);
-    addItem('plywood', materials.plywood, 'pcs', MATERIAL_TYPES.plywood.label);
+    addItem('ceiling_gypsum_9mm', materials.gypsum, 'pcs', MATERIAL_TYPES.gypsum.label);
+    addItem('ceiling_hardiflex_1_4', materials.hardiflex, 'pcs', MATERIAL_TYPES.hardiflex.label);
+    addItem('ceiling_marine_plywood_1_4', materials.plywood, 'pcs', MATERIAL_TYPES.plywood.label);
     addItem('spandrel', materials.spandrel, 'pcs', MATERIAL_TYPES.spandrel.label);
     addItem('pvc', materials.pvc, 'pcs', MATERIAL_TYPES.pvc.label);
 
-    addItem('wall_angle', qtyWallAngle, 'pcs', "Wall Angle (3m)");
-    addItem('carrying', qtyCarrying, 'pcs', "Carrying Channel (5m)");
-    addItem('furring', qtyFurring, 'pcs', "Metal Furring (5m)");
-    addItem('w_clip', qtyWClips, 'pcs', "W-Clips");
+    addItem('ceiling_wall_angle', qtyWallAngle, 'pcs', "Wall Angle (3m)");
+    addItem('ceiling_carrying_channel', qtyCarrying, 'pcs', "Carrying Channel (5m)");
+    addItem('ceiling_metal_furring', qtyFurring, 'pcs', "Metal Furring (5m)");
+    addItem('ceiling_w_clip', qtyWClips, 'pcs', "W-Clips");
 
     addItem('screw_gypsum', materials.screw_gypsum, 'pcs', "Gypsum Screws");
     addItem('screw_hardiflex', materials.screw_hardiflex, 'pcs', "Hardiflex Screws");
@@ -147,8 +147,8 @@ export const calculateCeiling = (rooms, prices, config = {}) => {
     addItem('rivets', materials.rivets, 'pcs', "Blind Rivets");
     addItem('clips', materials.clips, 'sets', "PVC Clips");
 
-    addItem('mesh_tape', materials.mesh_tape_m / 75, 'rolls', "Mesh Tape (75m Roll)");
-    addItem('jointing_compound', materials.compound_bag, 'pails', "Jointing Compound (20kg)");
+    addItem('ceiling_mesh_tape', materials.mesh_tape_m / 75, 'rolls', "Mesh Tape (75m Roll)");
+    addItem('ceiling_joint_compound', materials.compound_bag, 'pails', "Jointing Compound (20kg)");
     addItem('spandrel_molding', materials.spandrel_molding_lm / 3.0, 'pcs', "Spandrel Molding (3m)");
     addItem('pvc_u_molding', materials.pvc_u_molding_lm / 3.0, 'pcs', "PVC U-Molding (3m)");
 

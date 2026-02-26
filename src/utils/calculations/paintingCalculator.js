@@ -1,8 +1,8 @@
 
 export const DEFAULT_PRICES = {
-    primer: 650,
-    skimcoat: 450,
-    topcoat: 750,
+    paint_primer_4l: 650,
+    paint_skimcoat_20kg: 450,
+    paint_topcoat_4l: 750,
 };
 
 /**
@@ -46,9 +46,9 @@ export const calculatePainting = (walls, prices) => {
     const totalTopcoatArea = totalAreaM2 * TOPCOAT_COATS;
     const topcoatsNeeded = Math.ceil(totalTopcoatArea / COVERAGE_TOPCOAT_GAL);
 
-    const costPrimer = primersNeeded * (parseFloat(prices.primer) || DEFAULT_PRICES.primer);
-    const costSkimcoat = skimcoatsNeeded * (parseFloat(prices.skimcoat) || DEFAULT_PRICES.skimcoat);
-    const costTopcoat = topcoatsNeeded * (parseFloat(prices.topcoat) || DEFAULT_PRICES.topcoat);
+    const costPrimer = primersNeeded * (parseFloat(prices.paint_primer_4l) || DEFAULT_PRICES.paint_primer_4l);
+    const costSkimcoat = skimcoatsNeeded * (parseFloat(prices.paint_skimcoat_20kg) || DEFAULT_PRICES.paint_skimcoat_20kg);
+    const costTopcoat = topcoatsNeeded * (parseFloat(prices.paint_topcoat_4l) || DEFAULT_PRICES.paint_topcoat_4l);
 
     const totalCost = costPrimer + costSkimcoat + costTopcoat;
 
@@ -57,24 +57,24 @@ export const calculatePainting = (walls, prices) => {
             name: "Concrete Primer (4L Gal)",
             qty: primersNeeded,
             unit: 'gals',
-            priceKey: 'primer',
-            price: parseFloat(prices.primer) || DEFAULT_PRICES.primer,
+            priceKey: 'paint_primer_4l',
+            price: parseFloat(prices.paint_primer_4l) || DEFAULT_PRICES.paint_primer_4l,
             total: costPrimer
         },
         {
             name: "Skim Coat / Putty (20kg Bag)",
             qty: skimcoatsNeeded,
             unit: 'bags',
-            priceKey: 'skimcoat',
-            price: parseFloat(prices.skimcoat) || DEFAULT_PRICES.skimcoat,
+            priceKey: 'paint_skimcoat_20kg',
+            price: parseFloat(prices.paint_skimcoat_20kg) || DEFAULT_PRICES.paint_skimcoat_20kg,
             total: costSkimcoat
         },
         {
             name: `Topcoat Paint (4L Gal) - ${TOPCOAT_COATS} Coats`,
             qty: topcoatsNeeded,
             unit: 'gals',
-            priceKey: 'topcoat',
-            price: parseFloat(prices.topcoat) || DEFAULT_PRICES.topcoat,
+            priceKey: 'paint_topcoat_4l',
+            price: parseFloat(prices.paint_topcoat_4l) || DEFAULT_PRICES.paint_topcoat_4l,
             total: costTopcoat
         }
     ];

@@ -24,6 +24,58 @@ export const extractDiameterMeters = (spec) => {
 };
 
 /**
+ * Calculates the standard hook length allowance based on ACI/NSCP standards.
+ * Includes both the bend arc and the required straight extension.
+ * @param {number} diameterMm - Bar diameter in mm (e.g., 10, 12, 16)
+ * @param {string} type - Use case ('main_90', 'main_180', 'stirrup_135', 'stirrup_90')
+ * @returns {number} Hook length in meters
+ */
+export const getHookLength = (diameterMm, type = 'main_90') => {
+    const db = diameterMm / 1000;
+
+    switch (type) {
+        case 'main_90':
+            // R_inside = 3db (for db <= 25mm), R_center = 3.5db
+            // Arc = 90 deg = (PI/2) * 3.5db approx 5.5db
+            // Extension = 12db
+            // Total approx 17.5db
+            return 17.5 * db;
+
+        case 'main_180':
+            // R_inside = 3db, R_center = 3.5db
+            // Arc = 180 deg = PI * 3.5db approx 11db
+            // Extension = max(4db, 65mm)
+            return (11 * db) + Math.max(4 * db, 0.065);
+
+        case 'stirrup_135':
+            // R_inside = 2db (for stirrups), R_center = 2.5db
+            // Arc = 135 deg = (3PI/4) * 2.5db approx 5.89db
+            // Extension = max(6db, 75mm)
+            return (5.89 * db) + Math.max(6 * db, 0.075);
+
+        case 'stirrup_90':
+            // Extension = 6db for stirrups
+            // Arc = (PI/2) * 2.5db approx 3.93db
+            return (3.93 * db) + (6 * db);
+
+        default:
+            return 12 * db; // Safe fallback
+    }
+};
+
+/**
+ * Calculates Bend Deduction (Length reduction due to stretching during bending)
+ * though in manual estimation, we usually ADD hook length to the out-to-out dimension.
+ * This helper returns the extra length needed for a specific bend angle.
+ */
+export const getBendAllowance = (diameterMm, angleDeg, isStirrup = false) => {
+    const db = diameterMm / 1000;
+    const radiusFactor = isStirrup ? 2.5 : 3.5; // Radius to center of bar
+    const arcLength = (angleDeg * Math.PI / 180) * (radiusFactor * db);
+    return arcLength;
+};
+
+/**
  * Processes a single continuous rebar run against inventory stock.
  * Handles splicing for long runs and offcut reuse for short runs.
  */

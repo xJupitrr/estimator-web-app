@@ -89,6 +89,7 @@ export const THEME_COLORS = {
     // --- Finishes (Emerald) ---
     masonry: 'emerald',
     doors: 'emerald',
+    drywall: 'emerald',
     ceiling: 'emerald',
     tiles: 'emerald',
     painting: 'emerald',

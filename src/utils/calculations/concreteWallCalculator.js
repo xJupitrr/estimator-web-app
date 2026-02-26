@@ -1,10 +1,13 @@
-
-import { processSingleRun } from '../rebarUtils';
+import { processSingleRun, getHookLength, extractDiameterMeters } from '../rebarUtils';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 export const calculateConcreteWall = (walls, prices) => {
     if (!walls || walls.length === 0) return null;
 
     let totalVolume = 0;
+    let totalCementBags = 0;
+    let totalSandCum = 0;
+    let totalGravelCum = 0;
     let totalArea = 0;
     let totalTiePoints = 0;
     const rebarStock = new Map();
@@ -33,6 +36,14 @@ export const calculateConcreteWall = (walls, prices) => {
         totalArea += area;
         totalVolume += volume;
 
+        const wasteMult = 1.05;
+        const mixId = wall.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1];
+
+        totalCementBags += volume * mixSpec.cement * wasteMult;
+        totalSandCum += volume * mixSpec.sand * wasteMult;
+        totalGravelCum += volume * mixSpec.gravel * wasteMult;
+
         // --- Rebar Inventory ---
         const vertSpacing = parseFloat(wall.vertSpacing) || 0.20;
         const horizSpacing = parseFloat(wall.horizSpacing) || 0.20;
@@ -40,17 +51,23 @@ export const calculateConcreteWall = (walls, prices) => {
         // Vertical Bars (Spaced horizontally along the length)
         const numVertRunsPerLayer = Math.floor(length / vertSpacing) + 1;
         const totalVertRuns = numVertRunsPerLayer * layers * quantity;
+        const vertDia = extractDiameterMeters(wall.vertRebarSpec) * 1000;
+        const vertHook = getHookLength(vertDia, 'main_90');
+        const vertCutLen = height + vertHook;
 
         for (let i = 0; i < totalVertRuns; i++) {
-            if (wall.vertRebarSpec) processSingleRun(height, wall.vertRebarSpec, rebarStock);
+            if (wall.vertRebarSpec) processSingleRun(vertCutLen, wall.vertRebarSpec, rebarStock);
         }
 
         // Horizontal Bars (Spaced vertically along the height)
         const numHorizRunsPerLayer = Math.floor(height / horizSpacing) + 1;
         const totalHorizRuns = numHorizRunsPerLayer * layers * quantity;
+        const horizDia = extractDiameterMeters(wall.horizRebarSpec) * 1000;
+        const horizHook = getHookLength(horizDia, 'main_90');
+        const horizCutLen = length + (2 * horizHook);
 
         for (let i = 0; i < totalHorizRuns; i++) {
-            if (wall.horizRebarSpec) processSingleRun(length, wall.horizRebarSpec, rebarStock);
+            if (wall.horizRebarSpec) processSingleRun(horizCutLen, wall.horizRebarSpec, rebarStock);
         }
 
         // --- Tie Wire ---
@@ -61,23 +78,14 @@ export const calculateConcreteWall = (walls, prices) => {
 
     if (totalVolume <= 0) return null;
 
-    // --- Concrete Mix Calculations (Class A 1:2:4) ---
-    const CEMENT_BAG_VOLUME = 0.035;
-    const DRY_VOLUME_FACTOR = 1.54; // Standard for concrete
-
-    const V_dry = totalVolume * DRY_VOLUME_FACTOR;
-    const V_cement = V_dry * (1 / 7);
-    const V_sand = V_dry * (2 / 7);
-    const V_gravel = V_dry * (4 / 7);
-
-    const finalCement = Math.ceil(V_cement / CEMENT_BAG_VOLUME * 1.05); // 5% buffer
-    const finalSand = (V_sand * 1.05).toFixed(2);
-    const finalGravel = (V_gravel * 1.05).toFixed(2);
+    const finalCement = Math.ceil(totalCementBags);
+    const finalSand = totalSandCum.toFixed(2);
+    const finalGravel = totalGravelCum.toFixed(2);
 
     // Costs
-    const costCement = finalCement * (prices.cement || 0);
-    const costSand = parseFloat(finalSand) * (prices.sand || 0);
-    const costGravel = parseFloat(finalGravel) * (prices.gravel || 0);
+    const costCement = finalCement * (prices.cement_40kg || 0);
+    const costSand = parseFloat(finalSand) * (prices.sand_wash || 0);
+    const costGravel = parseFloat(finalGravel) * (prices.gravel_3_4 || 0);
 
     let finalRebarItems = [];
     let totalRebarCost = 0;
@@ -90,11 +98,11 @@ export const calculateConcreteWall = (walls, prices) => {
         let price = 0;
         let priceKey = '';
 
-        if (sizeNum === 10) { price = prices.rebar10mmPrice; priceKey = 'rebar10mmPrice'; }
-        else if (sizeNum === 12) { price = prices.rebar12mmPrice; priceKey = 'rebar12mmPrice'; }
-        else if (sizeNum === 16) { price = prices.rebar16mmPrice; priceKey = 'rebar16mmPrice'; }
-        else if (sizeNum === 20) { price = prices.rebar20mmPrice; priceKey = 'rebar20mmPrice'; }
-        else { price = prices.rebar12mmPrice; priceKey = 'rebar12mmPrice'; } // Default
+        if (sizeNum === 10) { price = prices.rebar_10mm; priceKey = 'rebar_10mm'; }
+        else if (sizeNum === 12) { price = prices.rebar_12mm; priceKey = 'rebar_12mm'; }
+        else if (sizeNum === 16) { price = prices.rebar_16mm; priceKey = 'rebar_16mm'; }
+        else if (sizeNum === 20) { price = prices.rebar_20mm; priceKey = 'rebar_20mm'; }
+        else { price = prices.rebar_12mm; priceKey = 'rebar_12mm'; } // Default
 
         const total = finalQtyPurchase * price;
         totalRebarCost += total;
@@ -110,22 +118,22 @@ export const calculateConcreteWall = (walls, prices) => {
     });
 
     // Tie Wire
-    const TIE_WIRE_PER_INTERSECTION = 0.4; // meters
+    const TIE_WIRE_PER_INTERSECTION = 0.35; // meters
     const METERS_PER_KG = 53;
     const totalLMTieWire = totalTiePoints * TIE_WIRE_PER_INTERSECTION;
     const finalKGPurchase = Math.ceil((totalLMTieWire / METERS_PER_KG) * 1.05);
-    const costTieWire = finalKGPurchase * (prices.tieWire || 0);
+    const costTieWire = finalKGPurchase * (prices.tie_wire_kg || 0);
 
     const totalOverallCost = costCement + costSand + costGravel + totalRebarCost + costTieWire;
 
     finalRebarItems.sort((a, b) => a.name.localeCompare(b.name));
 
     const items = [
-        { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: prices.cement, priceKey: 'cement', total: costCement },
-        { name: 'Wash Sand', qty: finalSand, unit: 'cu.m', price: prices.sand, priceKey: 'sand', total: costSand },
-        { name: 'Crushed Gravel (3/4")', qty: finalGravel, unit: 'cu.m', price: prices.gravel, priceKey: 'gravel', total: costGravel },
+        { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: prices.cement_40kg, priceKey: 'cement_40kg', total: costCement },
+        { name: 'Wash Sand', qty: finalSand, unit: 'cu.m', price: prices.sand_wash, priceKey: 'sand_wash', total: costSand },
+        { name: 'Crushed Gravel (3/4")', qty: finalGravel, unit: 'cu.m', price: prices.gravel_3_4, priceKey: 'gravel_3_4', total: costGravel },
         ...finalRebarItems,
-        { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: prices.tieWire, priceKey: 'tieWire', total: costTieWire },
+        { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: prices.tie_wire_kg, priceKey: 'tie_wire_kg', total: costTieWire },
     ];
 
     return {

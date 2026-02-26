@@ -4,7 +4,8 @@ import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, Clipb
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateCeiling, DEFAULT_PRICES, CEILING_TYPES } from '../../utils/calculations/ceilingCalculator';
+import { calculateCeiling, CEILING_TYPES } from '../../utils/calculations/ceilingCalculator';
+import { getDefaultPrices } from '../../constants/materials';
 
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
@@ -26,7 +27,7 @@ const getInitialRow = () => ({
 
 export default function Ceiling() {
     const [rows, setRows] = useLocalStorage('ceiling_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('ceiling_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('ceiling_result', null);
     const [error, setError] = useState(null);
 
@@ -92,9 +93,9 @@ export default function Ceiling() {
     };
 
     const handleCalculate = () => {
-        const isValid = rows.some(r => r.length_m && r.width_m);
-        if (!isValid) {
-            setError("Please fill in dimensions for at least one area.");
+        const hasEmptyFields = rows.some(r => !r.isExcluded && (!r.length_m || !r.width_m || !r.quantity));
+        if (hasEmptyFields) {
+            setError("Please fill in quantity, length, and width for all included areas.");
             setResult(null);
             return;
         }

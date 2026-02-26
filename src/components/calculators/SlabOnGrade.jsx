@@ -5,13 +5,14 @@ import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateSlabOnGrade } from '../../utils/calculations/slabOnGradeCalculator';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { MATERIAL_DEFAULTS, getDefaultPrices } from '../../constants/materials';
 
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 const THEME = THEME_COLORS.slab;
 
@@ -31,22 +32,13 @@ const getInitialSlab = () => ({
     barSize: "",
     spacing: "",
     description: "",
+    mix: "",
     isExcluded: false,
 });
 
 export default function SlabOnGrade() {
     const [slabs, setSlabs] = useLocalStorage('slab_rows', [getInitialSlab()]);
-    const [prices, setPrices] = useLocalStorage('slab_prices', {
-        cement: MATERIAL_DEFAULTS.cement_40kg.price,
-        sand: MATERIAL_DEFAULTS.sand_wash.price,
-        gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
-        rebar: MATERIAL_DEFAULTS.rebar_10mm.price,
-        rebar10mmPrice: 185,
-        rebar12mmPrice: 285,
-        rebar16mmPrice: 515,
-        tieWire: MATERIAL_DEFAULTS.tie_wire_kg.price,
-        gravelBeddingPrice: MATERIAL_DEFAULTS.gravel_bedding.price,
-    });
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('slab_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('slab_has_estimated', false);
     const [error, setError] = useState(null);
@@ -195,6 +187,7 @@ export default function SlabOnGrade() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Gravel (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[150px]`}>Bar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Spacing (m)</th>
@@ -230,6 +223,16 @@ export default function SlabOnGrade() {
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput value={slab.thickness} onChange={(v) => handleSlabChange(slab.id, 'thickness', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.10" />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={slab.mix}
+                                            onChange={(val) => handleSlabChange(slab.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                        />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput value={slab.gravelBeddingThickness} onChange={(v) => handleSlabChange(slab.id, 'gravelBeddingThickness', v)} className={INPUT_UI.TABLE_INPUT} placeholder="0.05" />

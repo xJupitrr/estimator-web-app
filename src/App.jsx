@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction, Scissors, SaveAll } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction, Scissors, SaveAll, Tag } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
 import Masonry from './components/calculators/Masonry';
@@ -23,6 +23,7 @@ import LintelBeam from './components/calculators/LintelBeam';
 import ConcreteWall from './components/calculators/ConcreteWall';
 import RebarSchedule from './components/calculators/RebarSchedule';
 import RebarCuttingSchedule from './components/calculators/RebarCuttingSchedule';
+import Drywall from './components/calculators/Drywall';
 
 import { exportProjectToCSV, parseProjectCSV, applySessionData, getExportSummary } from './utils/sessionManager';
 import { getSessionData } from './utils/sessionCache';
@@ -30,6 +31,7 @@ import SessionImportModal from './components/modals/SessionImportModal';
 import SessionExportModal from './components/modals/SessionExportModal';
 import SessionLoadDashboard from './components/modals/SessionLoadDashboard';
 import Manual from './components/Manual';
+import MaterialPriceList from './components/MaterialPriceList';
 
 const TABS = [
     { id: 'masonry', label: 'Masonry', component: Masonry, icon: Box },
@@ -44,6 +46,7 @@ const TABS = [
     { id: 'tiles', label: 'Tile Works', component: Tiles, icon: Grid3X3 },
     { id: 'painting', label: 'Painting', component: Painting, icon: Paintbrush },
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
+    { id: 'drywall', label: 'Drywall Works', component: Drywall, icon: Columns },
     { id: 'electrical', label: 'Electrical Works', component: Electrical, icon: Zap },
     { id: 'plumbing', label: 'Plumbing Works', component: Plumbing, icon: Droplets },
     { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
@@ -52,6 +55,7 @@ const TABS = [
     { id: 'rebar-schedule', label: 'Rebar Bending Schedule', component: RebarSchedule, icon: Scissors },
     { id: 'rebar-cutting-schedule', label: 'Rebar Cutting Schedule', component: RebarCuttingSchedule, icon: Scissors },
     { id: 'manual', label: 'Manual & FAQ', component: Manual, icon: Info },
+    { id: 'price-list', label: 'Price List', component: MaterialPriceList, icon: Tag },
 ];
 
 const TAB_CATEGORIES = [
@@ -67,7 +71,7 @@ const TAB_CATEGORIES = [
         id: "finishes",
         code: "FIN-02",
         color: "emerald",
-        tabs: ['masonry', 'doors-windows', 'ceiling', 'tiles', 'painting']
+        tabs: ['masonry', 'doors-windows', 'drywall', 'ceiling', 'tiles', 'painting']
     },
     {
         title: "Auxiliary",
@@ -88,7 +92,7 @@ const TAB_CATEGORIES = [
         id: "help",
         code: "HLP-05",
         color: "slate",
-        tabs: ['manual']
+        tabs: ['manual', 'price-list']
     }
 ];
 
@@ -168,7 +172,7 @@ export default function App() {
             const costKeys = [
                 'masonry_total', 'slab_total', 'suspended_slab_total', 'footing_total',
                 'column_total', 'beam_total', 'roofing_total', 'formworks_total',
-                'tiles_total', 'painting_total', 'ceiling_total', 'electrical_total',
+                'tiles_total', 'painting_total', 'ceiling_total', 'drywall_total', 'electrical_total',
                 'plumbing_total', 'doors_windows_total', 'lintel_beam_total', 'steel_truss_total',
                 'concrete_wall_total'
             ];

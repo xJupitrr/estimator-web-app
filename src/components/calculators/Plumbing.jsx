@@ -3,7 +3,8 @@ import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Droplets, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
-import { calculatePlumbing, DEFAULT_PRICES } from '../../utils/calculations/plumbingCalculator';
+import { calculatePlumbing } from '../../utils/calculations/plumbingCalculator';
+import { getDefaultPrices } from '../../constants/materials';
 
 
 import SelectInput from '../common/SelectInput';
@@ -131,7 +132,7 @@ const getInitialRow = () => ({
 
 export default function Plumbing() {
     const [rows, setRows] = useLocalStorage('plumbing_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('plumbing_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('plumbing_result', null);
     const [error, setError] = useState(null);
 

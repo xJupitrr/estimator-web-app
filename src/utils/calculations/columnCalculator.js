@@ -1,5 +1,7 @@
 import { optimizeCuts } from '../optimization/cuttingStock';
 import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
+import { getHookLength } from '../rebarUtils';
 
 // Constants
 const L_ANCHOR_DEV_FACTOR = 40;
@@ -11,7 +13,7 @@ const getSkuDetails = (skuId) => {
     return {
         diameter,
         length,
-        priceKey: `rebar_${diameter}`
+        priceKey: `rebar_${diameter}mm`
     };
 };
 
@@ -66,9 +68,14 @@ export const calculateColumn = (columns, prices) => {
         const volume = L * W * H * qty;
         totalVolConcrete += volume;
         const wasteMult = 1 + (CONCRETE_WASTE_PCT / 100);
-        totalCementBags += volume * 9.0 * wasteMult;
-        totalSandCum += volume * 0.5 * wasteMult;
-        totalGravelCum += volume * 1.0 * wasteMult;
+
+        // Fetch Mix Proportions
+        const mixId = col.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1]; // Fallback to Class A
+
+        totalCementBags += volume * mixSpec.cement * wasteMult;
+        totalSandCum += volume * mixSpec.sand * wasteMult;
+        totalGravelCum += volume * mixSpec.gravel * wasteMult;
 
         // 2. Main Reinforcement
         let mainCount = 0;
@@ -83,7 +90,7 @@ export const calculateColumn = (columns, prices) => {
                     if (cutLen <= 0) {
                         const mainDiameter_m = diameter / 1000;
                         const L_dowel_splice = L_ANCHOR_DEV_FACTOR * mainDiameter_m;
-                        const L_footing_hook = Math.max(12 * mainDiameter_m, 0.25);
+                        const L_footing_hook = getHookLength(diameter, 'main_90');
                         cutLen = H + L_dowel_splice + L_footing_hook;
                     }
                     addRebarReq(skuId, cutLen, count * qty, `${colLabel} Main`);
@@ -97,7 +104,7 @@ export const calculateColumn = (columns, prices) => {
             const { diameter } = getSkuDetails(skuId);
             const mainDiameter_m = diameter / 1000;
             const L_dowel_splice = L_ANCHOR_DEV_FACTOR * mainDiameter_m;
-            const L_footing_hook = Math.max(12 * mainDiameter_m, 0.25);
+            const L_footing_hook = getHookLength(diameter, 'main_90');
             const cutLen = H + L_dowel_splice + L_footing_hook;
             addRebarReq(skuId, cutLen, count * qty, `${colLabel} Main`);
         }
@@ -111,7 +118,7 @@ export const calculateColumn = (columns, prices) => {
         const L_tie = L - (2 * concreteCover);
         const W_tie = W - (2 * concreteCover);
         const tiePerimeter = 2 * (L_tie + W_tie);
-        const hookLength = Math.max(12 * tieDiameter_m, 0.075);
+        const hookLength = getHookLength(tieSkuDetails.diameter, 'stirrup_135');
         let tieCutLength = tiePerimeter + (2 * hookLength);
 
         if (L_tie > 0 && W_tie > 0) {
@@ -120,9 +127,9 @@ export const calculateColumn = (columns, prices) => {
             addRebarReq(tieSku, tieCutLength, totalTiePieces, `${colLabel} Tie`);
 
             // 4. Tie Wire
-            const intersections = mainCount * numTiesPerCol * qty;
             const wireMeters = intersections * 0.35;
-            totalTieWireKg += wireMeters / wireMetersPerKg;
+            // 1.05 is the 5% waste factor
+            totalTieWireKg += (wireMeters / wireMetersPerKg) * 1.05;
         }
     });
 
@@ -139,9 +146,9 @@ export const calculateColumn = (columns, prices) => {
         items.push({ name, qty: finalQty, unit, priceKey, price, total });
     };
 
-    addItem(MATERIAL_DEFAULTS.cement_40kg.name, Math.ceil(totalCementBags), "bags", "cement", 240);
-    addItem(MATERIAL_DEFAULTS.sand_wash.name, totalSandCum, "cu.m", "sand", 1200);
-    addItem(MATERIAL_DEFAULTS.gravel_3_4.name, totalGravelCum, "cu.m", "gravel", 1400);
+    addItem(MATERIAL_DEFAULTS.cement_40kg.name, Math.ceil(totalCementBags), "bags", "cement_40kg", 240);
+    addItem(MATERIAL_DEFAULTS.sand_wash.name, totalSandCum, "cu.m", "sand_wash", 1200);
+    addItem(MATERIAL_DEFAULTS.gravel_3_4.name, totalGravelCum, "cu.m", "gravel_3_4", 1400);
 
     // Rebar Yield Processing
     Object.keys(rebarRequirements).forEach(skuId => {
@@ -171,7 +178,7 @@ export const calculateColumn = (columns, prices) => {
         }
     });
 
-    addItem(MATERIAL_DEFAULTS.tie_wire_kg.name, Math.ceil(totalTieWireKg), "kg", "tie_wire", 85);
+    addItem(MATERIAL_DEFAULTS.tie_wire_kg.name, Math.ceil(totalTieWireKg), "kg", "tie_wire_kg", 85);
 
     return {
         volume: totalVolConcrete.toFixed(2),

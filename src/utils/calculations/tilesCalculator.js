@@ -7,8 +7,8 @@
  */
 
 export const DEFAULT_PRICES = {
-    adhesive: 850,
-    grout: 120,
+    tile_adhesive: 850,
+    tile_grout: 120,
 };
 
 export const TILE_CONSUMABLES = [
@@ -100,26 +100,26 @@ export const calculateTiles = (areas, prices) => {
     });
 
     const finalAdhesive = Math.ceil(totalAdhesiveBags);
-    const adhesiveCost = finalAdhesive * (parseFloat(prices.adhesive) || 850);
+    const adhesiveCost = finalAdhesive * (parseFloat(prices.tile_adhesive) || 850);
     totalCost += adhesiveCost;
     items.push({
         name: "Tile Adhesive (25kg Bag)",
         qty: finalAdhesive,
         unit: 'bags',
-        priceKey: 'adhesive',
-        price: parseFloat(prices.adhesive) || 850,
+        priceKey: 'tile_adhesive',
+        price: parseFloat(prices.tile_adhesive) || 850,
         total: adhesiveCost
     });
 
     const finalGrout = Math.ceil(totalGroutKg);
-    const groutCost = finalGrout * (parseFloat(prices.grout) || 120);
+    const groutCost = finalGrout * (parseFloat(prices.tile_grout) || 120);
     totalCost += groutCost;
     items.push({
         name: "Tile Grout (kg)",
         qty: finalGrout,
         unit: 'kg',
-        priceKey: 'grout',
-        price: parseFloat(prices.grout) || 120,
+        priceKey: 'tile_grout',
+        price: parseFloat(prices.tile_grout) || 120,
         total: groutCost
     });
 

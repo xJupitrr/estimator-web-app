@@ -8,7 +8,8 @@ import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Zap, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
-import { calculateElectrical, DEFAULT_PRICES } from '../../utils/calculations/electricalCalculator';
+import { calculateElectrical } from '../../utils/calculations/electricalCalculator';
+import { getDefaultPrices } from '../../constants/materials';
 import SelectInput from '../common/SelectInput';
 
 const THEME = THEME_COLORS.electrical;
@@ -275,7 +276,7 @@ const getInitialRow = () => ({
 
 export default function Electrical() {
     const [rows, setRows] = useLocalStorage('electrical_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('electrical_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('electrical_result', null);
     const [error, setError] = useState(null);
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }

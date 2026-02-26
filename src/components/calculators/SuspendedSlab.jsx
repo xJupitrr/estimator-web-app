@@ -3,14 +3,16 @@ import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrus
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateSuspendedSlab, getSlabType, rebarDiameters, commonLengths, rebarOptions, DECKING_OPTIONS, FORMWORK_OPTIONS, SUPPORT_TYPES, DEFAULT_PRICES } from '../../utils/calculations/suspendedSlabCalculator';
+import { calculateSuspendedSlab, getSlabType, rebarDiameters, commonLengths, rebarOptions, DECKING_OPTIONS, FORMWORK_OPTIONS, SUPPORT_TYPES } from '../../utils/calculations/suspendedSlabCalculator';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
+import { getDefaultPrices } from '../../constants/materials';
 
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 const THEME = THEME_COLORS.suspended_slab;
 
@@ -28,12 +30,13 @@ const getInitialSlab = () => ({
     supportType: "",
     formworkType: "",
     description: "",
+    mix: "",
     isExcluded: false,
 });
 
 export default function SuspendedSlab() {
     const [slabs, setSlabs] = useLocalStorage('suspended_slab_rows', [getInitialSlab()]);
-    const [prices, setPrices] = useLocalStorage('suspended_slab_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('suspended_slab_result', null);
     const [error, setError] = useState(null);
 
@@ -193,6 +196,7 @@ export default function SuspendedSlab() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Type</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Rebar Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Main-Sp</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Temp-Sp</th>
@@ -264,6 +268,16 @@ export default function SuspendedSlab() {
                                             onChange={(val) => handleSlabChange(slab.id, 'thickness', val)}
                                             className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.15"
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={slab.mix}
+                                            onChange={(val) => handleSlabChange(slab.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
+                                            focusColor={THEME}
+                                            className="text-xs"
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>

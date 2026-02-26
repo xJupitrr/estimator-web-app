@@ -113,10 +113,15 @@ export const HistoryProvider = ({ children }) => {
         setPointer(0);
     }, []);
 
+    const broadcastChange = useCallback((key, value) => {
+        notify(key, value);
+    }, [notify]);
+
     const value = {
         undo,
         redo,
         captureChange,
+        broadcastChange,
         subscribe,
         clearHistory,
         canUndo: pointer > 0,

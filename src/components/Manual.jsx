@@ -17,10 +17,11 @@ const Manual = () => {
             title: 'RC Footing',
             icon: <LayoutTemplate size={16} className="text-blue-600" />,
             steps: [
-                "Concrete Volume: Calculated as (Length × Width × Depth). Cement (40kg bags) = Volume × 9.0. Sand = Volume × 0.50. Gravel = Volume × 1.0. A 5% waste allowance is automatically applied to final material quantities.",
-                "Main Rebar (Lx): Total bars = Math.ceil(Width / Spacing) + 1. Total length per bar = Length + (2 × hook allowance).",
-                "Main Rebar (Ly): Total bars = Math.ceil(Length / Spacing) + 1. Total length per bar = Width + (2 × hook allowance).",
-                "Tie Wire: Intersections (Lx count × Ly count) × 0.30m per tie. Converted to kg using (Total Length / 53m/kg) + 5% waste allowance."
+                "Concrete Volume: Calculated as (Width × Length × Depth × Quantity).",
+                "Concrete Mix: Cement, Sand, and Gravel quantities derived from user-selected mix (Class AA, A, B, or C).",
+                "Main Rebar (Lx & Ly): Cut length = (Side Dimension + 0.20m default hook). Quantity = (Math.ceil(Opposite_Side / Spacing) + 1) × Footing_Qty.",
+                "Rebar Pcs: Total Linear Meters / Stock Length (e.g., 6.0m), rounded up.",
+                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
             ]
         },
         {
@@ -28,10 +29,11 @@ const Manual = () => {
             title: 'RC Column',
             icon: <Columns size={16} className="text-blue-600" />,
             steps: [
-                "Concrete Volume: Calculated as (Length × Width × Height). Multipliers: Cement = Vol × 9.0; Sand = Vol × 0.50; Gravel = Vol × 1.0. Adds 5% waste.",
-                "Main Vertical Rebar: Base length = Column Height + footing anchor (typically 0.60m) + splice length (40 × bar diameter) if exceeding stock lengths.",
-                "Lateral Ties/Stirrups: Count = Math.ceil(Height / Spacing). Perimeter = 2 × (Length + Width) - (8 × concrete cover) + 0.15m hook allowance.",
-                "Tie Wire: (Main Bar Count × Tie Count) × 0.40m per intersection. Converted to kg (53m/kg factor) + 5% waste."
+                "Concrete Volume: (Width × Length × Height × Quantity). Materials (9/0.5/1.0 etc) depend on selected mix + 5% waste.",
+                "Vertical Rebar: Cut length = Height + 40d splice (0.4m min) + footing anchor (0.25m min). Quantity = Bars_per_column × Column_Qty.",
+                "Lateral Ties: Cut length = 2 × ((Width - 2×Cover) + (Length - 2×Cover)) + 2 × seismic hook (12d or 0.075m). Cover is fixed at 40mm.",
+                "Tie Count: (Math.ceil(Height / Spacing) + 1) × Column_Qty.",
+                "Tie Wire: (Vertical Bars × Total Ties) × 0.35m cut length per tie / 53m/kg + 5% waste."
             ]
         },
         {
@@ -39,10 +41,12 @@ const Manual = () => {
             title: 'RC Beam',
             icon: <PenTool size={16} className="text-blue-600" />,
             steps: [
-                "Concrete Volume: (Width × Depth × Span Length). Standard Class A multipliers applied (9.0 Cement, 0.5 Sand, 1.0 Gravel) + 5% waste.",
-                "Top & Bottom Continuous Bars: Span length + 0.60m anchorage. Splice lengths (40d) added if span exceeds commercial stock length.",
-                "Extra Support Bars: Cut length is typically Span / 4 on each end. Midspan Bars: Cut length is typically Span / 2 in the center.",
-                "Stirrups: Quantity = Math.ceil(Span Length / Spacing). Length = 2 × (Width + Depth) - (8 × clear cover) + 0.15m hook."
+                "Concrete Volume: (Width × Depth × Span × Quantity). Materials are based on dynamic proportions for the selected mix + 5% waste.",
+                "Main Bars (Continuous): Cut length = Span + (2 × 40d anchorage/splice). Supports 1D Bin Packing optimization for stock length selection.",
+                "Extra Top Bars (Supports): Cut length = (0.3 × Span) + (2 × 40d anchorage).",
+                "Extra Bottom Bars (Midspan): Cut length = (0.4 × Span) + (2 × 40d anchorage).",
+                "Stirrups: Cut length = 2 × ((Width - 2×Cover) + (Depth - 2×Cover)) + 2 × seismic hook. Spacing = Math.ceil(Span / Spacing) + 1.",
+                "Tie Wire: Total intersections (Main + Supports + Midspan × Ties) × 0.35m / 53m/kg + 5% waste."
             ]
         },
         {
@@ -50,10 +54,11 @@ const Manual = () => {
             title: 'Slab on Grade',
             icon: <Layers size={16} className="text-blue-600" />,
             steps: [
-                "Concrete Volume: (Area × Thickness). Multipliers applied for Class A mix + 5% waste.",
-                "Temperature/Shrinkage Reinforcement: Calculates bars acting as a grid structure. Number of bars horizontally = Math.ceil(Length / Spacing) + 1. Number of bars vertically = Math.ceil(Width / Spacing) + 1. Includes 40d lapping.",
-                "Tie Wire: (Horiz Bars × Vert Bars) × 0.30m length per tie.",
-                "Gravel Bedding: Area × Base Thickness (e.g., 0.10m), plus a 10% compaction/waste allowance."
+                "Concrete: (Area × Thickness × Quantity). Quantities are accumulated per slab based on individual concrete mix selection. Includes 5% waste.",
+                "Gravel Bedding: Area × Bedding_Thickness × 1.05 waste/compaction.",
+                "Rebar Grid: Horizontal bars count = ceil(Width/Spacing)+1; Vertical bars count = ceil(Length/Spacing)+1.",
+                "S BBS Cut Lengths: Physical bar cuts are determined by span. If span > stock (e.g., 6m), it calculates 'Stock_Length' bars + 'Overlap_Splice' (40d) + 'Tail_Cuts'.",
+                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
             ]
         },
         {
@@ -61,21 +66,25 @@ const Manual = () => {
             title: 'Suspended Slab',
             icon: <SquareStack size={16} className="text-blue-600" />,
             steps: [
-                "Load Mechanics: Evaluates aspect ratio (Length / Width) to classify One-Way (Ratio < 0.5 or > 2.0) or Two-Way slab to adjust main and temperature steel.",
-                "Concrete: (Area × Thickness). If Steel Deck is used, concrete volume is reduced by the void/rib volume of the specific deck profile.",
-                "Steel Decking: Area / Effective Width of Deck (e.g., 0.93m). Calculates required linear meters and optimizes into commercial lengths.",
-                "Rebar: Quantifies bottom continuous bars, top bent-up bars, and temperature steel, including L/3 bend points and 40d splices."
+                "Slab Analysis: Ratio = (Long Span / Short Span). > 2.0 = One-Way; Else = Two-Way.",
+                "Concrete: (Area × Thickness × Quantity) minus Steel Deck rib volume (if deck used). Materials derived from selected concrete mix. 5% waste.",
+                "Formwork: (L × W) Soffit + Perimeter Sides. Sheet Count = Total_Area / 2.9768 (standard 4x8 sheet). 5% waste.",
+                "Steel Deck: Total Area / Effective Width (0.90m). 5% waste.",
+                "Rebar (Cranked): Top reinforcement uses crank factor (Length + 2 × 0.42 × EffectiveDepth + 2 × 12d hooks). Bottom bars = Straight + 12d hooks.",
+                "Shoring (Coco): Grid 0.6x0.6. Posts, Stringers (2x3), Joists (2x2), and Bracing (30% of posts vol) calculated in Board Feet.",
+                "Shoring (H-Frame): Grid 1.2x1.2. Towers count = ceil(L/1.2) * ceil(W/1.2). Calculates Frames (2/layer), Braces (4/layer), and U-Heads (4/tower).",
+                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
             ]
         },
         {
             id: 'retaining-wall',
-            title: 'Retaining/Shear Wall (Concrete)',
+            title: 'Concrete Wall',
             icon: <Layers size={16} className="text-blue-600" />,
             steps: [
-                "Volume: (Length × Height × Thickness). Uses Class A multipliers (Cement × 9.0).",
-                "Vertical Rebars: Count = Math.ceil(Length / Spacing) + 1. Length = Height + foundation anchorage (0.60m) + splice.",
-                "Horizontal Rebars: Count = Math.ceil(Height / Spacing). Length = Length + hook/anchorage.",
-                "Tie Wire: Total intersections × 0.40m, converted to kg."
+                "Volume: (Length × Height × Thickness × Quantity). Materials derived from dynamic concrete mix proportion (Class AA, A, B, C).",
+                "Vertical Rebar: (Math.floor(Length / VertSpacing) + 1) × LayerCount (Single/Double Mat). Each bar cut to Height with 40d splices.",
+                "Horizontal Rebar: (Math.floor(Height / HorizSpacing) + 1) × LayerCount. Each bar cut to Length with 40d splices.",
+                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
             ]
         },
         {
@@ -83,8 +92,11 @@ const Manual = () => {
             title: 'Lintel Beams',
             icon: <PenTool size={16} className="text-blue-600" />,
             steps: [
-                "Similar structural logic to RC Beams but optimized for masonry opening headers.",
-                "Typically calculates 4 main continuous bars without midspan/extra support complexity. Stirrups spaced evenly."
+                "Span: Opening Width + 0.40m total bearing (0.20m each side).",
+                "Concrete: (Span × Depth × Height × Quantity). Quantities based on selected concrete mix + 5% waste.",
+                "Main Rebar: (Span + 2 × 40d splice) × Main_Bar_Count. Optimization: Yield = floor(StockLength / CutLength). BarsRequired = ceil(TotalCount / Yield).",
+                "Ties/Stirrups: Cut length = 2 × ((Height-2c) + (Depth-2c)) + 2 × Hook. Quantity = ceil(Span / Spacing) + 1.",
+                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
             ]
         },
         {
@@ -92,12 +104,12 @@ const Manual = () => {
             title: 'Masonry Works (CHB)',
             icon: <Box size={16} className="text-emerald-600" />,
             steps: [
-                "CHB Counting (Tiling Method): Accurately 'tiles' blocks. Lengthwise blocks = Math.ceil(Length / 0.41m). Heightwise blocks = Math.ceil(Height / 0.21m). Total CHB = (Lengthwise * Heightwise).",
-                "Mortar Filler (Laying): Area × 0.015 cu.m. volume.",
-                "Plastering: Area × Number of Plastered Sides × 0.01 cu.m. (assuming 10mm thickness).",
-                "Grout Filler: Area × 0.005 cu.m. (for 4\") or 0.01 cu.m. (for 6\") block cores.",
-                "Cement/Sand/Gravel: Mortar (1:3 mix, 1.25 yield) isolates Cement & Sand. Grout (1:2:4 mix, 1.5 yield) includes Gravel. Final counts get 5% waste logic.",
-                "Reinforcements: Vertical bars = Length / Spacing. Horizontal bars = Height / Spacing (e.g., every 3 layers). 40d splices included. Tie wire = 0.40m per intersection."
+                "CHB Counting (Tiling Method): Blocks lengthwise = ceil(Length / 0.41m). Blocks heightwise = ceil(Height / 0.21m). Formula: ceil(L/0.41) × ceil(H/0.21).",
+                "Mortar (Laying): Area × 0.015 cu.m. per sqm (for 4\"/6\"). Mix 1:3: (Cement = Vol/1.25 * 10; Sand = Vol/1.25 * 3).",
+                "Plastering: Area × Sides × 0.01 cu.m. (assuming 10mm thickness). Mix 1:3.",
+                "Grout (Core Fill): Area × 0.005 cu.m. (4\") or 0.01 cu.m. (6\"). Mix 1:2:4 (includes gravel).",
+                "Reinforcements: Vertical = ceil(Length/Spacing). Horizontal = ceil(Height/(LayerSpacing*0.2)). 40d splices included.",
+                "Tie Wire: (Total Intersections × 0.35m cut length) / 53m/kg + 5% waste."
             ]
         },
         {
@@ -105,11 +117,10 @@ const Manual = () => {
             title: 'Painting Works',
             icon: <Paintbrush size={16} className="text-emerald-600" />,
             steps: [
-                "Area: (Length × Height × 0.90 to account for standard door/window voids) × Number of painted sides.",
-                "Primer Coat: Total Area ÷ 25 sqm/gallon.",
-                "Skimcoat/Putty: Total Area ÷ 12 sqm/gallon (heavy coat application assumption).",
-                "Topcoat: (Total Area ÷ 30 sqm/gallon) × 2 Coats.",
-                "A 5% waste multiplier is applied to final gallon purchases."
+                "Effective Area: (Length × Height × Sides × Quantity). Voids for openings can be subtracted by reducing 'Quantity' manually.",
+                "Primer Coat: Total Area ÷ 25 sqm/gallon (4L).",
+                "Skimcoat/Putty: Total Area ÷ 20 sqm/bag (20kg bag application).",
+                "Topcoat/Finish: (Total Area ÷ 25 sqm/gallon) × 2 Coats."
             ]
         },
         {
@@ -117,9 +128,9 @@ const Manual = () => {
             title: 'Tile Works',
             icon: <Grid3X3 size={16} className="text-emerald-600" />,
             steps: [
-                "Tile Count (Direct Tiling Method): Evaluates two orientations (Horizontal vs Vertical laying). Calculates rows and columns using Math.ceil(Room_Dim / Tile_Dim) and picks the one minimizing total tiles. Adds 5% waste padding.",
-                "Tile Adhesive: Total Area ÷ 4.0 sqm (Standard yield per 25kg bag using 6mm notch trowel).",
-                "Tile Grout: Total Area × 0.30 kg (Standard filler estimate per sqm depending on joint gap). Adds 5% waste."
+                "Tile Count (Precision Method): Compares laying directions. Dir1 = ceil(L/TileW) * ceil(W/TileH). Dir2 = ceil(L/TileH) * ceil(W/TileW). Result = min(Dir1, Dir2) + 5% waste.",
+                "Tile Adhesive: Total Area ÷ 4.0 sqm (Standard yield per 25kg bag).",
+                "Tile Grout: Total Area × 0.30 kg (Joint filler estimate)."
             ]
         },
         {
@@ -127,11 +138,22 @@ const Manual = () => {
             title: 'Ceiling Works',
             icon: <Cloud size={16} className="text-emerald-600" />,
             steps: [
-                "Boards: Total Area ÷ Board Area (e.g., 2.97 sqm for 4x8 Gypsum).",
-                "Carrying Channel: Perimeter + (Area / 1.2m spacing).",
-                "Furring/Metal Studs: Area / 0.4m spacing.",
-                "Wall Angle: Room Perimeter.",
-                "Consumables: Blind Rivets = Area × 16 pcs; Screws = Area × 12 pcs; assumed 5% waste."
+                "Sheet Boards: Precision tiling method (like tiles) comparing sheet orientations for minimum cuts. 5% waste.",
+                "Carrying Channel (Primary): ceil(Width / 1.2m spacing) × Length. Converted to 5.0m commercial lengths.",
+                "Furring Channel (Secondary): ceil(Length / 0.4m spacing) × Width. Converted to 5.0m commercial lengths.",
+                "Wall Angle: Perimeter / 3.0m commercial length.",
+                "Consumables: 1 screw per 0.25m of furring. W-Clips = CarryingRuns × FurringRuns. 4 rivets per W-Clip intersection."
+            ]
+        },
+        {
+            id: 'drywall',
+            title: 'Drywall Works',
+            icon: <Columns size={16} className="text-emerald-600" />,
+            steps: [
+                "Sheet Boards: Precision tiling method (orientation check). 5% waste.",
+                "Metal Tracks: Length × 2 (Top + Bottom). Converted to 3.0m commercial lengths.",
+                "Metal Studs: (ceil(Length / 0.4m spacing) + 1) × Height. Converted to 3.0m commercial lengths.",
+                "Accessories: 4 rivets per stud/track connection. Compound and mesh tape estimated per board area."
             ]
         },
         {
@@ -139,8 +161,10 @@ const Manual = () => {
             title: 'Doors & Windows',
             icon: <DoorOpen size={16} className="text-emerald-600" />,
             steps: [
-                "Module tracks discrete unit quantities per scheduled item.",
-                "Hardware Accessories (hinges, locks) and Installation Additives (sealants, foam) are paired statically to the primary unit count."
+                "Scheduling: Tracks unit counts and pairs them with specific hardware sets.",
+                "Frame Material (LM): Door Jamb = (2 × Height + 1 × Width). Window Frame = (2 × Height + 2 × Width).",
+                "Internal Profiling: Mullions added if Width > 1.2m. Transoms added if Height > 1.5m. 10% waste for profiles.",
+                "Silicone Sealant: Total Perimeter / 10m (avg yield per 300ml cartridge)."
             ]
         },
         {
@@ -148,9 +172,29 @@ const Manual = () => {
             title: 'Formworks',
             icon: <Hammer size={16} className="text-amber-600" />,
             steps: [
-                "Phenolic/Marine Plywood: Total Contact Area ÷ 2.97 sqm (4x8 sheet). Adds 5% waste.",
-                "Lumber (Structural Framing 2x2): Precise linear methodology. Vertical studs placed every 0.60m + Horizontal walers every 0.60m. Lineal meters converted to Board Feet (1m of 2x2 = 1.093 BF).",
-                "Nails (CWN): Approximated at 0.15 kg per square meter of formwork area."
+                "Tiling Method: Instead of area division, each contact face is 'tiled' with 4x8 panels. Minimized orientation is selected per face. 5% waste.",
+                "Lumber Studs: (Perimeter / 0.6m spacing) × 2 (factor) × Height.",
+                "Lumber Walers: (Height / 0.6m spacing) × 2 (inner/outer) × Perimeter.",
+                "Lumber Volume: Total linear meters of 2x2 converted to Board Feet (1m = 1.093 BF)."
+            ]
+        },
+        {
+            id: 'roofing',
+            title: 'Roofing Works',
+            icon: <Construction size={16} className="text-slate-600" />,
+            steps: [
+                "Sheet Count: ceil(Width / Effective_Width) × Quantity. Effective width depends on type (e.g., Rib-Type = 1.0m, Corrugated = 0.76m).",
+                "Linear Meters: SheetCount × Length. Includes user-defined waste factor.",
+                "Tek Screws: Total Linear Meters × 5 pcs (heuristic density)."
+            ]
+        },
+        {
+            id: 'steel-truss',
+            title: 'Steel Truss',
+            icon: <Construction size={16} className="text-slate-600" />,
+            steps: [
+                "Linear Optimization (1D Bin Packing): System identifies every unique cut length required. It then 'packs' these into 6.0m stock bars sequentially using First-Fit-Decreasing algorithm to minimize scrap scrap.",
+                "Kerf Allowance: 5mm is subtracted from stock per cut to account for saw thickness."
             ]
         },
         {
@@ -159,7 +203,7 @@ const Manual = () => {
             icon: <Zap size={16} className="text-amber-600" />,
             steps: [
                 "Fixtures & Devices: Aggregates direct unit quantities input by the user.",
-                "Calculates automated pricing but excludes automatic wire/conduit estimation (left for manual rough-in entries) to retain precision for unique floor plans."
+                "Rough-in Logic: Calculates automated pricing for items but excludes automatic wire/conduit estimation to maintain precision for unique floor plans."
             ]
         },
         {
@@ -168,36 +212,16 @@ const Manual = () => {
             icon: <Droplets size={16} className="text-amber-600" />,
             steps: [
                 "Fixtures: Aggregates direct unit quantities input by the user.",
-                "Piping & Fittings: Evaluated as discrete item counts per schedule row."
-            ]
-        },
-        {
-            id: 'steel-truss',
-            title: 'Steel Truss',
-            icon: <Construction size={16} className="text-slate-600" />,
-            steps: [
-                "Defines Top Chords, Bottom Chords, and Web Members.",
-                "Linear Optimization (1D Bin Packing Algorithm): Sorts all required cut lengths descending and efficiently packs them sequentially into 6.0m standard commercial lengths, minimizing scrap waste dynamically.",
-                "Consumables: Welding rod estimated by weight (kg). Cutting discs estimated by cut counts."
-            ]
-        },
-        {
-            id: 'rebar-bending',
-            title: 'Rebar Bending Schedule',
-            icon: <Scissors size={16} className="text-slate-600" />,
-            steps: [
-                "Imports exact specifications from purely structural modules (Columns, Beams).",
-                "Bending/Hook Analytics: Extracts main bar lap splices and stirrup seismic hook angles (135° or 90°).",
-                "Provides total weight outputs (in kilograms) and summarizes lengths for fabricator blueprints."
+                "Piping & Fittings: Evaluated as discrete item counts per schedule row. Pricing is dynamically pulled from the materials database."
             ]
         },
         {
             id: 'rebar-cutting',
-            title: 'Rebar Cutting Schedule',
+            title: 'Optimization Schedules',
             icon: <Scissors size={16} className="text-slate-600" />,
             steps: [
-                "Aggregate 1D Bin Packing Optimization: Takes all unique rebar pieces specified across the entire project (extracted from Footing, Columns, Beams, Slabs, Walls).",
-                "Generates detailed patterns of exactly how to cut 6m, 7.5m, 9m, 10.5m, or 12m commercial bars to fulfill the required pieces while minimizing scrap waste lengths to absolute mathematical constraints."
+                "Bar Bending Schedule (BBS): Displays actual physical cut lengths for every element, accounting for concrete cover, seismic hooks (135°), and overlap splices.",
+                "Global Cutting List: Aggregates all cuts across the project. It tests standard stock lengths (6m, 7.5m, 9m, 10.5m, 12m) and recommends the most efficient stock purchase for each diameter to minimize total project scrap waste."
             ]
         }
     ];

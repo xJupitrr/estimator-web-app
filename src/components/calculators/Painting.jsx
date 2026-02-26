@@ -4,7 +4,8 @@ import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, Clipb
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculatePainting, DEFAULT_PRICES } from '../../utils/calculations/paintingCalculator';
+import { calculatePainting } from '../../utils/calculations/paintingCalculator';
+import { getDefaultPrices } from '../../constants/materials';
 
 
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
@@ -28,7 +29,7 @@ const getInitialRow = () => ({
 
 export default function Painting() {
     const [rows, setRows] = useLocalStorage('painting_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('painting_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('painting_result', null);
     const [error, setError] = useState(null);
 

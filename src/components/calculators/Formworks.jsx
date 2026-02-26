@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
-import { calculateFormworks, DEFAULT_PRICES, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
+import { calculateFormworks, PLYWOOD_OPTIONS, LUMBER_OPTIONS } from '../../utils/calculations/formworksCalculator';
+import { getDefaultPrices } from '../../constants/materials';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -27,14 +28,14 @@ const getInitialRow = (data = {}) => ({
 
 export default function Formworks({ columns = [], beams = [] }) {
     const [rows, setRows] = useLocalStorage('formworks_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('formworks_prices', DEFAULT_PRICES);
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
     const [result, setResult] = useLocalStorage('formworks_result', null);
     const [error, setError] = useState(null);
     const [wastePlywood, setWastePlywood] = useLocalStorage('formworks_waste_plywood', 15);
     const [wasteLumber, setWasteLumber] = useLocalStorage('formworks_waste_lumber', 10);
     const [includeColumns, setIncludeColumns] = useLocalStorage('formworks_include_columns', false);
     const [includeBeams, setIncludeBeams] = useLocalStorage('formworks_include_beams', false);
-    const [importPlywood, setImportPlywood] = useLocalStorage('formworks_import_plywood', 'phenolic_1_2');
+    const [importPlywood, setImportPlywood] = useLocalStorage('formworks_import_plywood', 'plywood_phenolic_1_2');
     const [importLumber, setImportLumber] = useLocalStorage('formworks_import_lumber', 'lumber_2x3');
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
 

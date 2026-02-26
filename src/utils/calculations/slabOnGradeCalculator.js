@@ -1,11 +1,15 @@
 
 import { processSingleRun } from '../rebarUtils';
 import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 export const calculateSlabOnGrade = (slabs, prices) => {
     if (!slabs || slabs.length === 0) return null;
 
     let totalConcreteVolume = 0;
+    let totalCementBags = 0;
+    let totalSandCum = 0;
+    let totalGravelCum = 0;
     let totalTiePoints = 0;
     let totalGravelBeddingVolume = 0;
     const rebarStock = new Map();
@@ -37,6 +41,14 @@ export const calculateSlabOnGrade = (slabs, prices) => {
         totalConcreteVolume += totalVol;
         totalArea += (singleArea * quantity);
 
+        const wasteMult = 1.05;
+        const mixId = slab.mix || DEFAULT_MIX;
+        const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1];
+
+        totalCementBags += totalVol * mixSpec.cement * wasteMult;
+        totalSandCum += totalVol * mixSpec.sand * wasteMult;
+        totalGravelCum += totalVol * mixSpec.gravel * wasteMult;
+
         const singleBeddingVol = singleArea * beddingThickness;
         totalGravelBeddingVolume += (singleBeddingVol * quantity);
 
@@ -60,26 +72,16 @@ export const calculateSlabOnGrade = (slabs, prices) => {
         totalTiePoints += (intersections * quantity);
     });
 
-    if (totalConcreteVolume < 0) return null;
+    const finalCement = Math.ceil(totalCementBags);
+    const finalSand = totalSandCum.toFixed(2);
+    const finalGravel = totalGravelCum.toFixed(2);
 
-    // Concrete Mix (Standard 1:2:4 Class A)
-    const V_dry_concrete = totalConcreteVolume * 1.54;
-    const V_cement = V_dry_concrete * (1 / 7);
-    const V_sand = V_dry_concrete * (2 / 7);
-    const V_gravel = V_dry_concrete * (4 / 7);
-
-    const CEMENT_BAG_VOLUME = 0.035;
-
-    const finalCement = Math.ceil(V_cement / CEMENT_BAG_VOLUME * 1.05);
-    const finalSand = (V_sand * 1.05).toFixed(2);
-    const finalGravel = (V_gravel * 1.05).toFixed(2);
-
-    const costCement = finalCement * (prices.cement || 0);
-    const costSand = parseFloat(finalSand) * (prices.sand || 0);
-    const costGravel = parseFloat(finalGravel) * (prices.gravel || 0);
+    const costCement = finalCement * (prices.cement_40kg || 0);
+    const costSand = parseFloat(finalSand) * (prices.sand_wash || 0);
+    const costGravel = parseFloat(finalGravel) * (prices.gravel_3_4 || 0);
 
     const finalGravelBedding = (totalGravelBeddingVolume * 1.05).toFixed(2);
-    const costGravelBedding = parseFloat(finalGravelBedding) * (prices.gravelBeddingPrice || 0);
+    const costGravelBedding = parseFloat(finalGravelBedding) * (prices.gravel_bedding || 0);
 
     let finalRebarItems = [];
     let totalRebarCost = 0;
@@ -103,10 +105,10 @@ export const calculateSlabOnGrade = (slabs, prices) => {
         let price = 0;
         let priceKey = '';
 
-        if (sizeNum === 10) { price = prices.rebar10mmPrice || prices.rebar || 0; priceKey = 'rebar10mmPrice'; }
-        else if (sizeNum === 12) { price = prices.rebar12mmPrice || prices.rebar || 0; priceKey = 'rebar12mmPrice'; }
-        else if (sizeNum === 16) { price = prices.rebar16mmPrice || prices.rebar || 0; priceKey = 'rebar16mmPrice'; }
-        else { price = prices.rebar || 0; priceKey = 'rebar'; }
+        if (sizeNum === 10) { price = prices.rebar_10mm || 0; priceKey = 'rebar_10mm'; }
+        else if (sizeNum === 12) { price = prices.rebar_12mm || 0; priceKey = 'rebar_12mm'; }
+        else if (sizeNum === 16) { price = prices.rebar_16mm || 0; priceKey = 'rebar_16mm'; }
+        else { price = prices.rebar_10mm || 0; priceKey = 'rebar_10mm'; }
 
         const total = finalQtyPurchase * price;
         totalRebarCost += total;
@@ -198,19 +200,20 @@ export const calculateSlabOnGrade = (slabs, prices) => {
         });
     });
 
-    const TIE_WIRE_PER_INTERSECTION = 0.04; // kg per intersection
-    const finalKGPurchase = Math.ceil(totalTiePoints * TIE_WIRE_PER_INTERSECTION * 1.10); // 10% waste
-    const costTieWire = finalKGPurchase * (prices.tieWire || 0);
+    const METERS_PER_KG = 53;
+    const WIRE_CUT_LENGTH = 0.35;
+    const finalKGPurchase = Math.ceil((totalTiePoints * WIRE_CUT_LENGTH) / METERS_PER_KG * 1.05); // 5% waste
+    const costTieWire = finalKGPurchase * (prices.tie_wire_kg || 0);
 
     const totalOverallCost = costCement + costSand + costGravel + costGravelBedding + totalRebarCost + costTieWire;
 
     const items = [
-        { name: MATERIAL_DEFAULTS.cement_40kg.name, qty: finalCement, unit: 'bags', price: prices.cement || 0, priceKey: 'cement', total: costCement },
-        { name: MATERIAL_DEFAULTS.sand_wash.name, qty: finalSand, unit: 'cu.m', price: prices.sand || 0, priceKey: 'sand', total: costSand },
-        { name: MATERIAL_DEFAULTS.gravel_3_4.name, qty: finalGravel, unit: 'cu.m', price: prices.gravel || 0, priceKey: 'gravel', total: costGravel },
-        { name: MATERIAL_DEFAULTS.gravel_bedding.name, qty: finalGravelBedding, unit: 'cu.m', price: prices.gravelBeddingPrice || 0, priceKey: 'gravelBeddingPrice', total: costGravelBedding },
+        { name: MATERIAL_DEFAULTS.cement_40kg.name, qty: finalCement, unit: 'bags', price: prices.cement_40kg || 0, priceKey: 'cement_40kg', total: costCement },
+        { name: MATERIAL_DEFAULTS.sand_wash.name, qty: finalSand, unit: 'cu.m', price: prices.sand_wash || 0, priceKey: 'sand_wash', total: costSand },
+        { name: MATERIAL_DEFAULTS.gravel_3_4.name, qty: finalGravel, unit: 'cu.m', price: prices.gravel_3_4 || 0, priceKey: 'gravel_3_4', total: costGravel },
+        { name: MATERIAL_DEFAULTS.gravel_bedding.name, qty: finalGravelBedding, unit: 'cu.m', price: prices.gravel_bedding || 0, priceKey: 'gravel_bedding', total: costGravelBedding },
         ...finalRebarItems,
-        { name: MATERIAL_DEFAULTS.tie_wire_kg.name, qty: finalKGPurchase, unit: 'kg', price: prices.tieWire || 0, priceKey: 'tieWire', total: costTieWire },
+        { name: MATERIAL_DEFAULTS.tie_wire_kg.name, qty: finalKGPurchase, unit: 'kg', price: prices.tie_wire_kg || 0, priceKey: 'tie_wire_kg', total: costTieWire },
     ];
 
     return {

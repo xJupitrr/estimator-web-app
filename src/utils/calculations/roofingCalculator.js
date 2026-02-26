@@ -3,7 +3,7 @@ const ROOFING_TYPES = [
     { id: 'rib_type', label: 'Rib-Type (Long Span)', eff_width: 1.0, default_price: 480 },
     { id: 'corrugated', label: 'Corrugated (Standard)', eff_width: 0.76, default_price: 380 },
     { id: 'tile_span', label: 'Tile Span (Premium)', eff_width: 1.0, default_price: 550 },
-    { id: 'custom', label: 'Custom Spec', eff_width: 0.70, default_price: 400 },
+    { id: 'gi_sheet', label: 'G.I. Sheet (Plain)', eff_width: 0.80, default_price: 450 },
 ];
 
 export const calculateRoofing = (rows, prices, settings) => {
@@ -55,7 +55,7 @@ export const calculateRoofing = (rows, prices, settings) => {
     Object.keys(typeGroups).forEach(typeId => {
         const group = typeGroups[typeId];
         const finalLM = Math.ceil(group.linearMeters * wasteMultiplier);
-        const priceKey = `roof_${typeId}`;
+        const priceKey = typeId === 'gi_sheet' ? 'roof_corrugated' : `roof_${typeId}`;
         const price = prices[priceKey] || group.spec.default_price;
         const total = finalLM * price;
 
@@ -74,7 +74,7 @@ export const calculateRoofing = (rows, prices, settings) => {
 
     // 2. Tek Screws
     const fastenersCount = Math.ceil(totalLM_AllTypes * 5);
-    const screwPrice = prices.tek_screw_pc || 0;
+    const screwPrice = prices.roof_tekscrew || 0;
     const screwTotal = fastenersCount * screwPrice;
     grandTotal += screwTotal;
 
@@ -82,7 +82,7 @@ export const calculateRoofing = (rows, prices, settings) => {
         name: "Tek Screws (Estimate)",
         qty: fastenersCount,
         unit: "pcs",
-        priceKey: "tek_screw_pc",
+        priceKey: "roof_tekscrew",
         price: screwPrice,
         total: screwTotal
     });

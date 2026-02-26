@@ -5,13 +5,14 @@ import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateColumn } from '../../utils/calculations/columnCalculator';
-import { MATERIAL_DEFAULTS } from '../../constants/materials';
+import { MATERIAL_DEFAULTS, getDefaultPrices } from '../../constants/materials';
 
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
 
 const THEME = THEME_COLORS.column;
 
@@ -76,6 +77,7 @@ const getInitialColumn = () => ({
     main_rebar_cuts: [{ sku: '', length: '', quantity: '' }],
     tie_bar_sku: '',
     tie_spacing_mm: "",
+    mix: "",
     isExcluded: false,
 });
 
@@ -86,17 +88,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     const columns = propColumns || localColumns;
     const setColumns = propSetColumns || setLocalColumns;
 
-    const [prices, setPrices] = useLocalStorage('column_prices', {
-        cement: MATERIAL_DEFAULTS.cement_40kg.price,
-        sand: MATERIAL_DEFAULTS.sand_wash.price,
-        gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
-        rebar_10: MATERIAL_DEFAULTS.rebar_10mm.price,
-        rebar_12: MATERIAL_DEFAULTS.rebar_12mm.price,
-        rebar_16: MATERIAL_DEFAULTS.rebar_16mm.price,
-        rebar_20: MATERIAL_DEFAULTS.rebar_20mm.price,
-        rebar_25: MATERIAL_DEFAULTS.rebar_25mm.price,
-        tie_wire: MATERIAL_DEFAULTS.tie_wire_kg.price,
-    });
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
 
     const [showResult, setShowResult] = useLocalStorage('column_show_result', false);
     const [error, setError] = useState(null);
@@ -248,6 +240,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`} rowSpan="2">#</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`} rowSpan="2">Qty</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-indigo-50/50`} colSpan="3">Dimensions (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px] bg-indigo-50/50`} rowSpan="2">Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[180px] bg-indigo-50/50`} rowSpan="2">Main Rebar</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} bg-indigo-50/50`} colSpan="2">Lateral Ties Spec</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`} rowSpan="2"></th>
@@ -295,6 +288,16 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                             <TableNumberInput value={col.height_m} onChange={(val) => handleColumnChange(col.id, 'height_m', val)} placeholder="3.00" className="pr-6" />
                                             <span className="absolute right-2 top-1.5 text-xs text-gray-400 pointer-events-none font-sans">m</span>
                                         </div>
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={col.mix}
+                                            onChange={(val) => handleColumnChange(col.id, 'mix', val)}
+                                            options={CONCRETE_MIXES.map(m => ({ id: m.id, display: m.display }))}
+                                            placeholder="Mix"
+                                            focusColor={THEME}
+                                            className="text-[10px] h-9"
+                                        />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} bg-indigo-50/10`}>
                                         <button
