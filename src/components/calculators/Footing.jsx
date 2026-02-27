@@ -43,6 +43,7 @@ const getInitialFooting = () => ({
     rebarSpec: "",
     rebar_x_count: "",
     rebar_y_count: "",
+    rebar_layers: "1", // 1 = single layer (straight bars w/ hooks), 2 = double layer (continuous loops)
     description: "",
     mix: "",
     isExcluded: false,
@@ -67,6 +68,16 @@ export default function Footing() {
     const handleAddFooting = () => {
         setFootings(prev => [...prev, getInitialFooting()]);
         setFootingResult(null);
+    };
+
+    const handleRemoveFooting = (id) => {
+        if (footings.length > 1) {
+            setFootings(prev => prev.filter(f => f.id !== id));
+        } else {
+            setFootings([getInitialFooting()]);
+        }
+        setFootingResult(null);
+        setError(null);
     };
 
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
@@ -212,8 +223,9 @@ export default function Footing() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Z-Dep (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Concrete Mix</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Rebar Spec</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Rebars along X</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Rebars along Y</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Rebars X</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Rebars Y</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Layers</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
@@ -312,6 +324,18 @@ export default function Footing() {
                                             onChange={(val) => handleFootingChange(footing.id, 'rebar_y_count', val)}
                                             className={INPUT_UI.TABLE_INPUT}
                                             placeholder="Count"
+                                        />
+                                    </td>
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={footing.rebar_layers || '1'}
+                                            onChange={(val) => handleFootingChange(footing.id, 'rebar_layers', val)}
+                                            options={[
+                                                { id: '1', display: '1 Layer' },
+                                                { id: '2', display: '2 Layers' },
+                                            ]}
+                                            focusColor={THEME}
+                                            className="text-xs"
                                         />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} text-center`}>

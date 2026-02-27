@@ -9,7 +9,8 @@ const BEARING_LENGTH = 0.20; // 200mm bearing each side (Total 400mm added to op
 const getSkuDetails = (skuId) => {
     if (!skuId) return { diameter: 0, length: 0, priceKey: '' };
     const [diameter, length] = skuId.split('_').map(Number);
-    return { diameter, length, priceKey: `rebar_${diameter}mm` };
+    // priceKey includes commercial length so different bar sizes have distinct prices
+    return { diameter, length, priceKey: `rebar_${diameter}mm_${length}m` };
 };
 
 export const calculateLintelBeam = (inputs, prices, specs = null) => {

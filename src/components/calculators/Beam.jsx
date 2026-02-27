@@ -17,19 +17,20 @@ const THEME = THEME_COLORS.beam;
 
 // --- CONSTANTS & CONFIGURATION ---
 
+// NOTE: All priceKeys must match MATERIAL_DEFAULTS keys for global sync to work
 const DEFAULT_PRICES = {
-    cement: MATERIAL_DEFAULTS.cement_40kg.price,
-    sand: MATERIAL_DEFAULTS.sand_wash.price,
-    gravel: MATERIAL_DEFAULTS.gravel_3_4.price,
-    rebar_10: MATERIAL_DEFAULTS.rebar_10mm.price,
-    rebar_12: MATERIAL_DEFAULTS.rebar_12mm.price,
-    rebar_16: MATERIAL_DEFAULTS.rebar_16mm.price,
-    rebar_20: MATERIAL_DEFAULTS.rebar_20mm.price,
-    rebar_25: MATERIAL_DEFAULTS.rebar_25mm.price,
-    tie_wire: MATERIAL_DEFAULTS.tie_wire_kg.price,
-    phenolic_1_2: MATERIAL_DEFAULTS.plywood_phenolic_1_2.price,
+    cement_40kg: MATERIAL_DEFAULTS.cement_40kg.price,
+    sand_wash: MATERIAL_DEFAULTS.sand_wash.price,
+    gravel_3_4: MATERIAL_DEFAULTS.gravel_3_4.price,
+    rebar_10mm: MATERIAL_DEFAULTS.rebar_10mm.price,
+    rebar_12mm: MATERIAL_DEFAULTS.rebar_12mm.price,
+    rebar_16mm: MATERIAL_DEFAULTS.rebar_16mm.price,
+    rebar_20mm: MATERIAL_DEFAULTS.rebar_20mm.price,
+    rebar_25mm: MATERIAL_DEFAULTS.rebar_25mm.price,
+    tie_wire_kg: MATERIAL_DEFAULTS.tie_wire_kg.price,
+    plywood_phenolic_1_2: MATERIAL_DEFAULTS.plywood_phenolic_1_2.price,
     lumber_2x3: MATERIAL_DEFAULTS.lumber_2x3.price,
-    nails_kg: MATERIAL_DEFAULTS.common_nails_kg.price,
+    common_nails_kg: MATERIAL_DEFAULTS.common_nails_kg.price,
 };
 
 const AVAILABLE_REBAR_SKUS = [

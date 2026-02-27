@@ -21,14 +21,15 @@ const CONCRETE_WASTE_PCT = 5;
 const L_ANCHOR_DEV_FACTOR = 40;
 const BEARING_LENGTH = 0.20; // 200mm bearing each side (Total 400mm added to opening width)
 
+// NOTE: priceKeys must match MATERIAL_DEFAULTS keys exactly for global price sync
 const DEFAULT_PRICES = {
-    cement: 240,
-    sand: 1200,
-    gravel: 1400,
-    rebar_10: 180,
-    rebar_12: 260,
-    rebar_16: 480,
-    tie_wire: 85,
+    cement_40kg: MATERIAL_DEFAULTS.cement_40kg.price,
+    sand_wash: MATERIAL_DEFAULTS.sand_wash.price,
+    gravel_3_4: MATERIAL_DEFAULTS.gravel_3_4.price,
+    rebar_10mm: MATERIAL_DEFAULTS.rebar_10mm.price,
+    rebar_12mm: MATERIAL_DEFAULTS.rebar_12mm.price,
+    rebar_16mm: MATERIAL_DEFAULTS.rebar_16mm.price,
+    tie_wire_kg: MATERIAL_DEFAULTS.tie_wire_kg.price,
 };
 
 const DEFAULT_SPECS = {
@@ -58,7 +59,7 @@ const AVAILABLE_TIE_SKUS = [
 const getSkuDetails = (skuId) => {
     if (!skuId) return { diameter: 0, length: 0, priceKey: '' };
     const [diameter, length] = skuId.split('_').map(Number);
-    return { diameter, length, priceKey: `rebar_${diameter}` };
+    return { diameter, length, priceKey: `rebar_${diameter}mm` }; // matches MATERIAL_DEFAULTS
 };
 
 // --- UI COMPONENTS ---

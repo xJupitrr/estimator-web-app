@@ -8,12 +8,13 @@ const L_ANCHOR_DEV_FACTOR = 40;
 
 // Helper within module for now
 const getSkuDetails = (skuId) => {
-    if (!skuId) return { diameter: 10, length: 6.0, priceKey: 'rebar_10' };
+    if (!skuId) return { diameter: 10, length: 6.0, priceKey: 'rebar_10mm_6.0m' };
     const [diameter, length] = skuId.split('_').map(Number);
+    // priceKey includes commercial length so different bar sizes have distinct prices
     return {
         diameter,
         length,
-        priceKey: `rebar_${diameter}mm`
+        priceKey: `rebar_${diameter}mm_${length}m`
     };
 };
 

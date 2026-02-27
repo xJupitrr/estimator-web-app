@@ -12,14 +12,47 @@ export const MATERIAL_DEFAULTS = {
     chb_6: { name: 'Concrete Hollow Blocks (6")', price: 22, unit: "pcs" },
     chb_8: { name: 'Concrete Hollow Blocks (8")', price: 30, unit: "pcs" },
 
-    // Rebar (Corrugated)
-    rebar_10mm: { name: "Corrugated Rebar (10mm)", price: 180, unit: "pcs" },
-    rebar_12mm: { name: "Corrugated Rebar (12mm)", price: 260, unit: "pcs" },
-    rebar_16mm: { name: "Corrugated Rebar (16mm)", price: 480, unit: "pcs" },
-    rebar_20mm: { name: "Corrugated Rebar (20mm)", price: 750, unit: "pcs" },
-    rebar_25mm: { name: "Corrugated Rebar (25mm)", price: 1150, unit: "pcs" },
+    // ─── Rebar (Corrugated / Deformed) ────────────────────────────────────────
+    // Generic diameter keys — used by Footing, Masonry, SlabOnGrade, ConcreteWall
+    // (these calculators count pieces without specifying commercial bar length)
+    rebar_10mm: { name: "Corrugated Rebar (10mm x 6.0m)", price: 180, unit: "pcs" },
+    rebar_12mm: { name: "Corrugated Rebar (12mm x 6.0m)", price: 260, unit: "pcs" },
+    rebar_16mm: { name: "Corrugated Rebar (16mm x 6.0m)", price: 480, unit: "pcs" },
+    rebar_20mm: { name: "Corrugated Rebar (20mm x 6.0m)", price: 750, unit: "pcs" },
+    rebar_25mm: { name: "Corrugated Rebar (25mm x 6.0m)", price: 1150, unit: "pcs" },
 
-    // Tie Wire
+    // Length-specific keys — used by Beam, Column, LintelBeam calculators
+    // 10mm
+    "rebar_10mm_6.0m": { name: "Corrugated Rebar (10mm × 6.0m)", price: 180, unit: "pcs" },
+    "rebar_10mm_7.5m": { name: "Corrugated Rebar (10mm × 7.5m)", price: 225, unit: "pcs" },
+    "rebar_10mm_9.0m": { name: "Corrugated Rebar (10mm × 9.0m)", price: 270, unit: "pcs" },
+    "rebar_10mm_10.5m": { name: "Corrugated Rebar (10mm × 10.5m)", price: 315, unit: "pcs" },
+    "rebar_10mm_12.0m": { name: "Corrugated Rebar (10mm × 12.0m)", price: 360, unit: "pcs" },
+    // 12mm
+    "rebar_12mm_6.0m": { name: "Corrugated Rebar (12mm × 6.0m)", price: 260, unit: "pcs" },
+    "rebar_12mm_7.5m": { name: "Corrugated Rebar (12mm × 7.5m)", price: 325, unit: "pcs" },
+    "rebar_12mm_9.0m": { name: "Corrugated Rebar (12mm × 9.0m)", price: 390, unit: "pcs" },
+    "rebar_12mm_10.5m": { name: "Corrugated Rebar (12mm × 10.5m)", price: 455, unit: "pcs" },
+    "rebar_12mm_12.0m": { name: "Corrugated Rebar (12mm × 12.0m)", price: 520, unit: "pcs" },
+    // 16mm
+    "rebar_16mm_6.0m": { name: "Corrugated Rebar (16mm × 6.0m)", price: 480, unit: "pcs" },
+    "rebar_16mm_7.5m": { name: "Corrugated Rebar (16mm × 7.5m)", price: 600, unit: "pcs" },
+    "rebar_16mm_9.0m": { name: "Corrugated Rebar (16mm × 9.0m)", price: 720, unit: "pcs" },
+    "rebar_16mm_10.5m": { name: "Corrugated Rebar (16mm × 10.5m)", price: 840, unit: "pcs" },
+    "rebar_16mm_12.0m": { name: "Corrugated Rebar (16mm × 12.0m)", price: 960, unit: "pcs" },
+    // 20mm
+    "rebar_20mm_6.0m": { name: "Corrugated Rebar (20mm × 6.0m)", price: 750, unit: "pcs" },
+    "rebar_20mm_7.5m": { name: "Corrugated Rebar (20mm × 7.5m)", price: 940, unit: "pcs" },
+    "rebar_20mm_9.0m": { name: "Corrugated Rebar (20mm × 9.0m)", price: 1125, unit: "pcs" },
+    "rebar_20mm_10.5m": { name: "Corrugated Rebar (20mm × 10.5m)", price: 1310, unit: "pcs" },
+    "rebar_20mm_12.0m": { name: "Corrugated Rebar (20mm × 12.0m)", price: 1500, unit: "pcs" },
+    // 25mm
+    "rebar_25mm_6.0m": { name: "Corrugated Rebar (25mm × 6.0m)", price: 1150, unit: "pcs" },
+    "rebar_25mm_7.5m": { name: "Corrugated Rebar (25mm × 7.5m)", price: 1440, unit: "pcs" },
+    "rebar_25mm_9.0m": { name: "Corrugated Rebar (25mm × 9.0m)", price: 1725, unit: "pcs" },
+    "rebar_25mm_10.5m": { name: "Corrugated Rebar (25mm × 10.5m)", price: 2015, unit: "pcs" },
+    "rebar_25mm_12.0m": { name: "Corrugated Rebar (25mm × 12.0m)", price: 2300, unit: "pcs" },
+
     tie_wire_kg: { name: "G.I. Tie Wire (#16)", price: 85, unit: "kg" },
 
     // Formworks - Plywood

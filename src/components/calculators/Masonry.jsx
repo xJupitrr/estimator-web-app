@@ -82,6 +82,17 @@ export default function Masonry() { // Renamed to Masonry
         setError(null);
     };
 
+    // Handler to remove a wall
+    const handleRemoveWall = (id) => {
+        if (walls.length > 1) {
+            setWalls(prev => prev.filter(w => w.id !== id));
+        } else {
+            setWalls([getInitialWall()]);
+        }
+        setWallResult(null);
+        setError(null);
+    };
+
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
 
     // Close context menu on click anywhere

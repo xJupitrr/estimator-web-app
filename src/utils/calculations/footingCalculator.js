@@ -1,5 +1,5 @@
 import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
-import { getHookLength } from '../rebarUtils';
+import { getHookLength, getBendAllowance } from '../rebarUtils';
 
 export const DEFAULT_PRICES = {
     cement: 240,
@@ -15,6 +15,18 @@ export const DEFAULT_PRICES = {
 
 /**
  * Calculates materials and costs for Footings.
+ *
+ * 1-Layer: Standard mat — straight bars with 90° hooks each end.
+ *   X-bar length = X + 2*hookLen
+ *   Y-bar length = Y + 2*hookLen
+ *   Total bars   = countX + countY
+ *
+ * 2-Layer (continuous elevation loop / hairpin bar):
+ *   Each bar forms a closed rectangle in ELEVATION (side view):
+ *     bottom leg → 90°bend up → vertical leg → 90°bend → top leg → 90°bend down → vertical leg → close
+ *   Loop length  = 2*span + 2*(Z − 2*cover) + 4*bend_allowance(90°)
+ *   Total bars   = countX + countY  (one loop replaces the bottom+top bar pair)
+ *   Cover assumed = 75mm each face (standard footing clear cover)
  */
 export const calculateFooting = (footings, prices) => {
     let totalConcreteVol = 0;
@@ -22,7 +34,7 @@ export const calculateFooting = (footings, prices) => {
     let totalSandCum = 0;
     let totalGravelCum = 0;
     let totalRebarPcs = {};
-    let rebarGroups = {}; // New: Track individual cuts per specification
+    let rebarGroups = {}; // Track individual cuts per specification
 
     if (!footings || footings.length === 0) return null;
 
@@ -55,17 +67,13 @@ export const calculateFooting = (footings, prices) => {
 
         const countX = parseInt(f.rebar_x_count) || 0;
         const countY = parseInt(f.rebar_y_count) || 0;
-
-        // Individual cut lengths with hooks (Standard 90-degree hook per side)
-        const hookLen = getHookLength(diameter, 'main_90');
-        const cutX = X + (2 * hookLen);
-        const cutY = Y + (2 * hookLen);
+        const layers = parseInt(f.rebar_layers) || 1;
 
         const priceKey = `rebar_${diameter}mm`;
         if (!totalRebarPcs[priceKey]) {
             totalRebarPcs[priceKey] = {
                 qty: 0,
-                name: `Corrugated Rebar (${sizeStr})`,
+                name: `Corrugated Rebar(${sizeStr})`,
                 size: diameter
             };
         }
@@ -82,26 +90,71 @@ export const calculateFooting = (footings, prices) => {
             };
         }
 
-        if (countX > 0) {
-            rebarGroups[spec].cuts.push({
-                length: cutX,
-                quantity: countX * Q,
-                label: f.description || `Footing ${f.id.toString().slice(-4)} (X)`
-            });
-        }
-        if (countY > 0) {
-            rebarGroups[spec].cuts.push({
-                length: cutY,
-                quantity: countY * Q,
-                label: f.description || `Footing ${f.id.toString().slice(-4)} (Y)`
-            });
-        }
+        const label = f.description || `Footing ${f.id.toString().slice(-4)}`;
+        const hookLen = getHookLength(diameter, 'main_90');
+        const bendAllow = getBendAllowance(diameter, 90, false);
 
-        // Existing simplified piece calculation for summary
-        const totalLenX = cutX * countX * Q;
-        const totalLenY = cutY * countY * Q;
-        const totalPcs = Math.ceil((totalLenX + totalLenY) / commLen);
-        totalRebarPcs[priceKey].qty += totalPcs;
+        if (layers === 2) {
+            // ---- 2-LAYER: CONTINUOUS ELEVATION LOOPS (HAIRPIN BARS) ----
+            // Each bar is a closed rectangular loop when viewed from the side:
+            //   [bottom mat leg] → 90°up → [vertical leg] → 90°horiz → [top mat leg] → 90°down → [vertical leg] → close (with hooks)
+            //
+            // Bar length = 2*span + 2*matSep + 4*bendAllow(90°) + 2*hookLen(90°)
+            //              ↑ straight legs  ↑ vert legs  ↑ 4 corner bends  ↑ hooks at closure/lap ends
+            //   where matSep = Z − 2*cover (75mm standard clear cover each face)
+            //
+            // Bar COUNT = countX + countY (one loop replaces the bottom+top bar pair per direction)
+            const COVER = 0.075; // 75mm clear cover for footings cast against earth
+            const matSep = Math.max(0.05, Z - 2 * COVER);
+
+            const cutX_loop = 2 * X + 2 * matSep + 4 * bendAllow + 2 * hookLen;
+            const cutY_loop = 2 * Y + 2 * matSep + 4 * bendAllow + 2 * hookLen;
+
+            if (countX > 0) {
+                rebarGroups[spec].cuts.push({
+                    length: cutX_loop,
+                    quantity: countX * Q,
+                    label: `${label} (X-loop)`
+                });
+            }
+            if (countY > 0) {
+                rebarGroups[spec].cuts.push({
+                    length: cutY_loop,
+                    quantity: countY * Q,
+                    label: `${label} (Y-loop)`
+                });
+            }
+
+            const totalLenX_loop = cutX_loop * countX * Q;
+            const totalLenY_loop = cutY_loop * countY * Q;
+            const totalPcs = Math.ceil((totalLenX_loop + totalLenY_loop) / commLen);
+            totalRebarPcs[priceKey].qty += totalPcs;
+
+        } else {
+            // ---- 1-LAYER: STRAIGHT BARS WITH 90° HOOKS ----
+            const cutX = X + (2 * hookLen);
+            const cutY = Y + (2 * hookLen);
+
+            if (countX > 0) {
+                rebarGroups[spec].cuts.push({
+                    length: cutX,
+                    quantity: countX * Q,
+                    label: `${label} (X)`
+                });
+            }
+            if (countY > 0) {
+                rebarGroups[spec].cuts.push({
+                    length: cutY,
+                    quantity: countY * Q,
+                    label: `${label} (Y)`
+                });
+            }
+
+            const totalLenX = cutX * countX * Q;
+            const totalLenY = cutY * countY * Q;
+            const totalPcs = Math.ceil((totalLenX + totalLenY) / commLen);
+            totalRebarPcs[priceKey].qty += totalPcs;
+        }
     });
 
     if (totalConcreteVol <= 0) return null;
@@ -125,15 +178,23 @@ export const calculateFooting = (footings, prices) => {
         addItem(data.name, data.qty, "pcs", key, DEFAULT_PRICES[key] || 200);
     });
 
-    // Precision Tie Wire Calculation: (Intersections X * Y) * 0.35m per tie / 53m/kg + 5% waste
+    // Tie Wire Calculation
+    // 1 layer: nX * nY intersections per footing
+    // 2 layers: intersections * 2 (each intersection is doubled in a 2-layer mat)
     let totalIntersections = 0;
     footings.forEach(f => {
         if (f.isExcluded) return;
         const Q = parseFloat(f.quantity) || 0;
         const nX = parseInt(f.rebar_x_count) || 0;
         const nY = parseInt(f.rebar_y_count) || 0;
+        const layers = parseInt(f.rebar_layers) || 1;
         if (Q > 0 && nX > 0 && nY > 0) {
-            totalIntersections += (nX * nY * Q);
+            if (layers === 2) {
+                // Intersections within each layer + inter-layer ties
+                totalIntersections += (nX * nY * 2 * Q);
+            } else {
+                totalIntersections += (nX * nY * Q);
+            }
         }
     });
 
