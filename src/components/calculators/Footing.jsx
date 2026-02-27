@@ -43,7 +43,7 @@ const getInitialFooting = () => ({
     rebarSpec: "",
     rebar_x_count: "",
     rebar_y_count: "",
-    rebar_layers: "1", // 1 = single layer (straight bars w/ hooks), 2 = double layer (continuous loops)
+    rebar_layers: "", // "" = unset (defaults to 1-layer in calculator), "1" or "2" once chosen
     description: "",
     mix: "",
     isExcluded: false,
@@ -328,7 +328,7 @@ export default function Footing() {
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <SelectInput
-                                            value={footing.rebar_layers || '1'}
+                                            value={footing.rebar_layers || ''}
                                             onChange={(val) => handleFootingChange(footing.id, 'rebar_layers', val)}
                                             options={[
                                                 { id: '1', display: '1 Layer' },
@@ -336,6 +336,7 @@ export default function Footing() {
                                             ]}
                                             focusColor={THEME}
                                             className="text-xs"
+                                            placeholder="Layers..."
                                         />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
