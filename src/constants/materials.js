@@ -2,9 +2,17 @@
 export const MATERIAL_DEFAULTS = {
     // Aggregates
     cement_40kg: { name: "Portland Cement (40kg)", price: 240, unit: "bags" },
+    cement_white_40kg: { name: "White Cement (40kg)", price: 900, unit: "bags" },
     sand_wash: { name: "Wash Sand (S1)", price: 1200, unit: "cu.m" },
+    sand_plaster: { name: "Mortar Plastering Sand (S2)", price: 1000, unit: "cu.m" },
     gravel_3_4: { name: "Crushed Gravel (3/4)", price: 1400, unit: "cu.m" },
     gravel_bedding: { name: "Gravel Bedding / Sub-base", price: 1000, unit: "cu.m" },
+    ready_mix_3000psi: { name: "Ready-Mix Concrete (3000 PSI / 20.7 MPa)", price: 4500, unit: "cu.m" },
+    ready_mix_3500psi: { name: "Ready-Mix Concrete (3500 PSI / 24.1 MPa)", price: 4750, unit: "cu.m" },
+    ready_mix_4000psi: { name: "Ready-Mix Concrete (4000 PSI / 27.6 MPa)", price: 4910, unit: "cu.m" },
+    curing_compound_20l: { name: "Concrete Curing Compound (20L Pail)", price: 1232, unit: "pails" },
+    waterproofing_admix_1kg: { name: "Waterproofing Admixture / Integral (1kg)", price: 1350, unit: "bags" },
+    expansion_joint_filler: { name: "Expansion Joint Filler Strip (10mm x 100mm x 1.2m)", price: 45, unit: "pcs" },
 
     // Masonry
     chb_4: { name: 'Concrete Hollow Blocks (4")', price: 15, unit: "pcs" },
@@ -20,6 +28,8 @@ export const MATERIAL_DEFAULTS = {
     rebar_16mm: { name: "Corrugated Rebar (16mm x 6.0m)", price: 480, unit: "pcs" },
     rebar_20mm: { name: "Corrugated Rebar (20mm x 6.0m)", price: 750, unit: "pcs" },
     rebar_25mm: { name: "Corrugated Rebar (25mm x 6.0m)", price: 1150, unit: "pcs" },
+    wwm_4x4_10ga: { name: "Welded Wire Mesh 4x4 Gauge 10 (2.4m x 6.0m)", price: 2200, unit: "sheets" },
+    wwm_6x6_10ga: { name: "Welded Wire Mesh 6x6 Gauge 10 (2.4m x 6.0m)", price: 1850, unit: "sheets" },
 
     // Length-specific keys — used by Beam, Column, LintelBeam calculators
     // 10mm
@@ -69,16 +79,78 @@ export const MATERIAL_DEFAULTS = {
     form_kicker_set: { name: "Form Kicker Brace (lumber set)", price: 55, unit: "set" },
     shoring_prop: { name: "Adjustable Shoring Prop (Floor Jack)", price: 1200, unit: "pcs" },
 
-    // Tiles & Finishes
+    // ─── Tiles & Finishes — Consumables ───────────────────────────────────────
+    tile_adhesive: { name: "Tile Adhesive (25kg)", price: 320, unit: "bags" },
     tile_adhesive_25kg: { name: "Tile Adhesive (25kg)", price: 320, unit: "bags" },
-    tile_grout_2kg: { name: "Tile Grout (2kg)", price: 120, unit: "bags" },
-    tile_30x30: { name: "Ceramic Tile (30x30)", price: 35, unit: "pcs" },
-    tile_60x60: { name: "Granite Tile (60x60)", price: 185, unit: "pcs" },
+    tile_grout: { name: "Tile Grout (kg)", price: 75, unit: "kg" },
+    tile_grout_2kg: { name: "Tile Grout (2kg)", price: 150, unit: "bags" },
+    epoxy_grout_1kg: { name: "Epoxy Grout (1kg)", price: 385, unit: "bags" },
+    tile_spacer_2mm: { name: "Tile Spacers 2mm (500pcs/bag)", price: 58, unit: "bags" },
+    tile_edge_trim: { name: "Tile Edge Trim / Nosing (2.4m)", price: 180, unit: "pcs" },
+    vinyl_adhesive_sqm: { name: "Vinyl / Sheet Adhesive (per sq.m)", price: 80, unit: "sq.m" },
+
+    // ─── Porcelain Tiles (per pc) ─────────────────────────────────────────────
+    tile_porcelain_30x30: { name: "Porcelain Tile 30×30cm", price: 38, unit: "pcs" },
+    tile_porcelain_40x40: { name: "Porcelain Tile 40×40cm", price: 68, unit: "pcs" },
+    tile_porcelain_45x45: { name: "Porcelain Tile 45×45cm", price: 95, unit: "pcs" },
+    tile_porcelain_60x60: { name: "Porcelain Tile 60×60cm", price: 165, unit: "pcs" },
+    tile_porcelain_60x120: { name: "Porcelain Tile 60×120cm", price: 320, unit: "pcs" },
+    tile_porcelain_80x80: { name: "Porcelain Tile 80×80cm", price: 385, unit: "pcs" },
+    tile_porcelain_100x100: { name: "Porcelain Tile 100×100cm", price: 650, unit: "pcs" },
+
+    // ─── Ceramic Tiles (per pc) ───────────────────────────────────────────────
+    tile_ceramic_20x20: { name: "Ceramic Tile 20×20cm", price: 18, unit: "pcs" },
+    tile_ceramic_25x25: { name: "Ceramic Tile 25×25cm", price: 22, unit: "pcs" },
+    tile_ceramic_30x30: { name: "Ceramic Tile 30×30cm", price: 40, unit: "pcs" },
+    tile_ceramic_40x40: { name: "Ceramic Tile 40×40cm", price: 65, unit: "pcs" },
+    tile_ceramic_60x60: { name: "Ceramic Tile 60×60cm", price: 150, unit: "pcs" },
+    // legacy fallback keys
+    tile_30x30: { name: "Ceramic Tile 30×30cm", price: 40, unit: "pcs" },
+    tile_60x60: { name: "Ceramic / General Tile 60×60cm", price: 165, unit: "pcs" },
+
+    // ─── Homogeneous Tiles (per pc) ───────────────────────────────────────────
+    tile_homogeneous_60x60: { name: "Homogeneous Tile 60×60cm", price: 195, unit: "pcs" },
+    tile_homogeneous_60x120: { name: "Homogeneous Tile 60×120cm", price: 380, unit: "pcs" },
+    tile_homogeneous_80x80: { name: "Homogeneous Tile 80×80cm", price: 450, unit: "pcs" },
+    tile_homogeneous_100x100: { name: "Homogeneous Tile 100×100cm", price: 720, unit: "pcs" },
+
+    // ─── Granite / Natural Stone (per pc) ────────────────────────────────────
+    tile_granite_30x30: { name: "Granite Tile 30×30cm", price: 130, unit: "pcs" },
+    tile_granite_40x40: { name: "Granite Tile 40×40cm", price: 220, unit: "pcs" },
+    tile_granite_60x60: { name: "Granite Tile 60×60cm", price: 420, unit: "pcs" },
+    tile_granite_60x120: { name: "Granite Tile 60×120cm", price: 780, unit: "pcs" },
+
+    // ─── Mosaic Tiles (per sheet 30×30cm) ────────────────────────────────────
+    tile_mosaic_30x30: { name: "Mosaic Tile Sheet (30×30cm)", price: 250, unit: "sheets" },
+
+    // ─── Wall Ceramic Tiles (per pc) ─────────────────────────────────────────
+    tile_wall_ceramic_20x25: { name: "Wall Ceramic Tile 20×25cm", price: 22, unit: "pcs" },
+    tile_wall_ceramic_20x30: { name: "Wall Ceramic Tile 20×30cm", price: 26, unit: "pcs" },
+    tile_wall_ceramic_25x40: { name: "Wall Ceramic Tile 25×40cm", price: 45, unit: "pcs" },
+    tile_wall_ceramic_30x60: { name: "Wall Ceramic Tile 30×60cm", price: 75, unit: "pcs" },
+
+    // ─── SPC / Vinyl / Laminate Flooring (per box) ───────────────────────────
+    flooring_spc: { name: "SPC Vinyl Plank (per box ~1.86 sq.m)", price: 1900, unit: "boxes" },
+    flooring_vinyl_plank: { name: "LVT Vinyl Plank (per box ~2.0 sq.m)", price: 1600, unit: "boxes" },
+    flooring_laminate: { name: "Laminate Wood Flooring (per box ~2.13 sq.m)", price: 1450, unit: "boxes" },
+    // Legacy SPC key (sold per pc)
+    vinyl_plank_spc: { name: "SPC Vinyl Plank (per piece)", price: 220, unit: "pcs" },
+
+    // ─── Sheet / Sq.m Flooring ────────────────────────────────────────────────
+    flooring_vinyl_sheet: { name: "Vinyl Sheet Flooring (per sq.m)", price: 450, unit: "sq.m" },
+    flooring_hardwood: { name: "Engineered / Solid Hardwood (per sq.m)", price: 2800, unit: "sq.m" },
+
+    // ─── Waterproofing ────────────────────────────────────────────────────────
+    waterproofing_elasto_4l: { name: "Elastomeric Waterproofing Paint (4L)", price: 920, unit: "tins" },
+    waterproofing_membrane: { name: "Waterproofing Membrane (HDPE, 1m x 20m roll)", price: 2800, unit: "rolls" },
 
     // Painting
     paint_primer: { name: "Concrete Primer (4L)", price: 650, unit: "tins" },
     paint_topcoat: { name: "Latex Paint (4L)", price: 750, unit: "tins" },
     paint_thinner: { name: "Paint Thinner (1L)", price: 110, unit: "bottles" },
+    paint_enamel_4l: { name: "Enamel Paint Oil-Based (4L)", price: 1200, unit: "tins" },
+    paint_epoxy_floor_4l: { name: "Epoxy Floor Paint (4L)", price: 1800, unit: "tins" },
+    silicone_caulk_300ml: { name: "Silicone / Acrylic Caulk (300ml cartridge)", price: 295, unit: "tubes" },
 
     // Ceiling & Drywall
     gypsum_board_12mm: { name: "Gypsum Board (1/2\" x 4'x8')", price: 480, unit: "sheets" },
@@ -92,8 +164,15 @@ export const MATERIAL_DEFAULTS = {
     roof_tile_span: { name: "Tile-Span Roofing (Premium)", price: 550, unit: "ln.m" },
     roof_tekscrew: { name: "Tekscrew (pcs)", price: 1.50, unit: "pcs" },
     roof_sealant: { name: "Roof Sealant (90ml)", price: 95, unit: "tubes" },
+    roof_ridge_roll: { name: "Ridge Roll - Pre-painted (GA24)", price: 265, unit: "ln.m" },
+    roof_flashing: { name: "Valley / Apron Flashing (GA26)", price: 220, unit: "ln.m" },
+    roof_gutter_gi: { name: "GI Gutter - Pre-painted (GA24, 2.44m)", price: 355, unit: "ln.m" },
+    roof_downspout: { name: "Downspout / Rainwater Pipe (PVC, 3m)", price: 350, unit: "pcs" },
+    roof_fascia_board: { name: "Fascia Board (Fiber Cement, 200mm x 3m)", price: 320, unit: "pcs" },
+    roof_bubble_foil: { name: "Bubble Foil Insulation (1m x 50m roll)", price: 1850, unit: "rolls" },
 
-    // Concrete Slab & Scaffolding
+    // Concrete Slab, Scaffolding & Formworks
+    form_release_oil_1gal: { name: "Form Release Oil / Mold Release (1 gallon)", price: 855, unit: "cans" },
     coco_lumber: { name: "Coco Lumber (Assorted)", price: 45, unit: "BF" },
     deck_08: { name: "Steel Deck (0.80mm)", price: 450, unit: "ln.m" },
     deck_10: { name: "Steel Deck (1.00mm)", price: 550, unit: "ln.m" },
@@ -103,35 +182,114 @@ export const MATERIAL_DEFAULTS = {
     u_head: { name: "U-Head Jack", price: 350, unit: "pcs" },
     shackle: { name: "Swivel Clamp", price: 65, unit: "pcs" },
 
-    // Auxiliary
-    pvc_pipe_blue_1_2: { name: "PVC Pipe (1/2\" Blue)", price: 145, unit: "pcs" },
-    pvc_pipe_orange_2: { name: "PVC Pipe (2\" Orange)", price: 320, unit: "pcs" },
-    thhn_wire_2_0: { name: "THHN Wire (2.0mm²)", price: 3800, unit: "rolls" },
-    tile_adhesive: { name: "Tile Adhesive (25kg)", price: 850, unit: "bags" },
-    tile_grout: { name: "Tile Grout (kg)", price: 120, unit: "kg" },
+    // ─── Structural Steel ─────────────────────────────────────────────────────
+    steel_wide_flange_kg: { name: "Structural Steel Wide Flange A36 (per kg)", price: 55, unit: "kg" },
+    steel_i_beam_kg: { name: "Structural Steel I-Beam A36 (per kg)", price: 55, unit: "kg" },
+    flat_bar_25x3: { name: "Flat Bar 25mm x 3mm x 6m", price: 280, unit: "pcs" },
+    flat_bar_50x6: { name: "Flat Bar 50mm x 6mm x 6m", price: 950, unit: "pcs" },
+    round_bar_10mm: { name: "Round Bar 10mm x 6m (Plain)", price: 150, unit: "pcs" },
+    round_bar_12mm: { name: "Round Bar 12mm x 6m (Plain)", price: 220, unit: "pcs" },
+    checkered_plate_4x8: { name: "Checkered Plate 3mm (4'x8')", price: 4200, unit: "sheets" },
+    welding_rod_e6013_5kg: { name: "Welding Rod E6013 3.2mm (5kg box)", price: 390, unit: "boxes" },
+    cutting_disc_4in: { name: "Cutting Disc 4\" (Metal, 25pcs/pack)", price: 120, unit: "packs" },
 
-    // Ceiling
-    ceiling_gypsum_9mm: { name: "Gypsum Board (9mm x 4'x8')", price: 450, unit: "pcs" },
-    ceiling_hardiflex_1_4: { name: "Fiber Cement Board (1/4\")", price: 420, unit: "pcs" },
-    ceiling_marine_plywood_1_4: { name: "Marine Plywood (1/4\")", price: 380, unit: "pcs" },
-    ceiling_wall_angle: { name: "Wall Angle (3m)", price: 65, unit: "pcs" },
-    ceiling_carrying_channel: { name: "Carrying Channel (5m)", price: 180, unit: "pcs" },
-    ceiling_metal_furring: { name: "Metal Furring (5m)", price: 165, unit: "pcs" },
-    ceiling_w_clip: { name: "W-Clip", price: 8, unit: "pcs" },
-    ceiling_mesh_tape: { name: "Fiberglass Mesh Tape (75m)", price: 250, unit: "rolls" },
-    ceiling_joint_compound: { name: "Jointing Compound (20kg)", price: 850, unit: "pails" },
+    // ─── Door Hardware — Hinges ────────────────────────────────────────────────
+    door_hinge_3: { name: "Door Hinge Stainless 3\" (pair)", price: 85, unit: "pairs" },
+    door_hinge_3_5: { name: "Door Hinge Stainless 3.5\" (pair)", price: 120, unit: "pairs" },
+    door_hinge_4: { name: "Door Hinge Stainless 4\" (pair)", price: 165, unit: "pairs" },
+    door_hinge_spring: { name: "Spring Hinge (Self-Closing) 3.5\"", price: 250, unit: "pcs" },
+    door_hinge_butterfly: { name: "Butterfly / T-Hinge (Heavy Duty, 6\")", price: 95, unit: "pairs" },
+    floor_spring: { name: "Floor Spring / Floor Closer (80kg cap.)", price: 2999, unit: "sets" },
 
-    // Painting
-    paint_primer_4l: { name: "Flat Latex (Primer - 4L)", price: 650, unit: "gal" },
-    paint_skimcoat_20kg: { name: "Skimcoat (20kg)", price: 450, unit: "bags" },
-    paint_topcoat_4l: { name: "Semi-Gloss Latex (Topcoat - 4L)", price: 750, unit: "gal" },
+    // ─── Door Hardware — Locksets & Handles ───────────────────────────────────
+    lockset_mortise: { name: "Mortise Lockset (Mid-Range)", price: 1650, unit: "sets" },
+    lockset_mortise_premium: { name: "Mortise Lockset (Premium / Hafele)", price: 2800, unit: "sets" },
+    lockset_lever: { name: "Lever Handle Lockset (Mid-Range)", price: 750, unit: "sets" },
+    lockset_knob: { name: "Knob Lockset (Budget)", price: 450, unit: "sets" },
+    deadbolt_single: { name: "Deadbolt Lock - Single Cylinder", price: 499, unit: "sets" },
+    deadbolt_double: { name: "Deadbolt Lock - Double Cylinder", price: 650, unit: "sets" },
+    door_handle_lever: { name: "Door Lever Handle (Passage, No Lock)", price: 380, unit: "pcs" },
+    door_handle_pull: { name: "Door Pull Handle (Stainless, 300mm)", price: 450, unit: "pairs" },
 
-    // Plumbing
-    pvc_pipe_100mm: { name: "uPVC Pipe (4\" / 100mm)", price: 820, unit: "pcs" },
-    pvc_pipe_75mm: { name: "uPVC Pipe (3\" / 75mm)", price: 550, unit: "pcs" },
-    pvc_pipe_50mm: { name: "uPVC Pipe (2\" / 50mm)", price: 280, unit: "pcs" },
-    ppr_pipe_20mm: { name: "PPR Pipe (1/2\" / 20mm)", price: 480, unit: "pcs" },
-    ppr_pipe_25mm: { name: "PPR Pipe (3/4\" / 25mm)", price: 650, unit: "pcs" },
+    // ─── Door Hardware — Door Closers ─────────────────────────────────────────
+    door_closer_light: { name: "Hydraulic Door Closer (Light Duty, up to 45kg)", price: 950, unit: "pcs" },
+    door_closer_heavy: { name: "Hydraulic Door Closer (Heavy Duty, up to 80kg)", price: 2500, unit: "pcs" },
+
+    // ─── Door Hardware — Bolts & Latches ──────────────────────────────────────
+    barrel_bolt_4: { name: "Barrel Bolt / Slide Bolt Stainless 4\"", price: 75, unit: "pcs" },
+    barrel_bolt_6: { name: "Barrel Bolt / Slide Bolt Stainless 6\"", price: 95, unit: "pcs" },
+    tower_bolt_8: { name: "Tower Bolt Stainless 8\" (Heavy Duty)", price: 120, unit: "pcs" },
+    flush_bolt: { name: "Flush Bolt Stainless (for Double Doors)", price: 185, unit: "pcs" },
+    door_latch: { name: "Door Latch / Night Latch (Spring Bolt)", price: 120, unit: "pcs" },
+
+    // ─── Door Hardware — Security & Accessories ───────────────────────────────
+    padlock_40mm: { name: "Padlock Brass 40mm (Standard)", price: 120, unit: "pcs" },
+    padlock_60mm: { name: "Padlock Brass 60mm (Heavy Duty)", price: 280, unit: "pcs" },
+    door_chain: { name: "Door Chain / Security Chain (Stainless)", price: 140, unit: "pcs" },
+    door_peephole: { name: "Door Peephole / Viewer (180-degree)", price: 150, unit: "pcs" },
+    door_kick_plate: { name: "Door Kick Plate (Stainless, 200x900mm)", price: 680, unit: "pcs" },
+    door_stop_floor: { name: "Door Stop - Floor Mount (Stainless)", price: 85, unit: "pcs" },
+    door_stop_wall: { name: "Door Stop - Wall Mount (Rubber Tip)", price: 55, unit: "pcs" },
+    weatherstrip_foam: { name: "Door Weatherstrip - Foam Seal (5m roll)", price: 65, unit: "rolls" },
+    weatherstrip_rubber: { name: "Door Bottom Seal / Draft Stopper (1m)", price: 180, unit: "pcs" },
+
+    // ─── General Fasteners ────────────────────────────────────────────────────
+    anchor_bolt_1_2: { name: "Anchor Bolt 1/2\" x 4\" (J-Bolt)", price: 35, unit: "pcs" },
+    concrete_nail_kg: { name: "Concrete Nails (kg)", price: 95, unit: "kg" },
+    finish_nail_kg: { name: "Finish Nails (kg)", price: 90, unit: "kg" },
+    window_screen: { name: "Window Screen / Insect Mesh (1.2m x 30m roll)", price: 1200, unit: "rolls" },
+
+    // ─── Site Works ───────────────────────────────────────────────────────────
+    soil_fill_cum: { name: "Soil Fill / Earth Fill (per cu.m)", price: 650, unit: "cu.m" },
+    topsoil_cum: { name: "Topsoil (per cu.m)", price: 900, unit: "cu.m" },
+    gravel_fill_compacted: { name: "Compacted Gravel Fill (per cu.m)", price: 1100, unit: "cu.m" },
+    geotextile_fabric: { name: "Geotextile Fabric (Non-Woven, 4m x 100m roll)", price: 8500, unit: "rolls" },
+    culvert_pipe_12in: { name: "Concrete Culvert Pipe 12\" (0.9m length)", price: 850, unit: "pcs" },
+    culvert_pipe_24in: { name: "Concrete Culvert Pipe 24\" (0.9m length)", price: 2200, unit: "pcs" },
+    riprap_boulders: { name: "Riprap / Boulders (per cu.m)", price: 1800, unit: "cu.m" },
+    bamboo_pole: { name: "Bamboo Pole (3m length)", price: 85, unit: "pcs" },
+    gabion_basket: { name: "Gabion Basket / Rockfill Box (2m x 1m x 1m)", price: 2800, unit: "pcs" },
+
+
+    gi_pipe_1_2: { name: "GI Pipe 1/2\" Sch 40 (6.0m)", price: 1000, unit: "pcs" },
+    gi_pipe_3_4: { name: "GI Pipe 3/4\" Sch 40 (6.0m)", price: 1300, unit: "pcs" },
+    gi_pipe_1: { name: "GI Pipe 1\" Sch 40 (6.0m)", price: 1800, unit: "pcs" },
+    // GI Fittings — 1/2\"
+    gi_elbow_90_1_2: { name: "GI Elbow 90° 1/2\"", price: 28, unit: "pcs" },
+    gi_tee_1_2: { name: "GI Tee 1/2\"", price: 35, unit: "pcs" },
+    gi_coupling_1_2: { name: "GI Coupling 1/2\"", price: 20, unit: "pcs" },
+    gi_nipple_1_2: { name: "GI Nipple 1/2\"", price: 18, unit: "pcs" },
+    gi_union_1_2: { name: "GI Union 1/2\"", price: 65, unit: "pcs" },
+    gi_gate_valve_1_2: { name: "GI Gate Valve 1/2\"", price: 180, unit: "pcs" },
+    gi_ball_valve_1_2: { name: "GI Ball Valve 1/2\"", price: 120, unit: "pcs" },
+    gi_end_cap_1_2: { name: "GI End Cap 1/2\"", price: 20, unit: "pcs" },
+    // GI Fittings — 3/4\"
+    gi_elbow_90_3_4: { name: "GI Elbow 90° 3/4\"", price: 35, unit: "pcs" },
+    gi_tee_3_4: { name: "GI Tee 3/4\"", price: 45, unit: "pcs" },
+    gi_coupling_3_4: { name: "GI Coupling 3/4\"", price: 28, unit: "pcs" },
+    gi_nipple_3_4: { name: "GI Nipple 3/4\"", price: 22, unit: "pcs" },
+    gi_union_3_4: { name: "GI Union 3/4\"", price: 85, unit: "pcs" },
+    gi_gate_valve_3_4: { name: "GI Gate Valve 3/4\"", price: 220, unit: "pcs" },
+    gi_ball_valve_3_4: { name: "GI Ball Valve 3/4\"", price: 150, unit: "pcs" },
+    gi_reducer_3_4x1_2: { name: "GI Reducer 3/4\"x1/2\"", price: 35, unit: "pcs" },
+    gi_end_cap_3_4: { name: "GI End Cap 3/4\"", price: 25, unit: "pcs" },
+    // GI Fittings — 1\"
+    gi_elbow_90_1: { name: "GI Elbow 90° 1\"", price: 55, unit: "pcs" },
+    gi_tee_1: { name: "GI Tee 1\"", price: 70, unit: "pcs" },
+    gi_coupling_1: { name: "GI Coupling 1\"", price: 40, unit: "pcs" },
+    gi_nipple_1: { name: "GI Nipple 1\"", price: 35, unit: "pcs" },
+    gi_union_1: { name: "GI Union 1\"", price: 120, unit: "pcs" },
+    gi_gate_valve_1: { name: "GI Gate Valve 1\"", price: 320, unit: "pcs" },
+    gi_ball_valve_1: { name: "GI Ball Valve 1\"", price: 220, unit: "pcs" },
+    gi_reducer_1x3_4: { name: "GI Reducer 1\"x3/4\"", price: 48, unit: "pcs" },
+    gi_end_cap_1: { name: "GI End Cap 1\"", price: 35, unit: "pcs" },
+    // GI Pipe Clamps
+    pipe_clamp_1_2: { name: "Pipe Clamp 1/2\"", price: 12, unit: "pcs" },
+    pipe_clamp_3_4: { name: "Pipe Clamp 3/4\"", price: 14, unit: "pcs" },
+    pipe_clamp_1: { name: "Pipe Clamp 1\"", price: 18, unit: "pcs" },
+    water_tank_500l: { name: "Overhead Water Tank Poly (500L)", price: 4200, unit: "units" },
+    water_tank_1000l: { name: "Overhead Water Tank Poly (1000L)", price: 7500, unit: "units" },
+    submersible_pump_05hp: { name: "Submersible Pump 0.5HP (Clean Water)", price: 5500, unit: "units" },
     wc_set: { name: "Water Closet Set (Complete)", price: 5200, unit: "sets" },
     lav_set: { name: "Lavatory Set (Complete)", price: 2600, unit: "sets" },
     sink_set: { name: "Kitchen Sink Set (Complete)", price: 2100, unit: "sets" },
@@ -144,6 +302,8 @@ export const MATERIAL_DEFAULTS = {
     elec_junction_box: { name: "Junction Box (PVC)", price: 35, unit: "pcs" },
     elec_switch_1g: { name: "1-Gang Switch (Set)", price: 150, unit: "sets" },
     elec_outlet_duplex: { name: "Duplex Convenience Outlet", price: 210, unit: "sets" },
+    ceiling_fan_48: { name: "Ceiling Fan 48\" (Standard)", price: 3500, unit: "units" },
+    exhaust_fan_8: { name: "Exhaust Fan 8\" Wall-Mounted", price: 1500, unit: "units" },
 
     // Drywall
     drywall_metal_stud: { name: "Metal Stud (3m)", price: 165, unit: "pcs" },

@@ -9,6 +9,7 @@ import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import SelectInput from '../common/SelectInput';
+import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
 import { CONCRETE_MIXES, DEFAULT_MIX } from '../../constants/concrete';
@@ -39,7 +40,7 @@ const getInitialWall = () => ({
 
 export default function ConcreteWall() {
     const [walls, setWalls] = useLocalStorage('concrete_walls', [getInitialWall()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
 
     const [result, setResult] = useLocalStorage('concrete_wall_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('concrete_wall_has_estimated', false);
@@ -337,25 +338,7 @@ export default function ConcreteWall() {
                                         {result.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'concrete_wall_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
-                                </div>
+                                <ExportButtons items={result.items} filename="concrete_wall_estimate.csv" />
                             </div>
                         </div>
 

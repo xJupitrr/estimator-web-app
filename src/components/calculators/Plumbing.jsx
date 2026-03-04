@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Droplets, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import { calculatePlumbing } from '../../utils/calculations/plumbingCalculator';
@@ -22,6 +23,7 @@ const THEME = THEME_COLORS.plumbing;
 const PLUMBING_CATEGORIES = [
     { id: 'fixtures', label: 'Plumbing Fixtures' },
     { id: 'waterline', label: 'Waterline System (PPR)' },
+    { id: 'waterline_gi', label: 'Waterline System (GI Pipe)' },
     { id: 'pvc', label: 'uPVC Pipe & Fittings' },
 ];
 
@@ -80,6 +82,42 @@ const PLUMBING_ITEMS = {
 
         { id: 'teflon_tape', label: 'Teflon Tape' },
     ],
+    waterline_gi: [
+        // ─── GI Pipe (Galvanized Iron) ───
+        { id: 'gi_pipe_1_2', label: 'GI Pipe 1/2" Sch 40 (6.0m)' },
+        { id: 'gi_pipe_3_4', label: 'GI Pipe 3/4" Sch 40 (6.0m)' },
+        { id: 'gi_pipe_1', label: 'GI Pipe 1" Sch 40 (6.0m)' },
+        { id: 'gi_elbow_90_1_2', label: '1/2" GI Elbow 90°' },
+        { id: 'gi_elbow_90_3_4', label: '3/4" GI Elbow 90°' },
+        { id: 'gi_elbow_90_1', label: '1" GI Elbow 90°' },
+        { id: 'gi_tee_1_2', label: '1/2" GI Tee' },
+        { id: 'gi_tee_3_4', label: '3/4" GI Tee' },
+        { id: 'gi_tee_1', label: '1" GI Tee' },
+        { id: 'gi_coupling_1_2', label: '1/2" GI Coupling' },
+        { id: 'gi_coupling_3_4', label: '3/4" GI Coupling' },
+        { id: 'gi_coupling_1', label: '1" GI Coupling' },
+        { id: 'gi_nipple_1_2', label: '1/2" GI Nipple' },
+        { id: 'gi_nipple_3_4', label: '3/4" GI Nipple' },
+        { id: 'gi_nipple_1', label: '1" GI Nipple' },
+        { id: 'gi_union_1_2', label: '1/2" GI Union' },
+        { id: 'gi_union_3_4', label: '3/4" GI Union' },
+        { id: 'gi_union_1', label: '1" GI Union' },
+        { id: 'gi_gate_valve_1_2', label: '1/2" GI Gate Valve' },
+        { id: 'gi_gate_valve_3_4', label: '3/4" GI Gate Valve' },
+        { id: 'gi_gate_valve_1', label: '1" GI Gate Valve' },
+        { id: 'gi_ball_valve_1_2', label: '1/2" GI Ball Valve' },
+        { id: 'gi_ball_valve_3_4', label: '3/4" GI Ball Valve' },
+        { id: 'gi_ball_valve_1', label: '1" GI Ball Valve' },
+        { id: 'gi_reducer_3_4x1_2', label: '3/4"x1/2" GI Reducer' },
+        { id: 'gi_reducer_1x3_4', label: '1"x3/4" GI Reducer' },
+        { id: 'gi_end_cap_1_2', label: '1/2" GI End Cap' },
+        { id: 'gi_end_cap_3_4', label: '3/4" GI End Cap' },
+        { id: 'gi_end_cap_1', label: '1" GI End Cap' },
+        { id: 'pipe_clamp_1_2', label: '1/2" Pipe Clamp' },
+        { id: 'pipe_clamp_3_4', label: '3/4" Pipe Clamp' },
+        { id: 'pipe_clamp_1', label: '1" Pipe Clamp' },
+        { id: 'teflon_tape', label: 'Teflon Tape' },
+    ],
     pvc: [
         // 4" Group
         { id: 'pvc_pipe_100mm', label: '4" uPVC Pipe' },
@@ -132,7 +170,7 @@ const getInitialRow = () => ({
 
 export default function Plumbing() {
     const [rows, setRows] = useLocalStorage('plumbing_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('plumbing_result', null);
     const [error, setError] = useState(null);
 
@@ -398,6 +436,9 @@ export default function Plumbing() {
                                 <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                 <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             </div>
+                                <div className="flex gap-2 mt-2">
+                                    <ExportButtons items={result.items} filename="plumbing_estimate.csv" />
+                                </div>
                         </div>
 
                         <div className={TABLE_UI.CONTAINER}>

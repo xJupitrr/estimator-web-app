@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Layout, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -27,7 +28,7 @@ const getInitialRow = () => ({
 
 export default function Ceiling() {
     const [rows, setRows] = useLocalStorage('ceiling_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('ceiling_result', null);
     const [error, setError] = useState(null);
 
@@ -302,6 +303,9 @@ export default function Ceiling() {
                             <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
                                 <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                 <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                                <ExportButtons items={result.items} filename="ceiling_estimate.csv" />
                             </div>
                         </div>
 

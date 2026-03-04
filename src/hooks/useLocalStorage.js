@@ -11,13 +11,19 @@ import { useHistory } from '../contexts/HistoryContext';
 import { getSessionData, setSessionData } from '../utils/sessionCache';
 export { getSessionData, setSessionData };
 
-export default function useLocalStorage(key, initialValue) {
+export default function useLocalStorage(key, initialValue, { mergeDefaults = false } = {}) {
     const { captureChange, broadcastChange, subscribe } = useHistory();
 
     // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
     const [storedValue, setStoredValue] = useState(() => {
         const cached = getSessionData(key);
-        if (cached !== undefined) return cached;
+        if (cached !== undefined) {
+            // For price maps: merge defaults under stored so new keys always have a price
+            if (mergeDefaults && initialValue && typeof initialValue === 'object' && !Array.isArray(initialValue)) {
+                return { ...initialValue, ...cached };
+            }
+            return cached;
+        }
         return initialValue;
     });
 

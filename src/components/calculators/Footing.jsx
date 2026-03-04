@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Scissors, ChevronDown, ChevronUp, X } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
@@ -51,7 +52,7 @@ const getInitialFooting = () => ({
 
 export default function Footing() {
     const [footings, setFootings] = useLocalStorage('footing_rows', [getInitialFooting()]);
-    const [footingPrices, setFootingPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [footingPrices, setFootingPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [footingResult, setFootingResult] = useLocalStorage('footing_result', null);
     const [error, setError] = useState(null);
     const [showAnalysis, setShowAnalysis] = useState(false);
@@ -399,23 +400,9 @@ export default function Footing() {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(footingResult.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(footingResult.items, 'footing_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <ExportButtons items={result.items} filename="footing_estimate.csv" />
+                                    
+                                    
                                     <button
                                         onClick={() => setShowAnalysis(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, LayoutGrid, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateTiles, TILE_CONSUMABLES } from '../../utils/calculations/tilesCalculator';
+import { calculateTiles, FLOORING_MATERIALS, getMaterialConfig } from '../../utils/calculations/tilesCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 
 import Card from '../common/Card';
@@ -18,6 +19,7 @@ const THEME = THEME_COLORS.tiles;
 const getInitialRow = () => ({
     id: Date.now() + Math.random(),
     quantity: "",
+    material: "",
     length_m: "",
     width_m: "",
     tile_size_cm: "",
@@ -27,12 +29,19 @@ const getInitialRow = () => ({
 
 export default function Tiles() {
     const [rows, setRows] = useLocalStorage('tiles_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('tiles_result', null);
     const [error, setError] = useState(null);
 
+
     const handleRowChange = (id, field, value) => {
-        setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
+        setRows(prev => prev.map(r => {
+            if (r.id !== id) return r;
+            const updated = { ...r, [field]: value };
+            // Reset size when material changes
+            if (field === 'material') updated.tile_size_cm = '';
+            return updated;
+        }));
         setResult(null);
     };
 
@@ -120,7 +129,7 @@ export default function Tiles() {
     }, [result]);
 
     const updatePrice = (key, value) => {
-        setPrices(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
+        setStoredPrices(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
     };
 
     return (
@@ -167,11 +176,12 @@ export default function Tiles() {
                         <thead className="bg-slate-100">
                             <tr>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Area Description</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Length (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Width (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Tile Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[55px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Area Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[170px]`}>Material</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[155px]`}>Size / Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[110px]`}>Length (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[110px]`}>Width (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
@@ -212,6 +222,28 @@ export default function Tiles() {
                                             placeholder="e.g. Living Room"
                                         />
                                     </td>
+                                    {/* Material selector */}
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={row.material}
+                                            onChange={(val) => handleRowChange(row.id, 'material', val)}
+                                            options={FLOORING_MATERIALS.map(m => ({ id: m.id, display: m.label }))}
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                            placeholder="Select Material..."
+                                        />
+                                    </td>
+                                    {/* Size selector — options driven by selected material */}
+                                    <td className={TABLE_UI.INPUT_CELL}>
+                                        <SelectInput
+                                            value={row.tile_size_cm}
+                                            onChange={(val) => handleRowChange(row.id, 'tile_size_cm', val)}
+                                            options={getMaterialConfig(row.material || 'porcelain').sizes.map(s => ({ id: s.id, display: s.display }))}
+                                            focusColor={THEME}
+                                            className="text-xs"
+                                            placeholder={row.material ? 'Select Size...' : 'Pick material first'}
+                                        />
+                                    </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <MathInput
                                             value={row.length_m}
@@ -226,23 +258,6 @@ export default function Tiles() {
                                             onChange={(val) => handleRowChange(row.id, 'width_m', val)}
                                             className={INPUT_UI.TABLE_INPUT}
                                             placeholder="0.00"
-                                        />
-                                    </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={row.tile_size_cm}
-                                            onChange={(val) => handleRowChange(row.id, 'tile_size_cm', val)}
-                                            options={[
-                                                { id: "30x30", display: "30cm x 30cm" },
-                                                { id: "40x40", display: "40cm x 40cm" },
-                                                { id: "60x60", display: "60cm x 60cm" },
-                                                { id: "60x120", display: "60cm x 120cm" },
-                                                { id: "20x100", display: "20cm x 100cm" },
-                                                { id: "20x20", display: "20cm x 20cm" },
-                                            ]}
-                                            focusColor={THEME}
-                                            className="text-xs"
-                                            placeholder="Select Size..."
                                         />
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
@@ -301,6 +316,9 @@ export default function Tiles() {
                                 <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                 <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             </div>
+                                <div className="flex gap-2 mt-2">
+                                    <ExportButtons items={result.items} filename="tiles_estimate.csv" />
+                                </div>
                         </div>
 
                         <div className={TABLE_UI.CONTAINER}>

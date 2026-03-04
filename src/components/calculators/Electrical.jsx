@@ -6,6 +6,7 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Zap, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import { calculateElectrical } from '../../utils/calculations/electricalCalculator';
@@ -276,7 +277,7 @@ const getInitialRow = () => ({
 
 export default function Electrical() {
     const [rows, setRows] = useLocalStorage('electrical_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('electrical_result', null);
     const [error, setError] = useState(null);
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
@@ -563,6 +564,9 @@ export default function Electrical() {
                                 <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                 <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                             </div>
+                                <div className="flex gap-2 mt-2">
+                                    <ExportButtons items={result.items} filename="electrical_estimate.csv" />
+                                </div>
                         </div>
 
                         <div className={TABLE_UI.CONTAINER}>
