@@ -394,9 +394,30 @@ export default function Plumbing() {
                                     <Info size={14} /> Estimates reflect selected items only (excludes automatic rough-ins)
                                 </p>
                             </div>
-                            <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
-                                <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                            <div className="flex flex-col items-end gap-3">
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[280px]`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
+                                    >
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
+                                    </button>
+                                    <button
+                                        onClick={() => downloadCSV(result.items, 'plumbing_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Download as CSV"
+                                    >
+                                        <Download size={14} /> Download CSV
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

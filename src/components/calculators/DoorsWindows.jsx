@@ -378,24 +378,27 @@ export default function DoorsWindows() {
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[280px]`}>
                                     <p className={`text-xs text-${THEME}-800 font-bold uppercase tracking-wide mb-1`}>Grand Total Estimated Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => copyToClipboard(result.items)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
-                                        title="Copy table to clipboard"
+                                        onClick={async () => {
+                                            const success = await copyToClipboard(result.items);
+                                            if (success) alert('Table copied to clipboard!');
+                                        }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
+                                        title="Copy table to clipboard for Excel"
                                     >
-                                        <ClipboardCopy size={14} /> Copy
+                                        <ClipboardCopy size={14} /> Copy to Clipboard
                                     </button>
                                     <button
-                                        onClick={() => downloadCSV(result.items, 'doors_windows_estimation.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+                                        onClick={() => downloadCSV(result.items, 'doors_windows_estimate.csv')}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
                                         title="Download as CSV"
                                     >
-                                        <Download size={14} /> CSV
+                                        <Download size={14} /> Download CSV
                                     </button>
                                 </div>
                             </div>

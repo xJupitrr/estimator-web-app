@@ -158,8 +158,8 @@ export default function LintelBeam() {
         // I don't see `lintelHeight` in the map in LintelBeam.jsx. It uses `specs.lintelHeight` in the calc.
 
         // I will update the utility call to pass specs so the utility can grab the height.
-        return calculateLintelBeam(lintelBeams, prices, specs);
-    }, [lintelBeams, prices, specs, showResult]);
+        return calculateLintelBeam(doorsWindowsItems, prices, specs);
+    }, [doorsWindowsItems, prices, specs, showResult]);
 
     // Global Cost Sync
     useEffect(() => {

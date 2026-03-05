@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * A standard select input with placeholder support and dynamic color contrast.
  */
-const SelectInput = ({ value, onChange, options, placeholder = "Select Option...", className = "", focusColor = "blue" }) => {
+const SelectInput = ({ value, onChange, options, placeholder = "Select Option...", className = "", focusColor = "blue", disabled = false }) => {
 
     // Theme-based focus rings
     const focusColors = {
@@ -31,10 +31,14 @@ const SelectInput = ({ value, onChange, options, placeholder = "Select Option...
         <select
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
             className={`
-                w-full p-2 border border-gray-300 rounded text-sm outline-none transition-all cursor-pointer font-medium bg-white
-                ${isPlaceholder ? 'text-zinc-400 font-normal italic' : 'text-zinc-900'}
-                ${focusColors[focusColor] || focusColors.blue}
+                w-full p-2 border rounded text-sm outline-none transition-all font-medium
+                ${disabled
+                    ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed italic'
+                    : 'bg-white border-gray-300 cursor-pointer'}
+                ${isPlaceholder ? 'text-zinc-400 font-normal italic' : (!disabled ? 'text-zinc-900' : '')}
+                ${!disabled ? (focusColors[focusColor] || focusColors.blue) : ''}
                 ${className}
             `}
         >

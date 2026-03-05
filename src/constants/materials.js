@@ -69,11 +69,57 @@ export const MATERIAL_DEFAULTS = {
     form_kicker_set: { name: "Form Kicker Brace (lumber set)", price: 55, unit: "set" },
     shoring_prop: { name: "Adjustable Shoring Prop (Floor Jack)", price: 1200, unit: "pcs" },
 
-    // Tiles & Finishes
-    tile_adhesive_25kg: { name: "Tile Adhesive (25kg)", price: 320, unit: "bags" },
-    tile_grout_2kg: { name: "Tile Grout (2kg)", price: 120, unit: "bags" },
-    tile_30x30: { name: "Ceramic Tile (30x30)", price: 35, unit: "pcs" },
-    tile_60x60: { name: "Granite Tile (60x60)", price: 185, unit: "pcs" },
+    // Tiles & Finishes — Consumables
+    tile_adhesive: { name: "Tile Adhesive (25kg Bag)", price: 850, unit: "bags" },
+    tile_grout: { name: "Tile Grout (per kg)", price: 120, unit: "kg" },
+    tile_underlay_roll: { name: "PE Foam Underlay (15m² Roll)", price: 380, unit: "rolls" },
+    tile_leveling_clips: { name: "Tile Leveling Clip System (50-pc Pack)", price: 250, unit: "packs" },
+
+    // Ceramic Tiles (per pc)
+    tile_ceramic_20x20: { name: "Ceramic Tile 20×20cm", price: 18, unit: "pcs" },
+    tile_ceramic_30x30: { name: "Ceramic Tile 30×30cm", price: 28, unit: "pcs" },
+    tile_ceramic_40x40: { name: "Ceramic Tile 40×40cm", price: 45, unit: "pcs" },
+    tile_ceramic_60x60: { name: "Ceramic Tile 60×60cm", price: 95, unit: "pcs" },
+
+    // Porcelain Tiles (per pc)
+    tile_porcelain_30x30: { name: "Porcelain Tile 30×30cm", price: 55, unit: "pcs" },
+    tile_porcelain_60x60: { name: "Porcelain Tile 60×60cm", price: 185, unit: "pcs" },
+    tile_porcelain_60x120: { name: "Porcelain Tile 60×120cm", price: 380, unit: "pcs" },
+    tile_porcelain_80x80: { name: "Porcelain Tile 80×80cm", price: 320, unit: "pcs" },
+
+    // SPC Plank (per pc)
+    tile_spc_plank_18x120: { name: "SPC Plank 18×120cm", price: 95, unit: "pcs" },
+    tile_spc_plank_22x152: { name: "SPC Plank 22×152cm", price: 135, unit: "pcs" },
+    tile_spc_plank_23x183: { name: "SPC Plank 23×183cm", price: 160, unit: "pcs" },
+
+    // Laminated Flooring (per pc)
+    tile_laminated_19x138: { name: "Laminated Flooring 19×138cm", price: 65, unit: "pcs" },
+    tile_laminated_20x138: { name: "Laminated Flooring 20×138cm", price: 75, unit: "pcs" },
+    tile_laminated_20x182: { name: "Laminated Flooring 20×182cm", price: 90, unit: "pcs" },
+
+    // Marble Tiles (per pc)
+    tile_marble_30x30: { name: "Marble Tile 30×30cm", price: 180, unit: "pcs" },
+    tile_marble_60x60: { name: "Marble Tile 60×60cm", price: 650, unit: "pcs" },
+    tile_marble_60x120: { name: "Marble Tile 60×120cm", price: 1200, unit: "pcs" },
+    tile_marble_80x80: { name: "Marble Tile 80×80cm", price: 950, unit: "pcs" },
+
+    // Granite Tiles (per pc)
+    tile_granite_30x30: { name: "Granite Tile 30×30cm", price: 120, unit: "pcs" },
+    tile_granite_60x60: { name: "Granite Tile 60×60cm", price: 420, unit: "pcs" },
+    tile_granite_60x120: { name: "Granite Tile 60×120cm", price: 820, unit: "pcs" },
+
+    // Vinyl Tiles / LVT (per pc)
+    tile_vinyl_30x30: { name: "Vinyl Tile (LVT) 30×30cm", price: 38, unit: "pcs" },
+    tile_vinyl_45x45: { name: "Vinyl Tile (LVT) 45×45cm", price: 72, unit: "pcs" },
+    tile_vinyl_30x60: { name: "Vinyl Tile (LVT) 30×60cm", price: 85, unit: "pcs" },
+    tile_vinyl_18x122: { name: "Vinyl Plank (LVT) 18×122cm", price: 110, unit: "pcs" },
+
+    // Hardwood Flooring (per pc)
+    tile_hardwood_9x90: { name: "Hardwood Flooring 9×90cm", price: 95, unit: "pcs" },
+    tile_hardwood_12x90: { name: "Hardwood Flooring 12×90cm", price: 130, unit: "pcs" },
+    tile_hardwood_15x90: { name: "Hardwood Flooring 15×90cm", price: 165, unit: "pcs" },
+    tile_hardwood_15x120: { name: "Hardwood Flooring 15×120cm", price: 210, unit: "pcs" },
+    tile_hardwood_19x90: { name: "Hardwood Flooring 19×90cm", price: 195, unit: "pcs" },
 
     // Painting
     paint_primer: { name: "Concrete Primer (4L)", price: 650, unit: "tins" },
@@ -107,8 +153,6 @@ export const MATERIAL_DEFAULTS = {
     pvc_pipe_blue_1_2: { name: "PVC Pipe (1/2\" Blue)", price: 145, unit: "pcs" },
     pvc_pipe_orange_2: { name: "PVC Pipe (2\" Orange)", price: 320, unit: "pcs" },
     thhn_wire_2_0: { name: "THHN Wire (2.0mm²)", price: 3800, unit: "rolls" },
-    tile_adhesive: { name: "Tile Adhesive (25kg)", price: 850, unit: "bags" },
-    tile_grout: { name: "Tile Grout (kg)", price: 120, unit: "kg" },
 
     // Ceiling
     ceiling_gypsum_9mm: { name: "Gypsum Board (9mm x 4'x8')", price: 450, unit: "pcs" },
