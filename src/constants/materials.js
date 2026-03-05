@@ -3,6 +3,7 @@ export const MATERIAL_DEFAULTS = {
     // Aggregates
     cement_40kg: { name: "Portland Cement (40kg)", price: 240, unit: "bags" },
     sand_wash: { name: "Wash Sand (S1)", price: 1200, unit: "cu.m" },
+    sand_plastering: { name: "Plastering Sand (S2)", price: 1100, unit: "cu.m" },
     gravel_3_4: { name: "Crushed Gravel (3/4)", price: 1400, unit: "cu.m" },
     gravel_bedding: { name: "Gravel Bedding / Sub-base", price: 1000, unit: "cu.m" },
 

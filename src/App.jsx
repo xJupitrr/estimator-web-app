@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useHistory } from './contexts/HistoryContext';
 import useLocalStorage from './hooks/useLocalStorage';
+import { getDefaultPrices } from './constants/materials';
 import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Zap, Droplets, Hammer, SquareStack, Tent, Save, Upload, DoorOpen, Home, RotateCw, Construction, Scissors, SaveAll, Tag } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import SlabOnGrade from './components/calculators/SlabOnGrade';
@@ -166,6 +167,22 @@ export default function App() {
     const [lastSaveInfo, setLastSaveInfo] = useLocalStorage('last_save_info', { date: '', count: 0 });
 
     const [projectTotal, setProjectTotal] = useState(0);
+
+    // ── Bootstrap: merge any new MATERIAL_DEFAULTS keys into stored prices ───────
+    // Runs once on app startup so every tab always has prices for new materials
+    // (e.g. steel truss angle bars, c-channels, tubulars, sand_plastering, etc.)
+    const [, setBootstrapPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    useEffect(() => {
+        const defaults = getDefaultPrices();
+        const stored = JSON.parse(localStorage.getItem('app_material_prices') || '{}');
+        const missingKeys = Object.keys(defaults).filter(k => stored[k] === undefined);
+        if (missingKeys.length > 0) {
+            const patch = {};
+            missingKeys.forEach(k => { patch[k] = defaults[k]; });
+            setBootstrapPrices(prev => ({ ...patch, ...prev }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Sync total cost from all modules
     useEffect(() => {

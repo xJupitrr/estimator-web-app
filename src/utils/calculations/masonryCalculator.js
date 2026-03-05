@@ -8,12 +8,13 @@ export const calculateMasonry = (walls, wallPrices) => {
     let totalChbCount = 0;
 
     // Separating volumes based on material type
-    let totalVolumeMortarPlaster = 0; // Uses Cement and Sand only
-    let totalVolumeGroutFiller = 0;   // Uses Cement, Sand, and Gravel
+    let totalVolumeMortarPlaster = 0; // Uses Cement and Plastering Sand (S2) only
+    let totalVolumeGroutFiller = 0;   // Uses Cement, Wash Sand (S1), and Gravel
     let totalTiePoints = 0;
 
     let totalCementBagsGrout = 0;
-    let totalSandCumGrout = 0;
+    let totalSandS2CumPlaster = 0;   // S2 — mortar laying + plaster coats
+    let totalSandS1CumGrout = 0;     // S1 — core grout fill (concrete mix)
     let totalGravelCumGrout = 0;
 
     const rebarStock = new Map();
@@ -79,7 +80,7 @@ export const calculateMasonry = (walls, wallPrices) => {
             const pTotal = (!isNaN(pC) && !isNaN(pS)) ? pC + pS : 4;
             const dry = vol * 1.25;
             totalCementBagsGrout += dry * (pC / pTotal) / 0.035;
-            totalSandCumGrout += dry * (pS / pTotal);
+            totalSandS2CumPlaster += dry * (pS / pTotal); // Plaster uses S2
         };
 
         if (plasterSidesCount === 1) {
@@ -102,7 +103,7 @@ export const calculateMasonry = (walls, wallPrices) => {
 
         // 1.05 is the waste factor (standardized)
         totalCementBagsGrout += currentGroutVolume * mixSpec.cement;
-        totalSandCumGrout += currentGroutVolume * mixSpec.sand;
+        totalSandS1CumGrout += currentGroutVolume * mixSpec.sand; // Grout fill uses S1
         totalGravelCumGrout += currentGroutVolume * mixSpec.gravel;
 
         // --- 3. Rebar Inventory ---
@@ -147,32 +148,35 @@ export const calculateMasonry = (walls, wallPrices) => {
     const MORTAR_YIELD_FACTOR = 1.25; // Dry volume yield factor for mortar
     const GROUT_YIELD_FACTOR = 1.5;   // Dry volume yield factor for grout
 
-    // 1. Mortar/Plaster Mix (C:S = 1:3) -> Uses Cement and Sand
+    // 1. Mortar/Plaster Mix (C:S = 1:3) -> Uses Cement and Plastering Sand S2
     const V_dry_mortar = totalVolumeMortarPlaster * MORTAR_YIELD_FACTOR;
     const V_cement_mortar = V_dry_mortar * (1 / 4);
-    const V_sand_mortar = V_dry_mortar * (3 / 4);
+    const V_sand_mortar_s2 = V_dry_mortar * (3 / 4); // S2 for mortar laying
 
-    // 2. Grout Mix (Dynamic based on each wall selection)
-    // totalCementBagsGrout, totalSandCumGrout, totalGravelCumGrout are already calculated in bags/m3
+    // 2. Grout Mix (Dynamic based on each wall selection) -> Uses Wash Sand S1
+    // totalCementBagsGrout, totalSandS1CumGrout, totalGravelCumGrout are already accumulated
 
     // 3. Totals
     const totalCementBags = (V_cement_mortar / CEMENT_BAG_VOLUME) + totalCementBagsGrout;
-    const totalSandVolume = V_sand_mortar + totalSandCumGrout;
-    const totalGravelVolume = totalGravelCumGrout; // Only from grout
+    const totalSandS2Volume = V_sand_mortar_s2 + totalSandS2CumPlaster; // S2: mortar + plaster
+    const totalSandS1Volume = totalSandS1CumGrout;                       // S1: grout fill only
+    const totalGravelVolume = totalGravelCumGrout;
 
-    // Final Material Quantities (5% allowance added implicitly via Math.ceil/rounding)
-    const finalCement = Math.ceil(totalCementBags * 1.05); // bags + 5% allowance
-    const finalSand = (totalSandVolume * 1.05).toFixed(2); // m³ + 5% allowance
-    const finalGravel = (totalGravelVolume * 1.05).toFixed(2); // m³ + 5% allowance
+    // Final Material Quantities (+5% waste allowance)
+    const finalCement = Math.ceil(totalCementBags * 1.05);
+    const finalSandS2 = (totalSandS2Volume * 1.05).toFixed(2); // S2 — plastering & mortar
+    const finalSandS1 = (totalSandS1Volume * 1.05).toFixed(2); // S1 — grout fill
+    const finalGravel = (totalGravelVolume * 1.05).toFixed(2);
 
     // --- Cost Calculation ---
     const chbKeyMap = { "4": "chb_4", "5": "chb_5", "6": "chb_6", "8": "chb_8" };
     const chbKey = chbKeyMap[walls[0]?.chbSize] || "chb_4";
     const costCHB = totalChbCount * (wallPrices[chbKey] || 0);
     const costCement = finalCement * wallPrices.cement_40kg;
-    const costSand = parseFloat(finalSand) * wallPrices.sand_wash;
+    const costSandS2 = parseFloat(finalSandS2) * (wallPrices.sand_plastering || 1100);
+    const costSandS1 = parseFloat(finalSandS1) * (wallPrices.sand_wash || 1200);
     const costGravel = parseFloat(finalGravel) * wallPrices.gravel_3_4;
-    const totalCementitiousCost = costCement + costSand + costGravel;
+    const totalCementitiousCost = costCement + costSandS2 + costSandS1 + costGravel;
 
     let finalRebarItems = [];
     let totalRebarCost = 0;
@@ -225,7 +229,8 @@ export const calculateMasonry = (walls, wallPrices) => {
     const items = [
         { name: chbName, qty: totalChbCount, unit: 'pcs', price: wallPrices[chbKey], priceKey: chbKey, total: costCHB },
         { name: 'Portland Cement (40kg)', qty: finalCement, unit: 'bags', price: wallPrices.cement_40kg, priceKey: 'cement_40kg', total: costCement },
-        { name: 'Wash Sand (S1)', qty: finalSand, unit: 'cu.m', price: wallPrices.sand_wash, priceKey: 'sand_wash', total: costSand },
+        ...(parseFloat(finalSandS2) > 0 ? [{ name: 'Plastering Sand (S2)', qty: finalSandS2, unit: 'cu.m', price: wallPrices.sand_plastering || 1100, priceKey: 'sand_plastering', total: costSandS2 }] : []),
+        ...(parseFloat(finalSandS1) > 0 ? [{ name: 'Wash Sand (S1)', qty: finalSandS1, unit: 'cu.m', price: wallPrices.sand_wash, priceKey: 'sand_wash', total: costSandS1 }] : []),
         { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: wallPrices.gravel_3_4, priceKey: 'gravel_3_4', total: costGravel },
 
         ...finalRebarItems,

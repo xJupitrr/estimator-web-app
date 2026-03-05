@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tag, Search, Filter, Box, Hammer, Zap, Droplets, LayoutTemplate, Layers, Scissors, Info, Edit3, Save, X, RefreshCw } from 'lucide-react';
 import { MATERIAL_DEFAULTS, getDefaultPrices } from '../constants/materials';
 import { TABLE_UI } from '../constants/designSystem';
@@ -10,6 +10,19 @@ const MaterialPriceList = () => {
 
     // Manage Global Prices
     const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+
+    // On mount: patch any missing material keys so new defaults (e.g. angle bars, sand_plastering)
+    // are always available even for users who already have a stored app_material_prices.
+    useEffect(() => {
+        const defaults = getDefaultPrices();
+        const missingKeys = Object.keys(defaults).filter(k => prices[k] === undefined);
+        if (missingKeys.length > 0) {
+            const patch = {};
+            missingKeys.forEach(k => { patch[k] = defaults[k]; });
+            setPrices(prev => ({ ...patch, ...prev }));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Track local edits before saving
     const [editingKey, setEditingKey] = useState(null);

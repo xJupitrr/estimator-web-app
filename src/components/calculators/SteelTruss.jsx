@@ -9,7 +9,7 @@ import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import SelectInput from '../common/SelectInput';
-import { getDefaultPrices } from '../../constants/materials';
+import { getDefaultPrices, MATERIAL_DEFAULTS } from '../../constants/materials';
 import MathInput from '../common/MathInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
 
@@ -54,9 +54,16 @@ const COMMON_SIZES = {
     ]
 };
 
-const COMMON_THICKNESS = [
-    '1.2mm', '1.5mm', '2.0mm', '2.5mm', '3.0mm', '4.0mm', '4.5mm', '5.0mm', '6.0mm'
-];
+// Derive available thicknesses dynamically from materials.js keys for the given type+size.
+// This prevents selecting a combo that has no price (which would show ₱0).
+const getAvailableThicknesses = (type, size) => {
+    if (!type || !size) return [];
+    const prefix = `${type}_${size}_`;
+    return Object.keys(MATERIAL_DEFAULTS)
+        .filter(k => k.startsWith(prefix))
+        .map(k => k.slice(prefix.length))   // extract the thickness portion
+        .sort();
+};
 
 const INITIAL_TRUSS_PART = {
     id: 'tp_1',
@@ -350,7 +357,14 @@ export default function SteelTruss() {
                                         <SelectInput value={part.size} onChange={(v) => updateTrussPart(part.id, 'size', v)} options={COMMON_SIZES[part.type] || []} focusColor={THEME} placeholder="Select Size..." disabled={!part.type} />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput value={part.thickness} onChange={(v) => updateTrussPart(part.id, 'thickness', v)} options={COMMON_THICKNESS} focusColor={THEME} placeholder="THK" />
+                                        <SelectInput
+                                            value={part.thickness}
+                                            onChange={(v) => updateTrussPart(part.id, 'thickness', v)}
+                                            options={getAvailableThicknesses(part.type, part.size)}
+                                            focusColor={THEME}
+                                            placeholder={part.type && part.size ? 'THK' : '—'}
+                                            disabled={!part.type || !part.size}
+                                        />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <button onClick={() => setEditingCutsId(part.id)} className={`w-full py-1 text-[10px] font-bold border rounded bg-white hover:bg-${THEME}-50 border-${THEME}-200 text-${THEME}-600 uppercase flex items-center justify-center gap-1`}>
