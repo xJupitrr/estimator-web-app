@@ -381,10 +381,10 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
             {showResult && result && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
-                                    Estimation Result
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">
+                                    Estimation Summary
                                 </h3>
                                 <p className="text-sm text-gray-500 mt-1 italic">Based on <strong className="text-gray-700">{columns.filter(c => !c.isExcluded).length}</strong> column marks totaling <strong className="text-gray-700">{result.volume} m³</strong> concrete.</p>
                             </div>
@@ -392,13 +392,13 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                 <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
                                     <ExportButtons items={result.items} filename="column_estimate.csv" />
-                                    
-                                    
+
+
                                     <button
                                         onClick={() => setViewingPatterns(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
@@ -438,7 +438,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                 />
                                             </td>
                                             <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
-                                                {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                         </tr>
                                     ))}

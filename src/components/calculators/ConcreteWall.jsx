@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Layers, Calculator, PlusCircle, Trash2, Download, ArrowUp, Copy, Eye, EyeOff, AlertCircle, ClipboardCopy } from 'lucide-react';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
+import { Layers, Calculator, PlusCircle, Trash2, ArrowUp, Copy, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { calculateConcreteWall } from '../../utils/calculations/concreteWallCalculator';
 
 import Card from '../common/Card';
@@ -319,15 +318,15 @@ export default function ConcreteWall() {
             {result && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-6">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight flex items-center gap-3">
                                     Estimation Summary
                                     <span className={`text-[10px] bg-${THEME}-100 text-${THEME}-700 px-2 py-0.5 rounded-full font-mono`}>RC-WALL-01</span>
                                 </h3>
                                 <div className="flex flex-wrap gap-4 mt-3">
-                                    <p className="text-sm text-slate-500">Volume: <strong className="text-slate-900">{result.volume} m³</strong></p>
-                                    <p className="text-sm text-slate-500">Area: <strong className="text-slate-900">{result.area} m²</strong></p>
+                                    <p className="text-sm text-gray-500">Volume: <strong className="text-slate-900">{result.volume} m³</strong></p>
+                                    <p className="text-sm text-gray-500">Area: <strong className="text-slate-900">{result.area} m²</strong></p>
                                     <p className="text-sm text-slate-500">Sections: <strong className="text-slate-900">{result.quantity}</strong></p>
                                 </div>
                             </div>
@@ -335,10 +334,12 @@ export default function ConcreteWall() {
                                 <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {result.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <ExportButtons items={result.items} filename="concrete_wall_estimate.csv" />
+                                <div className="flex gap-2">
+                                    <ExportButtons items={result.items} filename="concrete_wall_estimate.csv" />
+                                </div>
                             </div>
                         </div>
 

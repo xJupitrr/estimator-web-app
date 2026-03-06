@@ -21,7 +21,8 @@ const LIST_SECTIONS = {
     'ELECTRICAL DATA': 'electrical_rows',
     'PLUMBING DATA': 'plumbing_rows',
     'STEEL TRUSS DATA': 'steel_truss_parts',
-    'LINTEL BEAMS DATA': 'lintel_beams'
+    'LINTEL BEAMS DATA': 'lintel_beams',
+    'DRYWALL DATA': 'drywall_rows'
 };
 
 // Mapping of Single Value/Object Keys to a generic Settings Section
@@ -91,9 +92,10 @@ const SETTINGS_KEYS = [
     'plumbing_total',
     'steel_truss_total',
     'lintel_beam_total',
-    'concrete_wall_total',
     'concrete_wall_prices',
-    'concrete_wall_result'
+    'concrete_wall_result',
+    'drywall_result',
+    'drywall_total'
 ];
 
 /**

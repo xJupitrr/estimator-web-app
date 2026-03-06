@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, CheckCircle2, XCircle, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, CheckCircle2, XCircle, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -372,19 +371,23 @@ export default function SuspendedSlab() {
             {result && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 mt-6 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800">Estimation Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Slab Volume: <strong className="text-gray-700">{result.volume} m³</strong></p>
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">Estimation Summary</h3>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">Total Slab Volume: <strong className="text-gray-900">{result.volume} m³</strong></p>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {result.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <ExportButtons items={result.items} filename="suspended_slab_estimate.csv" />
+                                <div className="flex gap-2">
+                                    <ExportButtons items={result.items} filename="suspended_slab_estimate.csv" />
+                                </div>
                             </div>
                         </div>
 

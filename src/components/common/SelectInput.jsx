@@ -18,8 +18,6 @@ const SelectInput = ({ value, onChange, options, placeholder = "Select Option...
         green: "focus:ring-2 focus:ring-green-400 focus:border-green-400",
         rose: "focus:ring-2 focus:ring-rose-400 focus:border-rose-400",
         fuchsia: "focus:ring-2 focus:ring-fuchsia-400 focus:border-fuchsia-400",
-        amber: "focus:ring-2 focus:ring-amber-400 focus:border-amber-400",
-        orange: "focus:ring-2 focus:ring-orange-400 focus:border-orange-400",
         sky: "focus:ring-2 focus:ring-sky-400 focus:border-sky-400",
         violet: "focus:ring-2 focus:ring-violet-400 focus:border-violet-400",
         zinc: "focus:ring-2 focus:ring-zinc-400 focus:border-zinc-400",

@@ -298,15 +298,17 @@ export default function Painting() {
             {result && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800">Painting Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Surface Area: <strong className="text-gray-700">{result.totalArea.toFixed(2)} m²</strong></p>
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">Estimation Summary</h3>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">Total Surface Area: <strong className="text-gray-900">{result.totalArea.toFixed(2)} m²</strong></p>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[280px]`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     <ExportButtons items={result.items} filename="painting_estimate.csv" />

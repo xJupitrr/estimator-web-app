@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Scissors, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { Columns, Info, Settings, Calculator, PlusCircle, Trash2, AlertCircle, Eye, EyeOff, ArrowUp, Copy, Scissors, ChevronDown, ChevronUp, X, Download } from 'lucide-react';
 import ExportButtons from '../common/ExportButtons';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import SelectInput from '../common/SelectInput';
@@ -387,22 +386,23 @@ export default function Footing() {
             {footingResult && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 mt-6 bg-white rounded-xl" style={{ borderLeft: '4px solid #2563eb' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800">Estimation Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Concrete Volume: <strong className="text-gray-700">{footingResult.volume} m³</strong></p>
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">Estimation Summary</h3>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">Total Concrete Volume: <strong className="text-gray-700">{footingResult.volume} m³</strong></p>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {footingResult.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ₱{footingResult.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <ExportButtons items={result.items} filename="footing_estimate.csv" />
-                                    
-                                    
+                                    <ExportButtons items={footingResult.items} filename="footing_estimate.csv" />
+
                                     <button
                                         onClick={() => setShowAnalysis(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}

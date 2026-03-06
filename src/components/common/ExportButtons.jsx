@@ -17,19 +17,19 @@ export default function ExportButtons({ items, filename = 'estimate.csv', inputs
         <>
             <button
                 onClick={handleCopy}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors focus:ring-2 focus:ring-slate-200"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all shadow-sm hover:shadow-md active:scale-95"
             >
                 {copied ? (
-                    <><Check size={16} className="text-green-600" /> Copied</>
+                    <><Check size={16} className="text-emerald-600" /> Copied</>
                 ) : (
-                    <><ClipboardCopy size={16} className="text-slate-500" /> Copy</>
+                    <><ClipboardCopy size={16} className="text-slate-500" /> Copy to Clipboard</>
                 )}
             </button>
             <button
                 onClick={() => downloadCSV(items, filename, inputs, inputHeaders)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors focus:ring-2 focus:ring-blue-200"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all shadow-sm hover:shadow-md active:scale-95"
             >
-                <Download size={16} className="text-blue-500" /> CSV
+                <Download size={16} className="text-slate-500" /> Download CSV
             </button>
         </>
     );

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Box, Edit2, X, Layers } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, Eye, EyeOff, ArrowUp, Copy, Box, Edit2, X, Layers } from 'lucide-react';
 import ExportButtons from '../common/ExportButtons';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
@@ -218,7 +217,6 @@ export default function Masonry() { // Renamed to Masonry
                                 <div>
                                     <label className="text-xs font-bold text-zinc-600 uppercase tracking-wide mb-2 block">Plastered Sides</label>
                                     <div className="flex gap-2">
-                                    <ExportButtons items={wallResult.items} filename="masonry_estimate.csv" />
                                         {[{ id: '0', label: 'None' }, { id: '1', label: '1 Side' }, { id: '2', label: '2 Sides' }].map(opt => (
                                             <button
                                                 key={opt.id}
@@ -540,23 +538,24 @@ export default function Masonry() { // Renamed to Masonry
             {wallResult && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
-                                    Estimation Result
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">
+                                    Estimation Summary
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1">Based on <strong className="text-gray-700">{wallResult.quantity}</strong> wall configurations totaling <strong className="text-gray-700">{wallResult.area} m²</strong> area.</p>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">Based on <strong className="text-gray-900">{wallResult.quantity}</strong> wall configurations totaling <strong className="text-gray-900">{wallResult.area} m²</strong> area.</p>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100`}>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {wallResult.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ₱{wallResult.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    
-                                    
+                                    <ExportButtons items={wallResult.items} filename="masonry_estimate.csv" />
                                 </div>
                             </div>
                         </div>
@@ -590,7 +589,7 @@ export default function Masonry() { // Renamed to Masonry
                                                 />
                                             </td>
                                             <td className={`${TABLE_UI.CELL_RIGHT} font-bold text-gray-900 bg-gray-50/50`}>
-                                                {item.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                ₱{item.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </td>
                                         </tr>
                                     ))}

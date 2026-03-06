@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
+import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, Copy, CheckSquare, LayoutTemplate, ArrowUp, EyeOff, Eye } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { calculateFormworks, PLYWOOD_OPTIONS, LUMBER_OPTIONS, FORM_TYPE_OPTIONS } from '../../utils/calculations/formworksCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
@@ -386,34 +386,20 @@ export default function Formworks({ columns = [], beams = [], retainingWalls = [
             {result && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 border-l-4 shadow-md bg-white rounded-xl" style={{ borderLeft: '4px solid #ea580c' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800">Formwork Result</h3>
-                                <p className="text-sm text-gray-500 mt-1">Total Contact Area: <strong className="text-gray-700">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">Estimation Summary</h3>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">Total Contact Area: <strong className="text-gray-900">{result?.totalArea?.toFixed(2) || "0.00"} m²</strong></p>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2 }) || "0.00"}</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result?.total?.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "0.00"}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'formworks_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <ExportButtons items={result.items} filename="formworks_estimate.csv" />
                                 </div>
                             </div>
                         </div>

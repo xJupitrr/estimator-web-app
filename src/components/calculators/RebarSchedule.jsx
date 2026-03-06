@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
-import { Scissors, Download, Printer, Info, AlertCircle, ChevronDown, ChevronUp, RefreshCw, Layers } from 'lucide-react';
+import { Scissors, Printer, Info, AlertCircle, ChevronDown, ChevronUp, RefreshCw, Layers } from 'lucide-react';
 import { TABLE_UI, CARD_UI, THEME_COLORS } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
-import { downloadCSV } from '../../utils/export';
+import ExportButtons from '../common/ExportButtons';
 
 const THEME = THEME_COLORS.rebar_schedule;
 
@@ -509,16 +509,13 @@ export default function RebarSchedule() {
 
     const toggleModule = (key) => setExpandedModules(prev => ({ ...prev, [key]: !prev[key] }));
 
-    const handleExport = () => {
-        const items = filtered.map(e => ({
-            name: `[${e.module}] ${e.label} — ∅${e.diameter}mm × ${e.cutLength}m`,
-            qty: e.quantity,
-            unit: 'pcs',
-            price: 0,
-            total: 0,
-        }));
-        downloadCSV(items, 'rebar_bending_schedule.csv');
-    };
+    const itemsForExport = useMemo(() => filtered.map(e => ({
+        name: `[${e.module}] ${e.label} — ∅${e.diameter}mm × ${e.cutLength}m`,
+        qty: e.quantity,
+        unit: 'pcs',
+        price: 0,
+        total: 0,
+    })), [filtered]);
 
     const isEmpty = schedule.length === 0;
 
@@ -551,13 +548,7 @@ export default function RebarSchedule() {
                             >
                                 <RefreshCw size={14} /> Refresh
                             </button>
-                            <button
-                                onClick={handleExport}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                title="Download as CSV"
-                            >
-                                <Download size={14} /> Download CSV
-                            </button>
+                            <ExportButtons items={itemsForExport} filename="rebar_bending_schedule.csv" />
                             <button
                                 onClick={() => window.print()}
                                 className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-white border border-zinc-900 rounded-lg text-sm font-bold hover:bg-zinc-900 transition-colors shadow-sm"

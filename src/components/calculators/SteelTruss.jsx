@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Plus, Trash2, Calculator, PlusCircle, AlertCircle, Copy, ArrowUp, Eye, EyeOff, Scissors, X, Box, ClipboardCopy, Download } from 'lucide-react';
+import { Plus, Trash2, Calculator, PlusCircle, AlertCircle, Copy, ArrowUp, Eye, EyeOff, Scissors, X, Box } from 'lucide-react';
 import { calculateSteelTruss } from '../../utils/calculations/steelTrussCalculator';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
 
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
@@ -419,19 +418,19 @@ export default function SteelTruss() {
                     <div className="p-8">
                         <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-slate-800 uppercase tracking-tight flex items-center gap-3">
-                                    Results Summary
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight flex items-center gap-3">
+                                    Estimation Summary
                                 </h3>
                                 <div className="flex flex-wrap gap-4 mt-3">
-                                    <p className="text-sm text-slate-500">Total 6m Bars: <strong className="text-slate-900">{estimationResults.totalPieces} pcs</strong></p>
-                                    <p className="text-sm text-slate-500">Material Varieties: <strong className="text-slate-900">{estimationResults.items.length}</strong></p>
+                                    <p className="text-sm text-gray-500">Total 6m Bars: <strong className="text-gray-900">{estimationResults.totalPieces} pcs</strong></p>
+                                    <p className="text-sm text-gray-500">Material Varieties: <strong className="text-gray-900">{estimationResults.items.length}</strong></p>
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
                                     <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
-                                        {estimationResults.total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        ₱{estimationResults.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                                 <div className="flex gap-2">

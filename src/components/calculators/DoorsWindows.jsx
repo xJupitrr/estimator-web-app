@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, DoorOpen } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, Eye, EyeOff, ArrowUp, Copy, DoorOpen } from 'lucide-react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { getDefaultPrices } from '../../constants/materials';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
 import SelectInput from '../common/SelectInput';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
@@ -366,19 +365,23 @@ export default function DoorsWindows() {
             {result && (
                 <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 shadow-md border-l-4 bg-white rounded-xl" style={{ borderLeft: '4px solid #059669' }}>
                     <div className="p-6">
-                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+                        <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
-                                <h3 className="font-bold text-2xl text-gray-800 flex items-center gap-2">
-                                    Estimation Result
+                                <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">
+                                    Estimation Summary
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Total Opening Area: <strong className="text-gray-700">{result.totalArea} m²</strong>
-                                </p>
+                                <div className="flex flex-wrap gap-4 mt-3">
+                                    <p className="text-sm text-gray-500">
+                                        Total Opening Area: <strong className="text-gray-900">{result.totalArea} m²</strong>
+                                    </p>
+                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[280px]`}>
-                                    <p className={`text-xs text-${THEME}-800 font-bold uppercase tracking-wide mb-1`}>Grand Total Estimated Cost</p>
-                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 min-w-[300px]`}>
+                                    <p className={`text-xs text-${THEME}-600 font-bold uppercase tracking-wide mb-1`}>Estimated Total Material Cost</p>
+                                    <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>
+                                        ₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </p>
                                 </div>
                                 <div className="flex gap-2">
                                     <ExportButtons items={result.items} filename="doors_windows_estimate.csv" />
