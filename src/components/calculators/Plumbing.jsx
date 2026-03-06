@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Droplets, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, Droplets, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import ExportButtons from '../common/ExportButtons';
-import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import { calculatePlumbing } from '../../utils/calculations/plumbingCalculator';
 import { getDefaultPrices } from '../../constants/materials';
@@ -438,28 +437,9 @@ export default function Plumbing() {
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'plumbing_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
-                                </div>
-                            </div>
-                                <div className="flex gap-2 mt-2">
                                     <ExportButtons items={result.items} filename="plumbing_estimate.csv" />
                                 </div>
+                            </div>
                         </div>
 
                         <div className={TABLE_UI.CONTAINER}>
