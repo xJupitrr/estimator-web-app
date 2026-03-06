@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, ClipboardCopy, Download, Eye, EyeOff, ArrowUp, Copy, Box, Edit2, X, Layers } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import { calculateMasonry } from '../../utils/calculations/masonryCalculator';
 import { getDefaultPrices } from '../../constants/materials';
@@ -56,7 +57,7 @@ export default function Masonry() { // Renamed to Masonry
     const [walls, setWalls] = useLocalStorage('masonry_walls', [getInitialWall()]);
 
     // Material Prices
-    const [wallPrices, setWallPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [wallPrices, setWallPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
 
     const [wallResult, setWallResult] = useLocalStorage('masonry_result', null);
     // Track if an estimate has been run at least once to enable auto-recalc
@@ -217,6 +218,7 @@ export default function Masonry() { // Renamed to Masonry
                                 <div>
                                     <label className="text-xs font-bold text-zinc-600 uppercase tracking-wide mb-2 block">Plastered Sides</label>
                                     <div className="flex gap-2">
+                                    <ExportButtons items={wallResult.items} filename="masonry_estimate.csv" />
                                         {[{ id: '0', label: 'None' }, { id: '1', label: '1 Side' }, { id: '2', label: '2 Sides' }].map(opt => (
                                             <button
                                                 key={opt.id}
@@ -553,23 +555,8 @@ export default function Masonry() { // Renamed to Masonry
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(wallResult.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(wallResult.items, 'masonry_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    
+                                    
                                 </div>
                             </div>
                         </div>

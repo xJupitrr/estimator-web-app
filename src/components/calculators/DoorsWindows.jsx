@@ -8,6 +8,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import { calculateDoorsWindows, itemTypes, frameMaterials, groupedFrameOptions, leafMaterials, groupedLeafOptions } from '../../utils/calculations/doorsWindowsCalculator';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
@@ -34,7 +35,7 @@ const getInitialItem = () => ({
 
 export default function DoorsWindows() {
     const [items, setItems] = useLocalStorage('doorswindows_rows', [getInitialItem()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('doorswindows_result', null);
     const [error, setError] = useState(null);
 
@@ -130,8 +131,10 @@ export default function DoorsWindows() {
 
     const calculateMaterials = () => {
         const hasEmptyFields = items.some(item =>
-            item.width_m === "" || item.height_m === "" ||
-            item.itemType === "" || item.frameMaterial === "" || item.leafMaterial === ""
+            !item.isExcluded && (
+                item.width_m === "" || item.height_m === "" ||
+                item.itemType === "" || item.frameMaterial === "" || item.leafMaterial === ""
+            )
         );
         if (hasEmptyFields) {
             setError("Please fill in all required fields (Type, Dimensions, and Materials) before calculating.");
@@ -175,7 +178,6 @@ export default function DoorsWindows() {
     return (
         <div className="space-y-6">
 
-            {/* INPUT CARD */}
             {/* CONTEXT MENU */}
             {contextMenu && (
                 <div
@@ -185,31 +187,31 @@ export default function DoorsWindows() {
                 >
                     <button
                         onClick={() => handleDuplicateRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition-colors`}
                     >
-                        <Copy size={14} className="text-slate-400" /> Duplicate to Next Row
+                        <Copy size={14} className="text-slate-400" /> Duplicate Row
                     </button>
                     <button
                         onClick={() => handleAddRowAbove(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors border-b border-slate-50"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-emerald-50 transition-colors border-b border-slate-50`}
                     >
                         <ArrowUp size={14} className="text-slate-400" /> Add Row Above
                     </button>
                     <button
                         onClick={() => handleToggleExcludeRow(contextMenu.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                        className={`w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 transition-colors`}
                     >
                         {items.find(i => i.id === contextMenu.id)?.isExcluded
-                            ? <><Eye size={14} className="text-emerald-500" /> Include in Calculation</>
-                            : <><EyeOff size={14} className="text-red-500" /> Exclude from Calculation</>
+                            ? <><Eye size={14} className="text-emerald-500" /> Include Row</>
+                            : <><EyeOff size={14} className="text-red-500" /> Exclude Row</>
                         }
                     </button>
                 </div>
             )}
 
-            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: '4px solid #059669' }}>
+            <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: `4px solid ${THEME}` }}>
                 <SectionHeader
-                    title={`Door & Window Specification (${items.length} Total)`}
+                    title="Doors & Windows Specification"
                     icon={DoorOpen}
                     colorTheme={THEME}
                     actions={
@@ -227,24 +229,21 @@ export default function DoorsWindows() {
                         <thead className="bg-slate-100">
                             <tr>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Opening Type</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Width (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Height (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Item Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (m)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Frame Material</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Leaf/Glass Type</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[140px]`}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Leaf / Panel</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {items.map((item, index) => (
-                                <tr
-                                    key={item.id}
-                                    className={`${TABLE_UI.INPUT_ROW} ${item.isExcluded ? 'opacity-60 grayscale-[0.5]' : ''}`}
-                                >
+                                <tr key={item.id} className={`${TABLE_UI.INPUT_ROW} ${item.isExcluded ? 'opacity-50 grayscale-[0.5]' : ''}`}>
                                     <td
-                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-gray-500 font-bold cursor-help relative group`}
+                                        className={`${TABLE_UI.INPUT_CELL} text-center text-xs text-slate-400 font-bold cursor-help`}
                                         onContextMenu={(e) => {
                                             if (e.ctrlKey) {
                                                 e.preventDefault();
@@ -347,7 +346,6 @@ export default function DoorsWindows() {
                         label="CALCULATE" variant="calculate"
                         icon={Calculator}
                         colorTheme={THEME}
-
                     />
                 </div>
             </Card>
@@ -383,23 +381,7 @@ export default function DoorsWindows() {
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.grandTotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'doors_windows_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <ExportButtons items={result.items} filename="doors_windows_estimate.csv" />
                                 </div>
                             </div>
                         </div>
@@ -455,10 +437,6 @@ export default function DoorsWindows() {
                     </div>
                 </Card>
             )}
-
-
         </div>
     );
 }
-
-

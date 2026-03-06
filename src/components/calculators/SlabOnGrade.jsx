@@ -38,7 +38,7 @@ const getInitialSlab = () => ({
 
 export default function SlabOnGrade() {
     const [slabs, setSlabs] = useLocalStorage('slab_rows', [getInitialSlab()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('slab_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('slab_has_estimated', false);
     const [error, setError] = useState(null);

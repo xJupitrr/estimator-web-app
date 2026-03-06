@@ -30,27 +30,37 @@ const MaterialPriceList = () => {
 
     // Categorize materials based on their keys or names (heuristic)
     const getCategory = (key) => {
-        if (key.includes('cement') || key.includes('sand') || key.includes('gravel') || key.includes('bedding')) return 'Aggregates';
+        if ((key.includes('cement') || key.includes('sand') || key.includes('gravel') || key.includes('bedding')) && key !== 'solvent_cement' && !key.startsWith('pvc_solvent')) return 'Aggregates';
+        if (key.startsWith('ready_mix') || key.startsWith('curing_compound') || key.startsWith('waterproofing_admix') || key === 'expansion_joint_filler') return 'Aggregates';
         if (key.includes('chb')) return 'Masonry';
-        if (key.includes('rebar')) return 'Reinforcements';
+        if (key.includes('rebar') || key.startsWith('wwm_')) return 'Reinforcements';
         if (key.includes('tie_wire')) return 'Accessories';
         // Formworks / Sheet Goods
         if (key === 'phenolic_1_2' || key === 'phenolic_3_4') return 'Formworks';
         if (key === 'plywood_1_4' || key === 'plywood_1_2' || key === 'plywood_3_4') return 'Drywall';
         if (key.includes('plywood_phenolic') || key.includes('plywood_marine')) return 'Sheet Goods';
-        if (key === 'cocoLumber' || key === 'gi_pipe_1_1_2') return 'Formworks';
-        if (key.includes('lumber') || key.includes('coco_lumber')) return 'Timber';
-        if (key.includes('nails') || key.includes('common_nails')) return 'Hardware';
-        if (key.includes('tile') || key.includes('grout') || key.includes('tile_adhesive')) return 'Tiles & Finishes';
+        if (key === 'cocoLumber' || key === 'gi_pipe_1_1_2' || key.startsWith('form_release_oil')) return 'Formworks';
+        if (key.includes('lumber') || key.includes('coco_lumber') || key === 'bamboo_pole') return 'Timber';
+        if (key.includes('nails') || key.includes('common_nails') || key === 'concrete_nail_kg' || key === 'finish_nail_kg' || key === 'anchor_bolt_1_2') return 'Hardware';
+        // Structural Steel
+        if (key.startsWith('steel_wide_flange') || key.startsWith('steel_i_beam') || key.startsWith('flat_bar_') || key.startsWith('round_bar_') || key === 'checkered_plate_4x8' || key === 'welding_rod_e6013_5kg' || key === 'cutting_disc_4in') return 'Structural Steel';
+        // Door Hardware & Accessories → Doors & Windows
+        if (key.startsWith('door_hinge') || key.startsWith('lockset_') || key.startsWith('deadbolt_') || key.startsWith('door_handle') || key.startsWith('door_closer') || key.startsWith('barrel_bolt') || key.startsWith('tower_bolt') || key === 'flush_bolt' || key === 'door_latch' || key === 'floor_spring' || key.startsWith('padlock_') || key === 'door_chain' || key === 'door_peephole' || key === 'door_kick_plate' || key.startsWith('door_stop') || key.startsWith('weatherstrip') || key === 'window_screen') return 'Doors & Windows';
+        // Site Works
+        if (key === 'soil_fill_cum' || key === 'topsoil_cum' || key === 'gravel_fill_compacted' || key === 'geotextile_fabric' || key.startsWith('culvert_pipe') || key === 'riprap_boulders' || key === 'gabion_basket') return 'Site Works';
+        // Tiles & Finishes — waterproofing too
+        if (key.startsWith('waterproofing_elasto') || key === 'waterproofing_membrane') return 'Tiles & Finishes';
+        if (key.includes('tile') || key.includes('grout') || key.includes('tile_adhesive') || key === 'vinyl_plank_spc' || key === 'epoxy_grout_1kg' || key === 'tile_spacer_2mm' || key === 'tile_edge_trim') return 'Tiles & Finishes';
         if (key.includes('roof') || key.includes('tekscrew') || (key.includes('sealant') && !key.includes('dw_'))) return 'Roofing';
         if (key.includes('deck') || key.includes('h_frame') || key.includes('cross_brace') || key.includes('u_head') || key.includes('shackle')) return 'Scaffolding';
-        // Ceiling
-        if (key.includes('ceiling') || key.includes('metal_furring') || key.includes('carrying_channel') || key.includes('blind_rivets') || key.includes('gypsum_board') || key.includes('w_clip') || key.includes('mesh_tape') || key.includes('joint_compound') || key.includes('wall_angle') || key === 'spandrel' || key === 'pvc' || key === 'spandrel_molding' || key === 'pvc_u_molding' || key === 'pvc_h_clip' || key === 'clips' || key.includes('screw_gypsum') || key.includes('screw_hardiflex') || key.includes('screw_metal') || key === 'rivets') return 'Ceiling';
-        if (key.includes('paint') || key.includes('skimcoat')) return 'Painting';
+        // Ceiling — ceiling_fan excluded (goes to Electrical)
+        if ((key.includes('ceiling') && !key.startsWith('ceiling_fan')) || key.includes('metal_furring') || key.includes('carrying_channel') || key.includes('blind_rivets') || key.includes('gypsum_board') || key.includes('w_clip') || key.includes('mesh_tape') || key.includes('joint_compound') || key.includes('wall_angle') || key === 'spandrel' || key === 'pvc' || key === 'spandrel_molding' || key === 'pvc_u_molding' || key === 'pvc_h_clip' || key === 'clips' || key.includes('screw_gypsum') || key.includes('screw_hardiflex') || key.includes('screw_metal') || key === 'rivets') return 'Ceiling';
+        if (key.includes('paint') || key.includes('skimcoat') || key === 'silicone_caulk_300ml') return 'Painting';
         // Drywall boards & insulation
         if (key.startsWith('gypsum_') || key.startsWith('fcb_') || key === 'wpc_fluted' || key === 'acoustic_board' || key === 'drywall_metal_stud' || key === 'drywall_metal_track' || key === 'clips_wpc') return 'Drywall';
         if (key === 'glasswool' || key === 'pe_foam' || key === 'eps_foam' || key === 'rockwool' || key === 'acoustic_fiberglass') return 'Insulation';
-        // Plumbing
+        // Plumbing — includes GI pipes, fittings, water tanks
+        if (key.startsWith('gi_') || key.startsWith('water_tank_')) return 'Plumbing';
         if (key.startsWith('ppr_') || key.startsWith('pvc_pipe') || key.startsWith('pvc_elbow') || key.startsWith('pvc_sanitary') || key.startsWith('pvc_wye') || key.startsWith('pvc_cleanout') || key.startsWith('pvc_p_trap') || key.startsWith('pvc_vent') || key.startsWith('pvc_reducer') || key === 'solvent_cement' || key === 'teflon_tape' || key.startsWith('pipe_clamp') || key === 'wc_set' || key === 'lav_set' || key === 'sink_set' || key === 'shower_set' || key === 'hose_bibb' || key === 'floor_drain' || key === 'roof_drain' || key === 'catch_basin' || key === 'urinal_set' || key === 'bidet_set' || key === 'bathtub_set' || key === 'grease_trap' || key === 'water_heater_single' || key === 'water_heater_multi' || key === 'kitchen_faucet' || key === 'lavatory_faucet' || key === 'angle_valve' || key === 'flex_hose' || key === 'laundry_tray') return 'Plumbing';
         // Electrical sub-categories
         if (key.startsWith('thhn_') || key.startsWith('bare_copper') || key === 'pv_cable_4' || key === 'coax_cable' || key === 'cat6_cable') return 'Wiring';
@@ -60,7 +70,7 @@ const MaterialPriceList = () => {
         if (key.startsWith('switch_') || key.startsWith('outlet_') || key.startsWith('dimmer') || key === 'fan_control' || key.startsWith('water_heater_switch') || key === 'data_outlet' || key === 'tel_outlet') return 'Wiring Devices';
         if (key.startsWith('panel_board') || key.startsWith('breaker_') || key === 'mts_switch' || key === 'meter_base' || key === 'sub_meter') return 'Panel & Breakers';
         if (key === 'smoke_detector' || key === 'doorbell' || key === 'ground_rod' || key === 'ground_clamp' || key === 'weatherproof_enclosure' || key === 'mc4_connector' || key === 'tox_screw' || key === 'expansion_bolt' || key === 'electrical_tape') return 'Electrical';
-        if (key.startsWith('elec_')) return 'Electrical';
+        if (key.startsWith('elec_') || key.startsWith('ceiling_fan') || key.startsWith('exhaust_fan') || key.startsWith('submersible_pump')) return 'Electrical';
         if (key.includes('drywall')) return 'Drywall';
         if (key.includes('dw_')) return 'Doors & Windows';
         if (key.includes('angle_bar') || key.includes('c_purlin') || key.includes('c_channel') || key.startsWith('tubular_square') || key.startsWith('tubular_rect') || key.includes('tubular')) return 'Steel Truss';
@@ -75,6 +85,10 @@ const MaterialPriceList = () => {
         'Tiles & Finishes', 'Ceiling', 'Painting', 'Drywall', 'Insulation',
         // Formworks & Scaffolding
         'Formworks', 'Sheet Goods', 'Timber', 'Hardware', 'Scaffolding',
+        // Structural Steel
+        'Structural Steel',
+        // Site
+        'Site Works',
         // MEP
         'Plumbing',
         'Wiring', 'Conduit & Fittings', 'Wiring Devices', 'Lighting', 'Panel & Breakers', 'Electrical',
@@ -212,6 +226,7 @@ const MaterialPriceList = () => {
                         <thead className="sticky top-0 z-10">
                             <tr className={TABLE_UI.HEADER_ROW}>
                                 <th className={TABLE_UI.HEADER_CELL_LEFT}>Item Description</th>
+                                <th className={TABLE_UI.HEADER_CELL_LEFT}>SKU</th>
                                 <th className={TABLE_UI.HEADER_CELL_LEFT}>Category</th>
                                 <th className={TABLE_UI.HEADER_CELL}>Unit</th>
                                 <th className={TABLE_UI.HEADER_CELL_RIGHT}>Unit Price (₱)</th>
@@ -222,14 +237,14 @@ const MaterialPriceList = () => {
                             {filteredMaterials.map((item) => (
                                 <tr key={item.key} className="hover:bg-zinc-50/80 transition-colors group">
                                     <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-zinc-900 group-hover:text-slate-700 transition-colors">
-                                                {item.name}
-                                            </span>
-                                            <span className="text-[11px] font-mono text-zinc-400 mt-0.5 uppercase tracking-tighter">
-                                                SKU: {item.key}
-                                            </span>
-                                        </div>
+                                        <span className="text-sm font-bold text-zinc-900 group-hover:text-slate-700 transition-colors">
+                                            {item.name}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <span className="text-[11px] font-mono text-zinc-400 uppercase tracking-tighter">
+                                            {item.key}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="inline-flex items-center gap-2 px-2 py-1 bg-zinc-100 text-xs font-bold text-zinc-600 rounded-sm uppercase tracking-wider">
@@ -293,7 +308,7 @@ const MaterialPriceList = () => {
                             ))}
                             {filteredMaterials.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center">
+                                    <td colSpan="6" className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center gap-2 opacity-30">
                                             <Search size={32} />
                                             <p className="text-xs font-bold uppercase tracking-widest font-mono">No matching items found</p>

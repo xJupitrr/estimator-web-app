@@ -29,7 +29,7 @@ const getInitialRow = (data = {}) => ({
 
 export default function Formworks({ columns = [], beams = [], retainingWalls = [] }) {
     const [rows, setRows] = useLocalStorage('formworks_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('formworks_result', null);
     const [error, setError] = useState(null);
     const [wastePlywood, setWastePlywood] = useLocalStorage('formworks_waste_plywood', 15);

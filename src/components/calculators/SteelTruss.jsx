@@ -10,6 +10,7 @@ import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
 import SelectInput from '../common/SelectInput';
 import { getDefaultPrices, MATERIAL_DEFAULTS } from '../../constants/materials';
+import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI } from '../../constants/designSystem';
 
@@ -77,7 +78,7 @@ const INITIAL_TRUSS_PART = {
 
 export default function SteelTruss() {
     const [trussParts, setTrussParts] = useLocalStorage('steel_truss_parts', [INITIAL_TRUSS_PART]);
-    const [unitPrices, setUnitPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [unitPrices, setUnitPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [estimationResults, setEstimationResults] = useLocalStorage('steel_truss_result', null);
     const [hasEstimated, setHasEstimated] = useLocalStorage('steel_truss_has_estimated', false);
     const [error, setError] = useState(null);
@@ -434,23 +435,7 @@ export default function SteelTruss() {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(estimationResults.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(estimationResults.items, 'steel_truss_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <ExportButtons items={estimationResults.items} filename="steel_truss_estimate.csv" />
                                     <button
                                         onClick={() => setViewingPatterns(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
@@ -588,5 +573,3 @@ export default function SteelTruss() {
         </div >
     );
 }
-
-

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, ClipboardCopy, Download, AlertCircle, Tent, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateRoofing as calculateRoofingUtil } from '../../utils/calculations/roofingCalculator';
@@ -47,7 +48,7 @@ const getInitialRow = (data = {}) => ({
 
 export default function Roofing() {
     const [rows, setRows] = useLocalStorage('roofing_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [globalSettings, setGlobalSettings] = useLocalStorage('roofing_settings', DEFAULT_DEFAULTS);
     const [result, setResult] = useLocalStorage('roofing_result', null);
     const [error, setError] = useState(null);
@@ -334,25 +335,7 @@ export default function Roofing() {
                                         {result.grandTotal.toLocaleString('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'roofing_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
-                                </div>
+                                <ExportButtons items={result.items} filename="roofing_estimate.csv" />
                             </div>
                         </div>
 

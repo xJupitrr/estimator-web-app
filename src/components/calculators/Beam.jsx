@@ -7,6 +7,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import TablePriceInput from '../common/TablePriceInput';
+import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { MATERIAL_DEFAULTS, getDefaultPrices } from '../../constants/materials';
@@ -113,7 +114,7 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
     const beams = propBeams || localBeams;
     const setBeams = propSetBeams || setLocalBeams;
 
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [showResult, setShowResult] = useLocalStorage('beam_show_result', false);
     const [error, setError] = useState(null);
     const [viewingPatterns, setViewingPatterns] = useState(false);
@@ -583,23 +584,9 @@ export default function Beam({ beams: propBeams, setBeams: propSetBeams }) {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'beam_estimation.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <ExportButtons items={result.items} filename="beam_estimate.csv" />
+                                    
+                                    
                                     <button
                                         onClick={() => setViewingPatterns(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}

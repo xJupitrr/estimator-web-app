@@ -7,19 +7,15 @@ export const calculateMasonry = (walls, wallPrices) => {
     let totalArea = 0;
     let totalChbCount = 0;
 
-    // Separating volumes based on material type
-    let totalVolumeMortarPlaster = 0; // Uses Cement and Plastering Sand (S2) only
-    let totalVolumeGroutFiller = 0;   // Uses Cement, Wash Sand (S1), and Gravel
-    let totalTiePoints = 0;
-
     let totalCementBagsGrout = 0;
-    let totalSandS2CumPlaster = 0;   // S2 — mortar laying + plaster coats
+    let totalSandS2CumTotal = 0;     // S2 — mortar laying + plaster coats
     let totalSandS1CumGrout = 0;     // S1 — core grout fill (concrete mix)
     let totalGravelCumGrout = 0;
+    let totalTiePoints = 0;
 
     const rebarStock = new Map();
 
-    // Validation Check handled by caller or generic check
+    // Validation Check
     const validWalls = walls.filter(wall => {
         if (wall.isExcluded) return false;
         const L = parseFloat(wall.length);
@@ -52,9 +48,6 @@ export const calculateMasonry = (walls, wallPrices) => {
         // --- 2. Volume Calculation (Wet Volume) ---
 
         // TRUE GEOMETRIC MORTAR VOLUME
-        // Standard joint thickness = 10mm. Block tiling pitch = 0.41m (L) × 0.21m (H).
-        // Block net height (excluding bed joint above) = 0.19m.
-        // Block depth varies by CHB size (nominal in meters):
         const CHB_DEPTHS = { "4": 0.100, "5": 0.125, "6": 0.150, "8": 0.200 };
         const JOINT_T = 0.010;       // 10mm joint thickness
         const TILE_L = 0.41;        // block length + joint (m)
@@ -62,17 +55,22 @@ export const calculateMasonry = (walls, wallPrices) => {
         const BLK_H_NET = 0.19;      // block net height (no joint, m)
         const depth = CHB_DEPTHS[wall.chbSize] || 0.100;
 
-        // Bed joints  : t × depth × (courses/m) × Area
+        // Bed joints
         const V_bed = JOINT_T * depth * (1 / TILE_H) * area;
-        // Head joints : t × BLK_H_NET × depth × (joints/m²) × Area
-        //   joints/m² = (1/TILE_L) per course × (1/TILE_H) courses/m
+        // Head joints
         const V_head = JOINT_T * BLK_H_NET * depth * (1 / (TILE_L * TILE_H)) * area;
         const volumeMortarLaying = V_bed + V_head;
 
-        // Plaster: user-defined thickness (mm) per exposed side
+        // Mortar for joint laying — 1:3 mix
+        const MORTAR_MIX_RATIO = 1 / 4;
+        const SAND_MIX_RATIO = 3 / 4;
+        const V_dry_joint = volumeMortarLaying * 1.25; // wet → dry
+        totalCementBagsGrout += V_dry_joint * MORTAR_MIX_RATIO / 0.035;
+        totalSandS2CumTotal += V_dry_joint * SAND_MIX_RATIO;
+
+        // Plastering
         const plasterSidesCount = parseInt(wall.plasterSides) || 0;
 
-        // Helper: compute plaster wet->dry->cement/sand for one side config
         const addPlasterSide = (thicknessMm, mixStr) => {
             const thickM = (parseFloat(thicknessMm) || 10) / 1000;
             const vol = area * thickM;
@@ -80,30 +78,26 @@ export const calculateMasonry = (walls, wallPrices) => {
             const pTotal = (!isNaN(pC) && !isNaN(pS)) ? pC + pS : 4;
             const dry = vol * 1.25;
             totalCementBagsGrout += dry * (pC / pTotal) / 0.035;
-            totalSandS2CumPlaster += dry * (pS / pTotal); // Plaster uses S2
+            totalSandS2CumTotal += dry * (pS / pTotal);
         };
 
         if (plasterSidesCount === 1) {
             addPlasterSide(wall.plasterThickness, wall.plasterMix);
         } else if (plasterSidesCount === 2) {
-            addPlasterSide(wall.plasterThickness, wall.plasterMix);   // Side A
-            addPlasterSide(wall.plasterThicknessB, wall.plasterMixB);  // Side B
+            addPlasterSide(wall.plasterThickness, wall.plasterMix);
+            addPlasterSide(wall.plasterThicknessB, wall.plasterMixB);
         }
 
-        // Grout Filler (for cores) — scales with core volume per m²
-        // 4" = 0.005, 5" = 0.0065, 6" = 0.010, 8" = 0.015
+        // Grout Filler
         const groutFactors = { "4": 0.005, "5": 0.0065, "6": 0.010, "8": 0.015 };
         const groutFactor = groutFactors[wall.chbSize] || 0.005;
         const currentGroutVolume = area * groutFactor;
-        // Accumulate Grout (Cement + Sand + Gravel)
-        totalVolumeGroutFiller += currentGroutVolume;
 
         const mixId = wall.mix || DEFAULT_MIX;
         const mixSpec = CONCRETE_MIXES.find(m => m.id === mixId) || CONCRETE_MIXES[1];
 
-        // 1.05 is the waste factor (standardized)
         totalCementBagsGrout += currentGroutVolume * mixSpec.cement;
-        totalSandS1CumGrout += currentGroutVolume * mixSpec.sand; // Grout fill uses S1
+        totalSandS1CumGrout += currentGroutVolume * mixSpec.sand;
         totalGravelCumGrout += currentGroutVolume * mixSpec.gravel;
 
         // --- 3. Rebar Inventory ---
@@ -132,71 +126,36 @@ export const calculateMasonry = (walls, wallPrices) => {
             }
         }
 
-        // --- 4. Tie Wire ---
-        const safeVertSpacing = parsedVertSpacing > 0 ? parsedVertSpacing : 0.60;
-        const safeHorizSpacing = parsedHorizSpacing > 0 ? parsedHorizSpacing : 0.60;
-        const currentTiePoints = area * (1 / (safeVertSpacing * safeHorizSpacing));
+        const currentTiePoints = area * (1 / (parsedVertSpacing || 0.6) * (1 / (parsedHorizSpacing || 0.6)));
         totalTiePoints += currentTiePoints;
     });
 
-    if (totalArea <= 0) return null;
+    // Totals
+    const finalCement = Math.ceil(totalCementBagsGrout * 1.05);
+    const finalSandS2 = (totalSandS2CumTotal * 1.05).toFixed(2);
+    const finalSandS1 = (totalSandS1CumGrout * 1.05).toFixed(2);
+    const finalGravel = (totalGravelCumGrout * 1.05).toFixed(2);
 
-    // --- FINAL AGGREGATE CALCULATIONS (Separated by Mix) ---
-
-    // Constants for volumetric conversion
-    const CEMENT_BAG_VOLUME = 0.035; // Volume of 1 bag (40kg) of cement in m³
-    const MORTAR_YIELD_FACTOR = 1.25; // Dry volume yield factor for mortar
-    const GROUT_YIELD_FACTOR = 1.5;   // Dry volume yield factor for grout
-
-    // 1. Mortar/Plaster Mix (C:S = 1:3) -> Uses Cement and Plastering Sand S2
-    const V_dry_mortar = totalVolumeMortarPlaster * MORTAR_YIELD_FACTOR;
-    const V_cement_mortar = V_dry_mortar * (1 / 4);
-    const V_sand_mortar_s2 = V_dry_mortar * (3 / 4); // S2 for mortar laying
-
-    // 2. Grout Mix (Dynamic based on each wall selection) -> Uses Wash Sand S1
-    // totalCementBagsGrout, totalSandS1CumGrout, totalGravelCumGrout are already accumulated
-
-    // 3. Totals
-    const totalCementBags = (V_cement_mortar / CEMENT_BAG_VOLUME) + totalCementBagsGrout;
-    const totalSandS2Volume = V_sand_mortar_s2 + totalSandS2CumPlaster; // S2: mortar + plaster
-    const totalSandS1Volume = totalSandS1CumGrout;                       // S1: grout fill only
-    const totalGravelVolume = totalGravelCumGrout;
-
-    // Final Material Quantities (+5% waste allowance)
-    const finalCement = Math.ceil(totalCementBags * 1.05);
-    const finalSandS2 = (totalSandS2Volume * 1.05).toFixed(2); // S2 — plastering & mortar
-    const finalSandS1 = (totalSandS1Volume * 1.05).toFixed(2); // S1 — grout fill
-    const finalGravel = (totalGravelVolume * 1.05).toFixed(2);
-
-    // --- Cost Calculation ---
+    // Cost Calculation
     const chbKeyMap = { "4": "chb_4", "5": "chb_5", "6": "chb_6", "8": "chb_8" };
-    const chbKey = chbKeyMap[walls[0]?.chbSize] || "chb_4";
+    const chbKey = chbKeyMap[validWalls[0].chbSize] || "chb_4";
     const costCHB = totalChbCount * (wallPrices[chbKey] || 0);
-    const costCement = finalCement * wallPrices.cement_40kg;
+    const costCement = finalCement * (wallPrices.cement_40kg || 240);
     const costSandS2 = parseFloat(finalSandS2) * (wallPrices.sand_plastering || 1100);
     const costSandS1 = parseFloat(finalSandS1) * (wallPrices.sand_wash || 1200);
-    const costGravel = parseFloat(finalGravel) * wallPrices.gravel_3_4;
-    const totalCementitiousCost = costCement + costSandS2 + costSandS1 + costGravel;
+    const costGravel = parseFloat(finalGravel) * (wallPrices.gravel_3_4 || 1400);
 
     let finalRebarItems = [];
     let totalRebarCost = 0;
 
     rebarStock.forEach((stock, spec) => {
         const [size, lengthStr] = spec.split(' x ');
-        const finalQtyPurchase = Math.ceil(stock.purchased * 1.05); // Added 5% waste buffer
+        const finalQtyPurchase = Math.ceil(stock.purchased * 1.05);
         const is10mm = parseFloat(size.replace('mm', '')) === 10;
 
-        let priceKey, price, name;
-
-        if (is10mm) {
-            priceKey = 'rebar_10mm';
-            price = wallPrices[priceKey] || 180;
-            name = `Corrugated Rebar (10mm x ${lengthStr})`;
-        } else {
-            priceKey = 'rebar_12mm';
-            price = wallPrices[priceKey] || 260;
-            name = `Corrugated Rebar (12mm x ${lengthStr})`;
-        }
+        let priceKey = is10mm ? 'rebar_10mm' : 'rebar_12mm';
+        let price = wallPrices[priceKey] || (is10mm ? 180 : 260);
+        let name = `Corrugated Rebar (${is10mm ? '10mm' : '12mm'} x ${lengthStr})`;
 
         const total = finalQtyPurchase * price;
         totalRebarCost += total;
@@ -206,23 +165,20 @@ export const calculateMasonry = (walls, wallPrices) => {
             qty: finalQtyPurchase,
             unit: 'pcs',
             price: price,
-            priceKey: priceKey, // Key for editable logic
-            total: total,
+            priceKey: priceKey,
+            total: total
         });
     });
 
     const TIE_WIRE_PER_INTERSECTION = 0.35;
-    const METERS_PER_KG = 53; // Standard #16 GI Wire
-    const KG_PER_LM = 1 / METERS_PER_KG;
-    const totalLMTieWire = totalTiePoints * TIE_WIRE_PER_INTERSECTION;
-    const totalKGRequired = totalLMTieWire * KG_PER_LM;
-    const finalKGPurchase = Math.ceil(totalKGRequired * 1.05); // 5% allowance
-    const costTieWire = finalKGPurchase * wallPrices.tie_wire_kg;
+    const METERS_PER_KG = 53;
+    const finalKGPurchase = Math.ceil((totalTiePoints * TIE_WIRE_PER_INTERSECTION / METERS_PER_KG) * 1.05);
+    const costTieWire = finalKGPurchase * (wallPrices.tie_wire_kg || 120);
 
-    const totalOverallCost = costCHB + totalCementitiousCost + totalRebarCost + costTieWire;
+    const totalOverallCost = costCHB + costCement + costSandS2 + costSandS1 + costGravel + totalRebarCost + costTieWire;
 
-    const firstWallSize = walls[0]?.chbSize;
-    const chbName = firstWallSize === "4" ? 'Concrete Hollow Blocks (4")' : 'Concrete Hollow Blocks (6")';
+    const firstWallSize = validWalls[0].chbSize;
+    const chbName = `Concrete Hollow Blocks (${firstWallSize}")`;
 
     finalRebarItems.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -232,15 +188,13 @@ export const calculateMasonry = (walls, wallPrices) => {
         ...(parseFloat(finalSandS2) > 0 ? [{ name: 'Plastering Sand (S2)', qty: finalSandS2, unit: 'cu.m', price: wallPrices.sand_plastering || 1100, priceKey: 'sand_plastering', total: costSandS2 }] : []),
         ...(parseFloat(finalSandS1) > 0 ? [{ name: 'Wash Sand (S1)', qty: finalSandS1, unit: 'cu.m', price: wallPrices.sand_wash, priceKey: 'sand_wash', total: costSandS1 }] : []),
         { name: 'Crushed Gravel (3/4)', qty: finalGravel, unit: 'cu.m', price: wallPrices.gravel_3_4, priceKey: 'gravel_3_4', total: costGravel },
-
         ...finalRebarItems,
-
         { name: 'G.I. Tie Wire (#16)', qty: finalKGPurchase, unit: 'kg', price: wallPrices.tie_wire_kg, priceKey: 'tie_wire_kg', total: costTieWire },
     ];
 
     return {
         area: totalArea.toFixed(2),
-        quantity: walls.length,
+        quantity: validWalls.length,
         items,
         total: totalOverallCost
     };

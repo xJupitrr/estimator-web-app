@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Settings, Calculator, PlusCircle, Trash2, Box, Info, AlertCircle, ClipboardCopy, Download, Layout, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import ExportButtons from '../common/ExportButtons';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
@@ -27,7 +28,7 @@ const getInitialRow = () => ({
 
 export default function Ceiling() {
     const [rows, setRows] = useLocalStorage('ceiling_rows', [getInitialRow()]);
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
     const [result, setResult] = useLocalStorage('ceiling_result', null);
     const [error, setError] = useState(null);
 
@@ -323,6 +324,9 @@ export default function Ceiling() {
                                         <Download size={14} /> Download CSV
                                     </button>
                                 </div>
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                                <ExportButtons items={result.items} filename="ceiling_estimate.csv" />
                             </div>
                         </div>
 

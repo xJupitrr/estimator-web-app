@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { Info, Settings, Calculator, PlusCircle, Trash2, Box, Package, Hammer, AlertCircle, ClipboardCopy, Download, X, Edit2, Copy, ArrowUp, EyeOff, Eye, Layout, Scissors } from 'lucide-react';
 import { copyToClipboard, downloadCSV } from '../../utils/export';
+import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateColumn } from '../../utils/calculations/columnCalculator';
@@ -88,7 +89,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
     const columns = propColumns || localColumns;
     const setColumns = propSetColumns || setLocalColumns;
 
-    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices());
+    const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
 
     const [showResult, setShowResult] = useLocalStorage('column_show_result', false);
     const [error, setError] = useState(null);
@@ -395,23 +396,9 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={async () => {
-                                            const success = await copyToClipboard(result.items);
-                                            if (success) alert('Table copied to clipboard!');
-                                        }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Copy table to clipboard for Excel"
-                                    >
-                                        <ClipboardCopy size={14} /> Copy to Clipboard
-                                    </button>
-                                    <button
-                                        onClick={() => downloadCSV(result.items, 'column_estimate.csv')}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors shadow-sm"
-                                        title="Download as CSV"
-                                    >
-                                        <Download size={14} /> Download CSV
-                                    </button>
+                                    <ExportButtons items={result.items} filename="column_estimate.csv" />
+                                    
+                                    
                                     <button
                                         onClick={() => setViewingPatterns(true)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 bg-${THEME}-600 text-white border border-${THEME}-700 rounded-lg text-sm font-bold hover:bg-${THEME}-700 transition-colors shadow-sm`}
