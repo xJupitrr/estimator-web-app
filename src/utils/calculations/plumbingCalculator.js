@@ -128,6 +128,13 @@ export const calculatePlumbing = (data, prices) => {
         angle_valve: 0,
         flex_hose: 0,
         laundry_tray: 0,
+        // Water Heaters
+        water_heater_single_instant: 0,
+        water_heater_single_premium: 0,
+        water_heater_multi_instant: 0,
+        water_heater_storage_30l: 0,
+        water_heater_storage_50l: 0,
+        water_heater_storage_80l: 0,
     };
 
     data.forEach(row => {
@@ -159,6 +166,12 @@ export const calculatePlumbing = (data, prices) => {
             else if (item === 'angle_valve') fixtureCounts.angle_valve += qty;
             else if (item === 'flex_hose') fixtureCounts.flex_hose += qty;
             else if (item === 'laundry_tray') fixtureCounts.laundry_tray += qty;
+            else if (item === 'water_heater_single_instant') fixtureCounts.water_heater_single_instant += qty;
+            else if (item === 'water_heater_single_premium') fixtureCounts.water_heater_single_premium += qty;
+            else if (item === 'water_heater_multi_instant') fixtureCounts.water_heater_multi_instant += qty;
+            else if (item === 'water_heater_storage_30l') fixtureCounts.water_heater_storage_30l += qty;
+            else if (item === 'water_heater_storage_50l') fixtureCounts.water_heater_storage_50l += qty;
+            else if (item === 'water_heater_storage_80l') fixtureCounts.water_heater_storage_80l += qty;
         } else {
             // MANUAL MATERIAL ENTRY
             materialCounts[item] = (materialCounts[item] || 0) + qty;
@@ -194,6 +207,14 @@ export const calculatePlumbing = (data, prices) => {
     addItem('flex_hose', fixtureCounts.flex_hose, 'pcs', "Flexible Hose (Stainless)");
     addItem('laundry_tray', fixtureCounts.laundry_tray, 'pcs', "Laundry Tray");
 
+    // Add specific water heaters if they exist in fixtureCounts
+    addItem('water_heater_single_instant', fixtureCounts.water_heater_single_instant, 'sets', "Water Heater (Single Point - Instant)");
+    addItem('water_heater_single_premium', fixtureCounts.water_heater_single_premium, 'sets', "Water Heater (Single Point - Premium)");
+    addItem('water_heater_multi_instant', fixtureCounts.water_heater_multi_instant, 'sets', "Water Heater (Multi Point - Instant)");
+    addItem('water_heater_storage_30l', fixtureCounts.water_heater_storage_30l, 'sets', "Water Heater (30L Storage)");
+    addItem('water_heater_storage_50l', fixtureCounts.water_heater_storage_50l, 'sets', "Water Heater (50L Storage)");
+    addItem('water_heater_storage_80l', fixtureCounts.water_heater_storage_80l, 'sets', "Water Heater (80L Storage)");
+
     // Merge manual material counts
     const finalMaterialCounts = { ...materialCounts };
 
@@ -221,6 +242,12 @@ export const calculatePlumbing = (data, prices) => {
             .replace(/\bwc\b/gi, 'WC')
             .replace(/\b90\b/g, '90°')
             .replace(/\b45\b/g, '45°')
+            .replace(/\b05hp\b/gi, '0.5HP')
+            .replace(/\b075hp\b/gi, '0.75HP')
+            .replace(/\b10hp\b/gi, '1.0HP')
+            .replace(/\b15hp\b/gi, '1.5HP')
+            .replace(/\b20hp\b/gi, '2.0HP')
+            .replace(/\b(\d+)l\b/gi, '$1L')
             .replace(/\b100mm\b|\b75mm\b|\b50mm\b|\b100x50\b|\b100x75\b|\b20mm\b|\b25mm\b/g, '')
             .replace(/\s+/g, ' ')
             .trim()
@@ -229,6 +256,13 @@ export const calculatePlumbing = (data, prices) => {
         if (sizeInfo) {
             name = `${sizeInfo} ${name}`;
         }
+
+        // Specific overrides for Equipment names
+        if (key.includes('water_tank_ss')) name = name.replace('Water Tank Ss', 'Stainless Steel Water Tank');
+        else if (key.includes('water_tank')) name = name.replace('Water Tank', 'Overhead Poly Water Tank');
+        else if (key.includes('booster_pump')) name = name.replace('Booster Pump', 'Booster Pump w/ Pressure Tank');
+        else if (key.includes('jet_pump')) name = name.replace('Jet Pump', 'Self-Priming Jet Pump');
+        else if (key.includes('submersible_pump')) name = name.replace('Submersible Pump', 'Submersible Pump (Clean Water)');
 
         let unit = 'pcs';
 

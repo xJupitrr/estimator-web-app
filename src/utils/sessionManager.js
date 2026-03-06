@@ -95,7 +95,8 @@ const SETTINGS_KEYS = [
     'concrete_wall_prices',
     'concrete_wall_result',
     'drywall_result',
-    'drywall_total'
+    'drywall_total',
+    'app_material_prices'
 ];
 
 /**

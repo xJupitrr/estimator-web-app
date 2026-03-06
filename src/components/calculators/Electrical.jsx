@@ -11,6 +11,7 @@ import MathInput from '../common/MathInput';
 import { calculateElectrical } from '../../utils/calculations/electricalCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 import SelectInput from '../common/SelectInput';
+import SearchableSelect from '../common/SearchableSelect';
 
 const THEME = THEME_COLORS.electrical;
 
@@ -312,6 +313,16 @@ export default function Electrical() {
                     // Access the first option of the first group
                     updatedRow.type = "";
                 }
+                // Auto-detect category if item is selected while category is empty
+                if (field === 'type' && !r.category && value) {
+                    for (const catId in ELECTRICAL_ITEMS) {
+                        const groups = ELECTRICAL_ITEMS[catId];
+                        if (groups.some(g => g.options.some(i => i.id === value))) {
+                            updatedRow.category = catId;
+                            break;
+                        }
+                    }
+                }
                 return updatedRow;
             }
             return r;
@@ -452,7 +463,7 @@ export default function Electrical() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Qty</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Category</th>
-                                <th className={TABLE_UI.INPUT_HEADER}>Equipment / Device Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} min-w-[250px]`}>Equipment / Device Type</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Description (Location/Notes)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
@@ -481,23 +492,30 @@ export default function Electrical() {
                                         <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className={`${INPUT_UI.TABLE_INPUT} focus:ring-${THEME}-400 text-center font-bold`} placeholder="Qty" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
+                                        <SearchableSelect
                                             value={row.category}
                                             onChange={(val) => handleRowChange(row.id, 'category', val)}
-                                            options={ELECTRICAL_CATEGORIES.map(c => ({ id: c.id, display: c.label }))}
+                                            options={[
+                                                ...ELECTRICAL_CATEGORIES.map(c => ({ id: c.id, display: c.label })),
+                                                { id: '', display: 'Default (Global Search)' }
+                                            ]}
                                             focusColor={THEME}
+                                            searchable={false}
                                             className="text-xs"
                                             placeholder="Select Category..."
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
+                                        <SearchableSelect
                                             value={row.type}
                                             onChange={(val) => handleRowChange(row.id, 'type', val)}
-                                            options={row.category ? (ELECTRICAL_ITEMS[row.category] || []) : []}
+                                            options={row.category
+                                                ? (ELECTRICAL_ITEMS[row.category] || [])
+                                                : Object.values(ELECTRICAL_ITEMS).flat()
+                                            }
                                             focusColor={THEME}
                                             className="text-xs"
-                                            placeholder="Select Equipment/Device..."
+                                            placeholder={row.category ? "Search items..." : "Global Search (All Items)..."}
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>

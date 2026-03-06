@@ -329,7 +329,26 @@ export default function Drywall() {
                                     <p className={`font-bold text-4xl text-${THEME}-700 tracking-tight`}>₱{result.total.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <ExportButtons items={result.items} filename="drywall_estimate.csv" />
+                                    <ExportButtons
+                                        items={result.items}
+                                        filename="drywall_estimate.csv"
+                                        inputs={rows.map(r => ({
+                                            quantity: r.quantity,
+                                            length_m: r.length_m,
+                                            width_m: r.width_m,
+                                            drywall_type_side_a: r.drywall_type_side_a,
+                                            drywall_type_side_b: r.drywall_type_side_b,
+                                            filler_material: r.filler_material
+                                        }))}
+                                        inputHeaders={{
+                                            quantity: "Qty",
+                                            length_m: "Length (m)",
+                                            width_m: "Height (m)",
+                                            drywall_type_side_a: "Side A Material",
+                                            drywall_type_side_b: "Side B Material",
+                                            filler_material: "Insulation/Filler"
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </div>

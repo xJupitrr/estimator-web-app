@@ -8,6 +8,7 @@ import { getDefaultPrices } from '../../constants/materials';
 
 
 import SelectInput from '../common/SelectInput';
+import SearchableSelect from '../common/SearchableSelect';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
@@ -21,6 +22,7 @@ const THEME = THEME_COLORS.plumbing;
 
 const PLUMBING_CATEGORIES = [
     { id: 'fixtures', label: 'Plumbing Fixtures' },
+    { id: 'equipment', label: 'Equipment (Pumps/Tanks)' },
     { id: 'waterline', label: 'Waterline System (PPR)' },
     { id: 'waterline_gi', label: 'Waterline System (GI Pipe)' },
     { id: 'pvc', label: 'uPVC Pipe & Fittings' },
@@ -40,13 +42,53 @@ const PLUMBING_ITEMS = {
         { id: 'bidet', label: 'Bidet Spray' },
         { id: 'bathtub', label: 'Bathtub (Standard)' },
         { id: 'grease_trap', label: 'Grease Trap' },
-        { id: 'water_heater_single', label: 'Water Heater (Single Point)' },
-        { id: 'water_heater_multi', label: 'Water Heater (Multi Point)' },
+        { id: 'water_heater_single_instant', label: 'Water Heater (Single Point - Instant)' },
+        { id: 'water_heater_single_premium', label: 'Water Heater (Single Point - Premium)' },
+        { id: 'water_heater_multi_instant', label: 'Water Heater (Multi Point - Instant)' },
+        { id: 'water_heater_storage_30l', label: 'Water Heater (Multi Point - 30L Storage)' },
+        { id: 'water_heater_storage_50l', label: 'Water Heater (Multi Point - 50L Storage)' },
+        { id: 'water_heater_storage_80l', label: 'Water Heater (Multi Point - 80L Storage)' },
         { id: 'kitchen_faucet', label: 'Kitchen Faucet (Gooseneck)' },
         { id: 'lavatory_faucet', label: 'Lavatory Faucet' },
         { id: 'angle_valve', label: 'Angle Valve (1/2"x1/2")' },
         { id: 'flex_hose', label: 'Flexible Hose (Stainless)' },
         { id: 'laundry_tray', label: 'Laundry Tray' },
+    ],
+    equipment: [
+        { id: 'water_tank_300l', label: 'Overhead Tank Poly (300L)' },
+        { id: 'water_tank_500l', label: 'Overhead Tank Poly (500L)' },
+        { id: 'water_tank_1000l', label: 'Overhead Tank Poly (1000L)' },
+        { id: 'water_tank_1500l', label: 'Overhead Tank Poly (1500L)' },
+        { id: 'water_tank_2000l', label: 'Overhead Tank Poly (2000L)' },
+        { id: 'water_tank_2500l', label: 'Overhead Tank Poly (2500L)' },
+        { id: 'water_tank_3000l', label: 'Overhead Tank Poly (3000L)' },
+        { id: 'water_tank_4000l', label: 'Overhead Tank Poly (4000L)' },
+        { id: 'water_tank_5000l', label: 'Overhead Tank Poly (5000L)' },
+        { id: 'water_tank_ss_500l', label: 'Stainless Tank (500L)' },
+        { id: 'water_tank_ss_1000l', label: 'Stainless Tank (1000L)' },
+        { id: 'water_tank_ss_1500l', label: 'Stainless Tank (1500L)' },
+        { id: 'water_tank_ss_2000l', label: 'Stainless Tank (2000L)' },
+        { id: 'water_tank_ss_2500l', label: 'Stainless Tank (2500L)' },
+        { id: 'booster_pump_05hp', label: 'Booster Pump 0.5HP' },
+        { id: 'booster_pump_075hp', label: 'Booster Pump 0.75HP' },
+        { id: 'booster_pump_10hp', label: 'Booster Pump 1.0HP' },
+        { id: 'booster_pump_15hp', label: 'Booster Pump 1.5HP' },
+        { id: 'booster_pump_20hp', label: 'Booster Pump 2.0HP' },
+        { id: 'jet_pump_05hp', label: 'Jet Pump 0.5HP' },
+        { id: 'jet_pump_075hp', label: 'Jet Pump 0.75HP' },
+        { id: 'jet_pump_10hp', label: 'Jet Pump 1.0HP' },
+        { id: 'jet_pump_15hp', label: 'Jet Pump 1.5HP' },
+        { id: 'jet_pump_20hp', label: 'Jet Pump 2.0HP' },
+        { id: 'centrifugal_pump_05hp', label: 'Centrifugal Pump 0.5HP' },
+        { id: 'centrifugal_pump_075hp', label: 'Centrifugal Pump 0.75HP' },
+        { id: 'centrifugal_pump_10hp', label: 'Centrifugal Pump 1.0HP' },
+        { id: 'centrifugal_pump_15hp', label: 'Centrifugal Pump 1.5HP' },
+        { id: 'centrifugal_pump_20hp', label: 'Centrifugal Pump 2.0HP' },
+        { id: 'submersible_pump_05hp', label: 'Submersible Pump 0.5HP' },
+        { id: 'submersible_pump_075hp', label: 'Submersible Pump 0.75HP' },
+        { id: 'submersible_pump_10hp', label: 'Submersible Pump 1.0HP' },
+        { id: 'submersible_pump_15hp', label: 'Submersible Pump 1.5HP' },
+        { id: 'submersible_pump_20hp', label: 'Submersible Pump 2.0HP' },
     ],
     waterline: [
         // 20mm Group (1/2")
@@ -180,6 +222,15 @@ export default function Plumbing() {
                 // If category changed, reset type (item) to empty to allow placeholder text
                 if (field === 'category') {
                     updatedRow.type = "";
+                }
+                // Auto-detect category if item is selected while category is empty
+                if (field === 'type' && !r.category && value) {
+                    for (const catId in PLUMBING_ITEMS) {
+                        if (PLUMBING_ITEMS[catId].some(i => i.id === value)) {
+                            updatedRow.category = catId;
+                            break;
+                        }
+                    }
                 }
                 return updatedRow;
             }
@@ -330,7 +381,7 @@ export default function Plumbing() {
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Qty</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Category</th>
-                                <th className={TABLE_UI.INPUT_HEADER}>Item / Fixture</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} min-w-[250px]`}>Plumbing Item / Connection</th>
                                 <th className={TABLE_UI.INPUT_HEADER}>Description (Location)</th>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
                             </tr>
@@ -359,23 +410,33 @@ export default function Plumbing() {
                                         <MathInput value={row.quantity} onChange={(val) => handleRowChange(row.id, 'quantity', val)} className={INPUT_UI.TABLE_INPUT} placeholder="Qty" />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
+                                        <SearchableSelect
                                             value={row.category}
                                             onChange={(val) => handleRowChange(row.id, 'category', val)}
-                                            options={PLUMBING_CATEGORIES.map(c => ({ id: c.id, display: c.label }))}
+                                            options={[
+                                                ...PLUMBING_CATEGORIES.map(c => ({ id: c.id, display: c.label })),
+                                                { id: '', display: 'Default (Global Search)' }
+                                            ]}
                                             focusColor={THEME}
+                                            searchable={false}
                                             className="text-xs"
                                             placeholder="Select Category..."
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
+                                        <SearchableSelect
                                             value={row.type}
                                             onChange={(val) => handleRowChange(row.id, 'type', val)}
-                                            options={row.category ? (PLUMBING_ITEMS[row.category].map(t => ({ id: t.id, display: t.label }))) : []}
+                                            options={row.category
+                                                ? (PLUMBING_ITEMS[row.category].map(t => ({ id: t.id, display: t.label })))
+                                                : PLUMBING_CATEGORIES.map(cat => ({
+                                                    group: cat.label,
+                                                    options: PLUMBING_ITEMS[cat.id].map(t => ({ id: t.id, display: t.label }))
+                                                }))
+                                            }
                                             focusColor={THEME}
                                             className="text-xs"
-                                            placeholder="Select Fixture/Material..."
+                                            placeholder={row.category ? "Search items..." : "Global Search (All Items)..."}
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
