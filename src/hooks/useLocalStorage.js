@@ -14,17 +14,25 @@ export { getSessionData, setSessionData };
 export default function useLocalStorage(key, initialValue, { mergeDefaults = false } = {}) {
     const { captureChange, broadcastChange, subscribe } = useHistory();
 
-    // Initialize from sessionCache (for tab switching) or initialValue (for fresh load)
+    // Initialize from sessionCache (for tab switching) or initialValue (for fresh load).
+    // Always write the resolved value back to sessionCache so that the export can read
+    // it even if the user never edits anything on this tab.
     const [storedValue, setStoredValue] = useState(() => {
         const cached = getSessionData(key);
+        let resolved;
         if (cached !== undefined) {
             // For price maps: merge defaults under stored so new keys always have a price
             if (mergeDefaults && initialValue && typeof initialValue === 'object' && !Array.isArray(initialValue)) {
-                return { ...initialValue, ...cached };
+                resolved = { ...initialValue, ...cached };
+            } else {
+                resolved = cached;
             }
-            return cached;
+        } else {
+            resolved = initialValue;
         }
-        return initialValue;
+        // Seed the cache so Save always captures the current state, even without edits
+        setSessionData(key, resolved);
+        return resolved;
     });
 
     const loadFromCache = useCallback(() => {

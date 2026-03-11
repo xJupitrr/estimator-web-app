@@ -27,40 +27,40 @@ const LIST_SECTIONS = {
 
 // Mapping of Single Value/Object Keys to a generic Settings Section
 const SETTINGS_KEYS = [
-    'roofing_settings',
-    'roofing_prices',
+    // ─── Formworks settings ──────────────────────────────────────────────────
     'formworks_waste_plywood',
     'formworks_waste_lumber',
     'formworks_include_columns',
     'formworks_include_beams',
+    'formworks_include_retaining_walls',
     'formworks_import_plywood',
     'formworks_import_lumber',
-    'formworks_prices',
-    'masonry_prices',
-    'slab_prices',
-    'footing_prices',
-    'suspended_slab_prices',
-    'tiles_prices',
-    'painting_prices',
-    'ceiling_prices',
-    'ceiling_config',
-    'beam_prices',
-    'column_prices',
-    'lintel_prices',
+
+    // ─── Roofing settings ────────────────────────────────────────────────────
+    'roofing_settings',
+
+    // ─── Lintel Beam specs ───────────────────────────────────────────────────
     'lintelbeam_specs',
-    'electrical_prices',
-    'plumbing_prices',
-    'steel_truss_prices',
+
+    // ─── Steel Truss settings ────────────────────────────────────────────────
     'steel_truss_settings',
+
+    // ─── Ceiling config ──────────────────────────────────────────────────────
+    'ceiling_config',
+
+    // ─── Shared material prices (all tabs now use this single key) ───────────
+    'app_material_prices',
+
+    // ─── Project meta ────────────────────────────────────────────────────────
     'project_name',
     'last_save_info',
 
-    // --- Estimation Result Tables (Objects) ---
+    // ─── Estimation Result objects ───────────────────────────────────────────
     'masonry_result',
     'slab_result',
     'suspended_slab_result',
     'footing_result',
-    'column_result',
+    'concrete_wall_result',
     'roofing_result',
     'formworks_result',
     'tiles_result',
@@ -70,12 +70,21 @@ const SETTINGS_KEYS = [
     'electrical_result',
     'plumbing_result',
     'steel_truss_result',
-    // On-the-fly calculators (persist display state)
+    'drywall_result',
+    'lintelbeam_result',          // LintelBeam on-the-fly result object
+
+    // ─── On-the-fly calculators display state ────────────────────────────────
     'beam_show_result',
     'column_show_result',
-    'lintel_show_result',
+    'lintelbeam_show_result',     // was wrongly named 'lintel_show_result' — fixed
 
-    // --- Totals (for Dashboard) ---
+    // ─── "Has calculated" UI flags (controls whether result panel shows) ─────
+    'masonry_has_estimated',
+    'slab_has_estimated',
+    'steel_truss_has_estimated',
+    'concrete_wall_has_estimated',
+
+    // ─── Totals (for the Dashboard project-cost aggregation) ─────────────────
     'masonry_total',
     'slab_total',
     'suspended_slab_total',
@@ -87,16 +96,13 @@ const SETTINGS_KEYS = [
     'tiles_total',
     'painting_total',
     'ceiling_total',
-    'doors_windows_total',
+    'drywall_total',
     'electrical_total',
     'plumbing_total',
-    'steel_truss_total',
+    'doors_windows_total',
     'lintel_beam_total',
-    'concrete_wall_prices',
-    'concrete_wall_result',
-    'drywall_result',
-    'drywall_total',
-    'app_material_prices'
+    'steel_truss_total',
+    'concrete_wall_total',
 ];
 
 /**
