@@ -8,17 +8,89 @@ export const rebarOptions = rebarDiameters.flatMap(size =>
 );
 
 export const DECKING_OPTIONS = [
-    { id: 'none', label: 'Conventional Formwork' },
-    { id: 'deck_08', label: 'Steel Deck 0.80mm', width_eff: 0.9, priceKey: 'deck_08' },
-    { id: 'deck_10', label: 'Steel Deck 1.00mm', width_eff: 0.9, priceKey: 'deck_10' },
-    { id: 'deck_12', label: 'Steel Deck 1.20mm', width_eff: 0.9, priceKey: 'deck_12' },
+    // Conventional forming — specific soffit material selected here
+    {
+        group: 'Conventional Forming',
+        options: [
+            { id: 'conv_phenolic_1_2', display: '1/2" (12mm) Phenolic Board', priceKey: 'phenolic_1_2' },
+            { id: 'conv_phenolic_3_4', display: '3/4" (18mm) Phenolic Board', priceKey: 'phenolic_3_4' },
+            { id: 'conv_marine_1_2', display: '1/2" (12mm) Marine Plywood', priceKey: 'marine_plywood_1_2' },
+            { id: 'conv_marine_3_4', display: '3/4" (18mm) Marine Plywood', priceKey: 'marine_plywood_3_4' },
+            { id: 'conv_plywood_1_2', display: '1/2" (12mm) Ordinary Plywood', priceKey: 'plywood_1_2' },
+            { id: 'conv_plywood_3_4', display: '3/4" (18mm) Ordinary Plywood', priceKey: 'plywood_3_4' },
+        ]
+    },
+    // Non-Composite Steel Deck
+    {
+        group: 'Non-Composite Steel Deck (Form Deck)',
+        options: [
+            { id: 'ribdeck_08', display: 'Non-Composite Deck 0.80mm — 22 Gauge', priceKey: 'deck_08' },
+            { id: 'ribdeck_10', display: 'Non-Composite Deck 1.00mm — 20 Gauge', priceKey: 'deck_10' },
+            { id: 'ribdeck_12', display: 'Non-Composite Deck 1.20mm — 18 Gauge', priceKey: 'deck_12' },
+        ]
+    },
+    // Composite Steel Deck
+    {
+        group: 'Composite Steel Deck',
+        options: [
+            { id: 'bondek_08', display: 'Composite Deck 0.80mm — 22 Gauge', priceKey: 'deck_08' },
+            { id: 'bondek_10', display: 'Composite Deck 1.00mm — 20 Gauge', priceKey: 'deck_10' },
+            { id: 'bondek_12', display: 'Composite Deck 1.20mm — 18 Gauge', priceKey: 'deck_12' },
+        ]
+    },
 ];
 
+/** Returns the human-readable label for a deckingType id (traverses optgroups). */
+export const getDeckingLabel = (id) => {
+    if (!id) return null;
+    for (const opt of DECKING_OPTIONS) {
+        if (opt.group) {
+            const found = opt.options?.find(o => o.id === id);
+            if (found) return found.display;
+        } else if (opt.id === id) {
+            return opt.display;
+        }
+    }
+    return id;
+};
+
+/** Returns true when the chosen deck is a permanent steel deck (not conventional forming). */
+export const isSteelDeck = (deckingType) => !!deckingType && !deckingType.startsWith('conv_');
+
+// Kept for backward compatibility — material is now captured via DECKING_OPTIONS conventional group
 export const FORMWORK_OPTIONS = [
-    { id: 'phenolic_1_2', label: '1/2" Phenolic Board', priceKey: 'phenolic_1_2' },
-    { id: 'phenolic_3_4', label: '3/4" Phenolic Board', priceKey: 'phenolic_3_4' },
-    { id: 'plywood_1_2', label: '1/2" Marine Plywood', priceKey: 'plywood_1_2' },
+    { id: 'phenolic_1_2', display: '1/2" (12mm) Phenolic Board', priceKey: 'phenolic_1_2' },
+    { id: 'phenolic_3_4', display: '3/4" (18mm) Phenolic Board', priceKey: 'phenolic_3_4' },
+    { id: 'marine_1_2', display: '1/2" (12mm) Marine Plywood', priceKey: 'marine_plywood_1_2' },
+    { id: 'plywood_1_2', display: '1/2" (12mm) Ordinary Plywood', priceKey: 'plywood_1_2' },
+    { id: 'plywood_3_4', display: '3/4" (18mm) Ordinary Plywood', priceKey: 'plywood_3_4' },
 ];
+
+export const FORM_FRAMING_OPTIONS = [
+    {
+        group: 'Lumber Shoring',
+        options: [
+            { id: 'coco_2x2', display: 'Coco Lumber 2×2', priceKey: 'lumber_coco_2x2' },
+            { id: 'coco_2x3', display: 'Coco Lumber 2×3', priceKey: 'lumber_coco_2x3' },
+            { id: 'coco_2x4', display: 'Coco Lumber 2×4', priceKey: 'lumber_coco_2x4' },
+            { id: 'mahogany_2x2', display: 'Mahogany Lumber 2×2', priceKey: 'lumber_mahogany_2x2' },
+            { id: 'mahogany_2x3', display: 'Mahogany Lumber 2×3', priceKey: 'lumber_mahogany_2x3' },
+            { id: 'mahogany_2x4', display: 'Mahogany Lumber 2×4', priceKey: 'lumber_mahogany_2x4' },
+            { id: 'apitong_2x3', display: 'Apitong Lumber 2×3', priceKey: 'lumber_apitong_2x3' },
+            { id: 'apitong_2x4', display: 'Apitong Lumber 2×4', priceKey: 'lumber_apitong_2x4' },
+        ]
+    },
+    {
+        group: 'Steel Shoring / Scaffolding',
+        options: [
+            { id: 'h_frame', display: 'H-Frame Scaffolding (with Cross Braces & U-Heads)', priceKey: 'scaffold_h_frame' },
+            { id: 'acrow_prop', display: 'Adjustable Steel Props (Acrow / Screw Jack)', priceKey: 'scaffold_acrow' },
+            { id: 'kwikstage', display: 'Kwikstage / Cuplock System', priceKey: 'scaffold_kwikstage' },
+        ]
+    },
+];
+
+
 
 export const SUPPORT_TYPES = [
     { id: 'coco_lumber', label: 'Coco Lumber Frame' },
@@ -51,7 +123,24 @@ export const DEFAULT_PRICES = {
 const extractLength = (spec) => parseFloat(spec.split(' x ')[1].replace('m', ''));
 const extractDiameterMeters = (spec) => parseFloat(spec.split('mm')[0]) / 1000;
 
-// NEW: Constants for precise crank calculation
+// Traverse optgroup-aware DECKING_OPTIONS to find a single option by id
+const findDeckingOption = (id) => {
+    if (!id) return null;
+    for (const opt of DECKING_OPTIONS) {
+        if (opt.group) {
+            const found = opt.options?.find(o => o.id === id);
+            if (found) return found;
+        } else if (opt.id === id) {
+            return opt;
+        }
+    }
+    return null;
+};
+
+// Returns true only for composite deck (steel deck that replaces bottom tension rebar)
+const isCompositeDeck = (deckingType) => !!deckingType && deckingType.startsWith('bondek_');
+
+// Constants for precise crank calculation
 const CONCRETE_COVER = 0.02; // 20mm
 const CRANK_FACTOR = 0.42;   // Extra length for 45 deg bend (assuming 2 bends per crank)
 const HOOK_MULTIPLIER = 12;  // 12db hook allowance
@@ -170,24 +259,27 @@ export const calculateSuspendedSlab = (slabs, prices) => {
         totalGravelCum += vol * mixSpec.gravel * wasteMult;
 
         // 2. Decking / Formwork
-        if (s.deckingType !== 'none') {
-            const deckOpt = DECKING_OPTIONS.find(d => d.id === s.deckingType);
+        const deckOpt = findDeckingOption(s.deckingType);
+
+        if (isSteelDeck(s.deckingType)) {
+            // Steel deck (non-composite or composite) — sold per linear meter
             if (deckOpt) {
                 const area = L * W * Q;
-                // Usually sold per linear meter, width is fixed (e.g. 0.9m)
                 const effWidth = deckOpt.width_eff || 0.9;
-                const linearMeters = (area / effWidth);
-                addToMat(deckOpt.priceKey, linearMeters, "ln.m", `Steel Deck (${deckOpt.label})`, prices[deckOpt.priceKey]);
+                const linearMeters = area / effWidth;
+                addToMat(deckOpt.priceKey, linearMeters, "ln.m",
+                    `Steel Deck (${deckOpt.display})`, prices[deckOpt.priceKey]);
             }
         } else {
-            // Conventional
-            const formOpt = FORMWORK_OPTIONS.find(f => f.id === s.formworkType) || FORMWORK_OPTIONS[0];
-            const areaSoffit = L * W * Q;
-            const areaSides = 2 * (L + W) * T * Q; // Perimeter sides
-            const totalFormArea = areaSoffit + areaSides;
-            const sheetArea = 2.88; // 4x8 ft approx 2.97 sqm, standard 1.22x2.44 = 2.97
-            const sheets = totalFormArea / 2.9768;
-            addToMat(formOpt.priceKey, sheets, "sheets", formOpt.label, prices[formOpt.priceKey]);
+            // Conventional forming — plywood/phenolic sheets for soffit + perimeter sides
+            if (deckOpt) {
+                const areaSoffit = L * W * Q;
+                const areaSides = 2 * (L + W) * T * Q;
+                const totalFormArea = areaSoffit + areaSides;
+                const sheets = totalFormArea / 2.9768; // standard 1.22 × 2.44 m sheet
+                addToMat(deckOpt.priceKey, sheets, "sheets",
+                    deckOpt.display, prices[deckOpt.priceKey]);
+            }
         }
 
         // Lumber & Scaffolding Calculation
@@ -259,16 +351,13 @@ export const calculateSuspendedSlab = (slabs, prices) => {
         const mainSpacing = parseFloat(s.mainSpacing) || 0.15;
         const tempSpacing = parseFloat(s.tempSpacing) || 0.20;
 
-        // Prepare Crank Variables
         const mainBarDia = extractDiameterMeters(s.mainBarSpec);
-        const tempBarDia = extractDiameterMeters(s.tempBarSpec);
+        const tempBarDia = extractDiameterMeters(s.tempBarSpec || s.mainBarSpec);
         const effectiveDepth = T - (2 * CONCRETE_COVER);
 
-        // Hook Allowances (Ends only)
         const mainHook = getHookLength(mainBarDia * 1000, 'main_180');
         const tempHook = getHookLength(tempBarDia * 1000, 'main_180');
 
-        // Formula: L + (2 * 0.42 * d) + (2 * Hooks)
         const crankAddOn = effectiveDepth > 0
             ? (2 * CRANK_FACTOR * effectiveDepth) + (2 * mainHook)
             : 0;
@@ -276,52 +365,50 @@ export const calculateSuspendedSlab = (slabs, prices) => {
         const mainHookAllowance = 2 * mainHook;
         const tempHookAllowance = 2 * tempHook;
 
+        // Composite deck replaces the bottom (positive moment / tension) bars.
+        // Top (negative moment) bars and temperature bars are still required.
+        const composite = isCompositeDeck(s.deckingType);
+
         if (type === "Two-Way") {
-            // Two-Way: Main bars in BOTH directions
-            // 1. Direction A (Parallel to Length L, distributed along W)
+            // Direction A — parallel to Length, distributed along Width
             const numBarsParaL = Math.ceil(W / mainSpacing) + 1;
 
-            // Bottom Layer (Straight + Hooks)
-            processRebarRun(L + mainHookAllowance, s.mainBarSpec, numBarsParaL * Q, rebarStock);
-
-            // Top Layer (Cranked)
+            if (!composite) {
+                // Bottom layer (tension) — omitted for composite deck
+                processRebarRun(L + mainHookAllowance, s.mainBarSpec, numBarsParaL * Q, rebarStock);
+            }
+            // Top layer (negative moment at supports) — always required
             processRebarRun(L + crankAddOn, s.mainBarSpec, numBarsParaL * Q, rebarStock);
 
-            // 2. Direction B (Parallel to Width W, distributed along L)
+            // Direction B — parallel to Width, distributed along Length
             const numBarsParaW = Math.ceil(L / mainSpacing) + 1;
 
-            // Bottom Layer (Straight + Hooks)
-            processRebarRun(W + mainHookAllowance, s.mainBarSpec, numBarsParaW * Q, rebarStock);
-
-            // Top Layer (Cranked + Hooks)
+            if (!composite) {
+                processRebarRun(W + mainHookAllowance, s.mainBarSpec, numBarsParaW * Q, rebarStock);
+            }
             processRebarRun(W + crankAddOn, s.mainBarSpec, numBarsParaW * Q, rebarStock);
 
-            // Tie Points
-            totalTiePoints += (2 * numBarsParaL * numBarsParaW * Q);
+            // Tie points (composite has fewer intersections — only top layer)
+            totalTiePoints += (composite ? 1 : 2) * numBarsParaL * numBarsParaW * Q;
 
         } else {
             // One-Way
-            // Main Reinforcement is parallel to Short Span
-            // Temp Reinforcement is parallel to Long Span
-
-            // 1. Main Bars (Length = Short Span)
-            // Distributed along Long Span
+            // Main bars span the short direction, temp bars span the long direction
             const numMain = Math.ceil(longSpan / mainSpacing) + 1;
 
-            // Bottom Layer (Straight + Hooks)
-            processRebarRun(shortSpan + mainHookAllowance, s.mainBarSpec, numMain * Q, rebarStock);
-
-            // Top Layer (Cranked + Hooks)
+            if (!composite) {
+                // Bottom layer — omitted for composite deck
+                processRebarRun(shortSpan + mainHookAllowance, s.mainBarSpec, numMain * Q, rebarStock);
+            }
+            // Top layer (negative moment) — always required
             processRebarRun(shortSpan + crankAddOn, s.mainBarSpec, numMain * Q, rebarStock);
 
-            // 2. Temp Bars (Length = Long Span)
-            // Distributed along Short Span
+            // Temperature / shrinkage bars — always required regardless of deck type
+            const tempSpec = s.tempBarSpec || s.mainBarSpec;
             const numTemp = Math.ceil(shortSpan / tempSpacing) + 1;
-            // Add Hooks to Temp Bars
-            processRebarRun(longSpan + tempHookAllowance, s.tempBarSpec, numTemp * Q, rebarStock);
+            processRebarRun(longSpan + tempHookAllowance, tempSpec, numTemp * Q, rebarStock);
 
-            // Tie Points
-            totalTiePoints += (2 * numMain * numTemp * Q);
+            totalTiePoints += (composite ? 1 : 2) * numMain * numTemp * Q;
         }
     });
 

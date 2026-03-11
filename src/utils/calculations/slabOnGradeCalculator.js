@@ -128,27 +128,18 @@ export const calculateSlabOnGrade = (slabs, prices) => {
 
             const L = parseFloat(slab.length) || 0;
             const W = parseFloat(slab.width) || 0;
-            const spacing = parseFloat(slab.spacing) || 0.40;
+            const spc = parseFloat(slab.spacing) || 0.40;
             const qty = parseInt(slab.quantity) || 1;
             const label = slab.description || 'SOG';
 
-            const numAlongWidth = spacing > 0 ? Math.ceil(W / spacing) + 1 : 0;
-            const numAlongLength = spacing > 0 ? Math.ceil(L / spacing) + 1 : 0;
+            const numAlongWidth = spc > 0 ? Math.ceil(W / spc) + 1 : 0;
+            const numAlongLength = spc > 0 ? Math.ceil(L / spc) + 1 : 0;
 
-            /**
-             * Given a span, determine the actual physical bar cut lengths
-             * respecting the commercial stock bar length and 40d lap splice.
-             *
-             * If span ≤ stockLength  →  single straight cut = span (no splice)
-             * If span > stockLength  →  series of full-bar cuts (= stockLength)
-             *                           + one tail cut for the remainder
-             */
             const addCuts = (span, count, direction) => {
                 if (span <= 0 || count <= 0) return;
                 const totalCount = count * qty;
 
                 if (span <= stockLength) {
-                    // ── No splice needed ──────────────────────────────────
                     slabRebarCuts.push({
                         spec, stockLength, diameter,
                         cutLength: Math.round(span * 1000) / 1000,
@@ -157,23 +148,13 @@ export const calculateSlabOnGrade = (slabs, prices) => {
                         label: `${label} (${direction})`,
                     });
                 } else {
-                    // ── Splice required ───────────────────────────────────
-                    // Effective coverage per additional (non-first) bar
                     const effectivePerBar = stockLength - spliceLen;
                     if (effectivePerBar <= 0) return;
-
-                    // Number of additional full-bars beyond the first
                     const additionalFullBars = Math.floor((span - stockLength) / effectivePerBar);
-
-                    // Tail length = what the last (partial) bar must cover
                     const coveredByFullBars = stockLength + additionalFullBars * effectivePerBar;
                     const rawTail = span - coveredByFullBars;
-                    // Add splice allowance to tail (it overlaps into the previous bar)
                     const tailCutLength = rawTail + (rawTail > 0 ? spliceLen : 0);
-
-                    const numFullBars = 1 + additionalFullBars; // includes the very first bar
-
-                    // Full-length bars
+                    const numFullBars = 1 + additionalFullBars;
                     slabRebarCuts.push({
                         spec, stockLength, diameter,
                         cutLength: stockLength,
@@ -181,8 +162,6 @@ export const calculateSlabOnGrade = (slabs, prices) => {
                         spliced: true,
                         label: `${label} ${direction} — Full Bar (${stockLength}m, 40d lap)`,
                     });
-
-                    // Tail cut (if non-trivial)
                     if (rawTail > 0.05) {
                         slabRebarCuts.push({
                             spec, stockLength, diameter,

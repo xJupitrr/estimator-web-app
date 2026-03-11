@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, CheckCircle2, XCircle, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import { Layers, Info, Box, LayoutTemplate, Columns, PenTool, Grid3X3, Paintbrush, Cloud, Hammer, SquareStack, Settings, Calculator, PlusCircle, Trash2, AlertCircle, CheckCircle2, XCircle, Eye, EyeOff, ArrowUp, Copy, Edit2, X } from 'lucide-react';
 import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateSuspendedSlab, getSlabType, rebarDiameters, commonLengths, rebarOptions, DECKING_OPTIONS, FORMWORK_OPTIONS, SUPPORT_TYPES } from '../../utils/calculations/suspendedSlabCalculator';
+import { calculateSuspendedSlab, getSlabType, rebarDiameters, commonLengths, rebarOptions, DECKING_OPTIONS, FORMWORK_OPTIONS, FORM_FRAMING_OPTIONS, SUPPORT_TYPES, getDeckingLabel, isSteelDeck } from '../../utils/calculations/suspendedSlabCalculator';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { getDefaultPrices } from '../../constants/materials';
 
@@ -27,6 +27,7 @@ const getInitialSlab = () => ({
     mainSpacing: "",
     tempSpacing: "",
     deckingType: "",
+    framingType: "",
     supportType: "",
     formworkType: "",
     description: "",
@@ -44,8 +45,10 @@ export default function SuspendedSlab() {
         setSlabs(prev => prev.map(s => {
             if (s.id === id) {
                 const updated = { ...s, [field]: value };
-                // Sync tempBarSpec if mainBarSpec changes
-                if (field === 'mainBarSpec') updated.tempBarSpec = value;
+                // Auto-sync tempBarSpec only when mainBarSpec first changed AND tempBarSpec hasn't been independently set
+                if (field === 'mainBarSpec' && s.tempBarSpec === s.mainBarSpec) {
+                    updated.tempBarSpec = value;
+                }
                 return updated;
             }
             return s;
@@ -60,7 +63,16 @@ export default function SuspendedSlab() {
         setError(null);
     };
 
+    const handleRemoveSlab = (id) => {
+        setSlabs(prev => prev.filter(s => s.id !== id));
+        setResult(null);
+        setError(null);
+    };
+
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
+    const [editingDeckingId, setEditingDeckingId] = useState(null);
+
+    const activeSlabForDecking = slabs.find(s => s.id === editingDeckingId);
 
     // Close context menu on click anywhere
     useEffect(() => {
@@ -139,6 +151,59 @@ export default function SuspendedSlab() {
 
     return (
         <div className="space-y-6">
+            {/* DECKING / FORMWORK MODAL */}
+            {editingDeckingId && activeSlabForDecking && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-xl shadow-2xl border border-zinc-200 flex flex-col animate-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 bg-zinc-50 rounded-t-xl">
+                            <div>
+                                <h3 className="font-bold text-lg text-zinc-800">Decking &amp; Formwork</h3>
+                                <p className="text-xs text-zinc-500">Select the deck type and soffit formwork for this slab.</p>
+                            </div>
+                            <button onClick={() => setEditingDeckingId(null)} className="p-2 hover:bg-zinc-200 rounded-full transition-colors">
+                                <X size={20} className="text-zinc-500" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Decking / Soffit Type</label>
+                                <SelectInput
+                                    value={activeSlabForDecking.deckingType}
+                                    onChange={(val) => handleSlabChange(editingDeckingId, 'deckingType', val)}
+                                    options={DECKING_OPTIONS}
+                                    focusColor={THEME}
+                                    placeholder="Select Decking..."
+                                />
+                            </div>
+                            {isSteelDeck(activeSlabForDecking.deckingType) ? (
+                                <div className="bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 text-xs text-amber-700 font-medium flex items-start gap-2">
+                                    <span className="mt-0.5">ℹ️</span>
+                                    <span>Steel deck acts as <strong>permanent soffit formwork</strong> — no additional formwork material required.</span>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1">Form Framing / Shoring System</label>
+                                    <SelectInput
+                                        value={activeSlabForDecking.framingType}
+                                        onChange={(val) => handleSlabChange(editingDeckingId, 'framingType', val)}
+                                        options={FORM_FRAMING_OPTIONS}
+                                        focusColor={THEME}
+                                        placeholder="Select Framing / Shoring..."
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-4 bg-zinc-50 border-t border-zinc-100 flex justify-end rounded-b-xl">
+                            <button
+                                onClick={() => setEditingDeckingId(null)}
+                                className={`px-6 py-2 bg-${THEME}-600 text-white rounded-lg font-bold text-sm hover:bg-${THEME}-700 transition-colors`}
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* CONTEXT MENU */}
             {contextMenu && (
                 <div
@@ -189,19 +254,24 @@ export default function SuspendedSlab() {
                     <table className={TABLE_UI.INPUT_TABLE}>
                         <thead className="bg-slate-100">
                             <tr>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[60px]`}>Qty</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Length (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[90px]`}>Type</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Thkns (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`}>Concrete Mix</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`}>Rebar Spec</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Main-Sp</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Temp-Sp</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Decking/Forms</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[36px]`} rowSpan="2">#</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[52px]`} rowSpan="2">Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[160px]`} rowSpan="2">Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[92px]`} rowSpan="2">Length (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[92px]`} rowSpan="2">Width (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[82px]`} rowSpan="2">Type</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[105px]`} rowSpan="2">Thickness (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[120px]`} rowSpan="2">Concrete Mix</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-indigo-50/70 text-center`} colSpan="2">Main Rebar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} bg-amber-50/70 text-center`} colSpan="2">Temp. Bar</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[175px]`} rowSpan="2">Decking/Forms</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[44px]`} rowSpan="2"></th>
+                            </tr>
+                            <tr className="bg-slate-100">
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[162px] bg-indigo-50/40`}>Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[110px] bg-indigo-50/40`}>Spacing (m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[162px] bg-amber-50/40`}>Size</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[110px] bg-amber-50/40`}>Spacing (m)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -280,7 +350,7 @@ export default function SuspendedSlab() {
                                             className="text-xs"
                                         />
                                     </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-indigo-50/20`}>
                                         <SelectInput
                                             value={slab.mainBarSpec}
                                             onChange={(val) => handleSlabChange(slab.id, 'mainBarSpec', val)}
@@ -289,7 +359,7 @@ export default function SuspendedSlab() {
                                             placeholder="Select Spec..."
                                         />
                                     </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-indigo-50/20`}>
                                         <MathInput
                                             value={slab.mainSpacing}
                                             onChange={(val) => handleSlabChange(slab.id, 'mainSpacing', val)}
@@ -297,7 +367,19 @@ export default function SuspendedSlab() {
                                             placeholder="0.20"
                                         />
                                     </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-amber-50/20`}>
+                                        <SelectInput
+                                            value={slab.tempBarSpec || slab.mainBarSpec}
+                                            onChange={(val) => handleSlabChange(slab.id, 'tempBarSpec', val)}
+                                            options={rebarOptions}
+                                            focusColor={THEME}
+                                            placeholder="Same as main"
+                                            disabled={getSlabType(slab.length, slab.width) === 'Two-Way'}
+                                            className={getSlabType(slab.length, slab.width) === 'Two-Way' ? 'opacity-50 cursor-not-allowed' : ''}
+                                            title={getSlabType(slab.length, slab.width) === 'Two-Way' ? 'Two-Way slab: bars same in both directions' : 'Select temperature bar size'}
+                                        />
+                                    </td>
+                                    <td className={`${TABLE_UI.INPUT_CELL} bg-amber-50/20`}>
                                         <MathInput
                                             value={slab.tempSpacing}
                                             onChange={(val) => handleSlabChange(slab.id, 'tempSpacing', val)}
@@ -307,22 +389,23 @@ export default function SuspendedSlab() {
                                             title={getSlabType(slab.length, slab.width) === 'Two-Way' ? "Not needed for Two-Way slab" : ""}
                                         />
                                     </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={slab.deckingType}
-                                            onChange={(val) => handleSlabChange(slab.id, 'deckingType', val)}
-                                            options={DECKING_OPTIONS}
-                                            focusColor={THEME}
-                                            className="mb-1"
-                                            placeholder="Select Decking..."
-                                        />
-                                        <SelectInput
-                                            value={slab.formworkType}
-                                            onChange={(val) => handleSlabChange(slab.id, 'formworkType', val)}
-                                            options={FORMWORK_OPTIONS}
-                                            focusColor={THEME}
-                                            placeholder="Select Formwork..."
-                                        />
+                                    <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
+                                        <button
+                                            onClick={() => setEditingDeckingId(slab.id)}
+                                            className={`px-3 py-1.5 bg-white hover:bg-${THEME}-50 text-${THEME}-600 hover:text-${THEME}-700 rounded border border-${THEME}-200 hover:border-${THEME}-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]`}
+                                        >
+                                            <Edit2 size={12} className="opacity-70 flex-shrink-0" />
+                                            <span className="truncate">
+                                                {slab.deckingType || slab.formworkType
+                                                    ? [
+                                                        getDeckingLabel(slab.deckingType),
+                                                        !isSteelDeck(slab.deckingType) && slab.formworkType
+                                                            ? (FORMWORK_OPTIONS.find(o => o.id === slab.formworkType)?.display || slab.formworkType)
+                                                            : null
+                                                    ].filter(Boolean).join(' / ')
+                                                    : 'Configure...'}
+                                            </span>
+                                        </button>
                                     </td>
                                     <td className={`${TABLE_UI.INPUT_CELL} text-center`}>
                                         <button

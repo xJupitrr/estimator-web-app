@@ -476,10 +476,40 @@ export const MATERIAL_DEFAULTS = {
     acoustic_fiberglass: { name: "Acoustic Fiberglass Board (0.6m x 1.2m)", price: 450, unit: "pcs" },
 
     // ─── Formworks - Phenolic / Sheet (Suspended Slab) ────────────────────────
-    phenolic_1_2: { name: "1/2\" Phenolic Board (4'x8')", price: 1400, unit: "sheets" },
-    phenolic_3_4: { name: "3/4\" Phenolic Board (4'x8')", price: 1800, unit: "sheets" },
+    phenolic_1_2: { name: '1/2" Phenolic Board (4\'x8\')', price: 1400, unit: "sheets" },
+    phenolic_3_4: { name: '3/4" Phenolic Board (4\'x8\')', price: 1800, unit: "sheets" },
+    plywood_1_2: { name: '1/2" Ordinary Plywood (4\'x8\')', price: 680, unit: "sheets" },
+    plywood_3_4: { name: '3/4" Ordinary Plywood (4\'x8\')', price: 920, unit: "sheets" },
+    marine_plywood_1_2: { name: '1/2" Marine Plywood (4\'x8\')', price: 1250, unit: "sheets" },
+    marine_plywood_3_4: { name: '3/4" Marine Plywood (4\'x8\')', price: 1650, unit: "sheets" },
     cocoLumber: { name: "Coco Lumber (Shoring/Posts/Joists)", price: 45, unit: "BF" },
     gi_pipe_1_1_2: { name: "G.I. Pipe 1.5\" x 6m (Horizontal Tie)", price: 850, unit: "pcs" },
+
+    // ─── Steel Deck (Suspended Slab Decking) ──────────────────────────────────
+    deck_08: { name: "Steel Deck 0.80mm (per linear meter, ~0.9m wide)", price: 450, unit: "ln.m" },
+    deck_10: { name: "Steel Deck 1.00mm (per linear meter, ~0.9m wide)", price: 550, unit: "ln.m" },
+    deck_12: { name: "Steel Deck 1.20mm (per linear meter, ~0.9m wide)", price: 650, unit: "ln.m" },
+
+    // ─── H-Frame Scaffolding components (legacy calculation keys) ─────────────
+    h_frame: { name: "H-Frame (1.7m x 1.2m)", price: 1200, unit: "pcs" },
+    cross_brace: { name: "Cross Brace (Scaffolding)", price: 450, unit: "pcs" },
+    u_head: { name: "U-Head Jack (Scaffolding)", price: 350, unit: "pcs" },
+    shackle: { name: "Swivel Clamp / Shackle (Scaffolding)", price: 65, unit: "pcs" },
+
+    // ─── Lumber Shoring — by species & size (price per Board-Foot / BF) ───────
+    lumber_coco_2x2: { name: 'Coco Lumber 2×2 (Shoring)', price: 35, unit: "BF" },
+    lumber_coco_2x3: { name: 'Coco Lumber 2×3 (Shoring)', price: 40, unit: "BF" },
+    lumber_coco_2x4: { name: 'Coco Lumber 2×4 (Shoring)', price: 48, unit: "BF" },
+    lumber_mahogany_2x2: { name: 'Mahogany Lumber 2×2 (Shoring)', price: 75, unit: "BF" },
+    lumber_mahogany_2x3: { name: 'Mahogany Lumber 2×3 (Shoring)', price: 85, unit: "BF" },
+    lumber_mahogany_2x4: { name: 'Mahogany Lumber 2×4 (Shoring)', price: 95, unit: "BF" },
+    lumber_apitong_2x3: { name: 'Apitong Lumber 2×3 (Shoring)', price: 65, unit: "BF" },
+    lumber_apitong_2x4: { name: 'Apitong Lumber 2×4 (Shoring)', price: 72, unit: "BF" },
+
+    // ─── Steel Shoring / Scaffolding Systems ──────────────────────────────────
+    scaffold_h_frame: { name: "H-Frame Scaffolding Set (Frame + Braces + U-Head / module)", price: 2500, unit: "sets" },
+    scaffold_acrow: { name: "Adjustable Steel Prop / Acrow Prop (Screw Jack)", price: 1100, unit: "pcs" },
+    scaffold_kwikstage: { name: "Kwikstage / Cuplock Scaffolding Frame (per module)", price: 2800, unit: "sets" },
 
     // ─── Plumbing - PPR Waterline Fittings ────────────────────────────────────
     ppr_elbow_90_20mm: { name: "PPR Elbow 90° (20mm / 1/2\")", price: 25, unit: "pcs" },
