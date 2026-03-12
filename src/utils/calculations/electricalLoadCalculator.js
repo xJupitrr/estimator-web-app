@@ -1,8 +1,8 @@
 export const calculateElectricalLoad = (rows) => {
     let totalVA = 0;
-    
+
     // Standard single phase voltage in PH (PEC)
-    const VOLTAGE = 230; 
+    const VOLTAGE = 230;
 
     // Standard Circuit Breaker AT ratings
     const standardBreakers = [15, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 225, 250, 300, 400];
@@ -74,14 +74,14 @@ export const calculateElectricalLoad = (rows) => {
         // PEC continuous load & motor sizing: +25%
         const continuousCats = ['acu', 'motor', 'water_heater', 'water_pump', 'ev_charger'];
         if (continuousCats.includes(r.category)) {
-            wireDesignAmps = amps * 1.25; 
-            breakerDesignAmps = amps * 1.25; 
+            wireDesignAmps = amps * 1.25;
+            breakerDesignAmps = amps * 1.25;
 
             if (['acu', 'motor', 'water_pump'].includes(r.category) && totalLoadVA > largestMotorVA) {
                 largestMotorVA = totalLoadVA;
             }
         }
-        
+
         // Find Breaker AT
         let breakerAT = 15;
         for (const b of standardBreakers) {
@@ -102,7 +102,7 @@ export const calculateElectricalLoad = (rows) => {
         // Wire Size based on design ampacity or breaker rating
         // Wiring ampacity must be greater than or equal to the breaker rating
         let wireSize = getWireSize(Math.max(wireDesignAmps, breakerAT));
-        
+
         // Simple PVC Pipe Sizing based on wire size
         let pipeSize = "20mm (1/2\") PVC";
         if (["14.0mm²", "22.0mm²"].includes(wireSize)) pipeSize = "25mm (3/4\") PVC";
@@ -124,12 +124,14 @@ export const calculateElectricalLoad = (rows) => {
     });
 
     // Main Feeder Computation (PEC Table 2.20.3.3)
-    let lightingRecepVA = circuits.filter(c => ['lighting', 'receptacle'].includes(c.category)).reduce((sum, c) => sum + c.totalVA, 0);
-    
+    // PEC 2.20.3.3 allows Small Appliance and Laundry Branch Circuits to be lumped into the General Lighting computation to take advantage of the 35% Demand Factor.
+    const generalDemandCats = ['lighting', 'receptacle', 'washing_machine', 'refrigerator', 'microwave', 'induction', 'dishwasher'];
+    let lightingRecepVA = circuits.filter(c => generalDemandCats.includes(c.category)).reduce((sum, c) => sum + c.totalVA, 0);
+
     // Distinguish continuous loads from other specific loads
     const feederContinuousCats = ['acu', 'water_heater', 'motor', 'water_pump', 'ev_charger'];
     let specificContinuousVA = circuits.filter(c => feederContinuousCats.includes(c.category)).reduce((sum, c) => sum + c.totalVA, 0);
-    let specificNonContinuousVA = circuits.filter(c => !['lighting', 'receptacle'].includes(c.category) && !feederContinuousCats.includes(c.category)).reduce((sum, c) => sum + c.totalVA, 0);
+    let specificNonContinuousVA = circuits.filter(c => !generalDemandCats.includes(c.category) && !feederContinuousCats.includes(c.category)).reduce((sum, c) => sum + c.totalVA, 0);
 
     // Apply Demand Factor (PEC Table 2.20.3.3)
     // - First 3,000 VA @ 100%
@@ -150,22 +152,22 @@ export const calculateElectricalLoad = (rows) => {
     // The rule is "125% of largest + 100% of others". Since we did 125% for all continuous, the largest motor is covered.
 
     let netTotalVA = netLightingVA + factoredContinuousVA + specificNonContinuousVA;
-    
+
     let mainAmps = netTotalVA / VOLTAGE;
-    
+
     // Main Breaker
     // PEC Service Disconnect Minimums [PEC 2.30.7.10(A)]:
     // 1 branch circuit -> 15A minimum
     // 2 branch circuits -> 30A minimum
     // >2 branch circuits (typical dwelling) -> 60A minimum
-    let minMainAT = 60; 
+    let minMainAT = 60;
     if (circuits.length === 1) {
         minMainAT = 15;
     } else if (circuits.length === 2) {
         minMainAT = 30;
     }
 
-    let mainBreakerAT = minMainAT; 
+    let mainBreakerAT = minMainAT;
     for (const b of standardBreakers) {
         if (b >= mainAmps) {
             mainBreakerAT = Math.max(minMainAT, b);

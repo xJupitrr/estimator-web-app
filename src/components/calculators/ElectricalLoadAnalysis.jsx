@@ -4,7 +4,7 @@ import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ActionButton from '../common/ActionButton';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
-import { Calculator, PlusCircle, Trash2, Info, AlertCircle, Zap, Eye, EyeOff, ArrowUp, Copy } from 'lucide-react';
+import { Calculator, PlusCircle, Trash2, Info, AlertCircle, Zap, Eye, EyeOff, ArrowUp, Copy, Lightbulb, Fan, ShieldCheck, ZapIcon, CheckCircle2 } from 'lucide-react';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
 import { calculateElectricalLoad } from '../../utils/calculations/electricalLoadCalculator';
@@ -306,10 +306,8 @@ export default function ElectricalLoadAnalysis() {
                                 </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
-                                <div className={`text-left md:text-right bg-${THEME}-50 px-5 py-3 rounded-xl border border-${THEME}-100 w-full`}>
-                                    <p className={`text-[10px] text-${THEME}-600 font-bold uppercase tracking-widest mb-1`}>Recommended Main Breaker & Wire</p>
-                                    <p className={`font-bold text-xl text-${THEME}-700 tracking-tight`}>{result.mainBreaker}</p>
-                                    <p className={`font-mono text-sm text-${THEME}-600`}>{result.mainWire}</p>
+                                <div className="flex gap-2">
+                                    <ExportButtons items={result.circuits} filename="electrical_load_schedule.csv" />
                                 </div>
                             </div>
                         </div>
@@ -349,130 +347,161 @@ export default function ElectricalLoadAnalysis() {
                             </table>
                         </div>
 
-                        {/* DESIGN ANALYSIS SECTION */}
-                        <div className="mt-8 border-t border-slate-200 pt-6">
-                            <h4 className="font-bold text-lg text-slate-700 mb-4 tracking-tight flex items-center gap-2">
-                                <Calculator size={18} className={`text-${THEME}-500`} /> 
-                                Design Analysis (Computation)
+                        {/* ======================= DESIGN ANALYSIS SECTION ======================= */}
+                        <div className="mt-8 border-t border-slate-200 pt-8">
+                            <h4 className="font-black text-xl text-slate-800 mb-6 tracking-tight flex items-center gap-2">
+                                <div className={`p-2 bg-${THEME}-100 text-${THEME}-600 rounded-lg`}>
+                                    <Calculator size={20} />
+                                </div>
+                                Design Analysis & Computation Proof
                             </h4>
                             
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* Demand Factors */}
-                                <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                                    <h5 className="font-bold text-sm text-slate-600 mb-3 border-b border-slate-200 pb-2">1. General Lighting & Receptacle Loads [PEC 2.20.3.3]</h5>
-                                    
-                                    <div className="space-y-2 text-sm font-medium">
-                                        <div className="flex justify-between text-slate-500">
-                                            <span>Total Connected Lighting & Receptacle Load:</span>
-                                            <span>{result?.designAnalysis?.lightingRecepTotal?.toLocaleString() || 0} VA</span>
+                                {/* Left Column: Load Breakdown Steps */}
+                                <div className="space-y-6">
+                                    {/* STEP 1: General Loads */}
+                                    <div className="bg-white rounded-xl p-5 border shadow-sm border-amber-100 hover:border-amber-300 transition-colors">
+                                        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+                                            <div className="bg-amber-100 p-2 rounded-full text-amber-600"><Lightbulb size={18} /></div>
+                                            <h5 className="font-bold text-slate-700">Step 1: General Demand Factors</h5>
                                         </div>
-                                        
-                                        <div className="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm mt-3">
-                                            <span className="text-slate-600">First 3,000 VA @ 100% Demand:</span>
-                                            <span className="text-slate-800 font-bold">
-                                                {Math.min(result?.designAnalysis?.lightingRecepTotal || 0, 3000).toLocaleString()} VA
-                                            </span>
-                                        </div>
-                                        
-                                        {(result?.designAnalysis?.lightingRecepTotal || 0) > 3000 && (
-                                            <div className="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
-                                                <span className="text-slate-600">
-                                                    {(result?.designAnalysis?.lightingRecepTotal || 0) > 120000 
-                                                        ? "3,001 to 120,000 VA @ 35% Demand:" 
-                                                        : "Remainder > 3,000 VA @ 35% Demand:"}
-                                                </span>
-                                                <span className="text-slate-800 font-bold">
-                                                    {Math.min(117000, ((result?.designAnalysis?.lightingRecepTotal || 0) - 3000)) * 0.35} VA
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {(result?.designAnalysis?.lightingRecepTotal || 0) > 120000 && (
-                                            <div className="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
-                                                <span className="text-slate-600">Remainder &gt; 120,000 VA @ 25% Demand:</span>
-                                                <span className="text-slate-800 font-bold">
-                                                    {((result?.designAnalysis?.lightingRecepTotal || 0) - 120000) * 0.25} VA
-                                                </span>
-                                            </div>
-                                        )}
-                                        
-                                        <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-200">
-                                            <span className="text-slate-700 font-bold">Net General Load:</span>
-                                            <span className={`text-${THEME}-600 font-bold text-base`}>
-                                                {result?.designAnalysis?.lightingRecepNet?.toLocaleString() || 0} VA
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Specific Loads & Feeder */}
-                                <div className="bg-slate-50 rounded-xl p-5 border border-slate-100 flex flex-col justify-between">
-                                    <div>
-                                        <h5 className="font-bold text-sm text-slate-600 mb-3 border-b border-slate-200 pb-2">2. Specific Appliance / Motor Loads [PEC 2.15.1.2]</h5>
+                                        <p className="text-xs text-slate-500 mb-3">[PEC 2.20.3.3] Standard lighting and convenience receptacles</p>
                                         
                                         <div className="space-y-2 text-sm font-medium">
-                                            <div className="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
-                                                <span className="text-slate-600">Continuous Loads (ACU/Motor/Heater) @ 125%:</span>
+                                            <div className="flex justify-between text-slate-500 pb-2">
+                                                <span>Total Connected Gen. Load:</span>
+                                                <span className="font-bold">{result?.designAnalysis?.lightingRecepTotal?.toLocaleString() || 0} VA</span>
+                                            </div>
+                                            
+                                            <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded border border-slate-200 shadow-sm mt-3">
+                                                <span className="text-slate-600">First 3,000 VA @ <span className="text-amber-600 font-bold">100% Demand:</span></span>
                                                 <span className="text-slate-800 font-bold">
+                                                    {Math.min(result?.designAnalysis?.lightingRecepTotal || 0, 3000).toLocaleString()} VA
+                                                </span>
+                                            </div>
+                                            
+                                            {(result?.designAnalysis?.lightingRecepTotal || 0) > 3000 && (
+                                                <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded border border-slate-200 shadow-sm">
+                                                    <span className="text-slate-600">
+                                                        {(result?.designAnalysis?.lightingRecepTotal || 0) > 120000 
+                                                            ? "Next 117,000 VA" 
+                                                            : "Remainder > 3,000 VA"}
+                                                        {" @ "}<span className="text-amber-600 font-bold">35% Demand:</span>
+                                                    </span>
+                                                    <span className="text-slate-800 font-bold">
+                                                        {Math.min(117000, ((result?.designAnalysis?.lightingRecepTotal || 0) - 3000)) * 0.35} VA
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {(result?.designAnalysis?.lightingRecepTotal || 0) > 120000 && (
+                                                <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded border border-slate-200 shadow-sm">
+                                                    <span className="text-slate-600">Remainder &gt; 120,000 VA @ <span className="text-amber-600 font-bold">25% Demand:</span></span>
+                                                    <span className="text-slate-800 font-bold">
+                                                        {((result?.designAnalysis?.lightingRecepTotal || 0) - 120000) * 0.25} VA
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-200 bg-amber-50/50 p-2 rounded">
+                                                <span className="text-amber-900 font-bold">Net General Load = </span>
+                                                <span className={`text-amber-700 font-black text-base`}>
+                                                    {result?.designAnalysis?.lightingRecepNet?.toLocaleString() || 0} VA
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* STEP 2: Specific Loads */}
+                                    <div className="bg-white rounded-xl p-5 border shadow-sm border-blue-100 hover:border-blue-300 transition-colors">
+                                        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+                                            <div className="bg-blue-100 p-2 rounded-full text-blue-600"><Fan size={18} /></div>
+                                            <h5 className="font-bold text-slate-700">Step 2: Specific Appliance & Motor Loads</h5>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mb-3">[PEC 2.15.1.2] Continuous vs Non-Continuous factoring</p>
+                                        
+                                        <div className="space-y-3 text-sm font-medium">
+                                            <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded border border-slate-200 shadow-sm">
+                                                <span className="text-slate-600">Continuous Duty (ACU/Motor/EV) <br/><span className="text-[10px] text-blue-600 font-bold tracking-wider uppercase">Applied 125% Safe Factor Rating</span></span>
+                                                <span className="text-slate-800 font-bold text-base">
                                                     {result?.designAnalysis?.continuousNet?.toLocaleString() || 0} VA
                                                 </span>
                                             </div>
                                             
-                                            <div className="flex justify-between items-center bg-white p-2 rounded border border-slate-100 shadow-sm">
-                                                <span className="text-slate-600">Non-Continuous / Special Loads @ 100%:</span>
-                                                <span className="text-slate-800 font-bold">
+                                            <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded border border-slate-200 shadow-sm">
+                                                <span className="text-slate-600">Non-Continuous Standard Loads <br/><span className="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Applied 100% Demand</span></span>
+                                                <span className="text-slate-800 font-bold text-base">
                                                     {result?.designAnalysis?.nonContinuousNet?.toLocaleString() || result?.designAnalysis?.nonContinuousTotal?.toLocaleString() || 0} VA
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="mt-6 pt-4 border-t-2 border-slate-200 border-dashed">
-                                        <h5 className="font-bold text-sm text-slate-600 mb-3">3. Main Service Feeder Total</h5>
-                                        <div className="flex justify-between items-end mb-4">
-                                            <div className="text-xs text-slate-500 uppercase tracking-widest font-bold">
-                                                Net Computed Load
-                                                <div className="normal-case tracking-normal font-medium text-slate-400">Total VA ÷ 230V = Feeder Ampacity</div>
-                                            </div>
-                                            <div className={`text-${THEME}-600 font-black text-2xl tracking-tight text-right`}>
-                                                {result.netTotalVA.toLocaleString()} VA
-                                                <div className="text-sm font-medium text-slate-500 normal-case tracking-normal">
-                                                    {result.mainAmps.toFixed(2)} Amperes
-                                                </div>
-                                            </div>
+                                {/* Right Column: Master Feeder & Specs */}
+                                <div className="space-y-6">
+                                    <div className="bg-white rounded-xl p-6 border shadow-md border-slate-200 text-slate-800 flex flex-col h-full relative overflow-hidden">
+                                        
+                                        <div className="absolute -right-6 -top-6 text-slate-200 opacity-50">
+                                            <ZapIcon size={120} />
                                         </div>
 
-                                        <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm mt-2">
-                                            <h6 className="font-bold text-xs text-slate-500 uppercase tracking-wider mb-2 border-b border-slate-100 pb-1">Service Entrance Specs</h6>
-                                            <div className="space-y-2 text-sm">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-slate-600">Main Breaker Rating [PEC 2.30.7.10]:</span>
-                                                    <span className="font-bold text-amber-700">{result?.designAnalysis?.mainBreakerAT}AT, 2P</span>
-                                                </div>
-                                                <div className="flex justify-between items-start bg-slate-50 p-2 rounded text-xs border border-slate-100">
-                                                    <div className="text-slate-600">
-                                                        <span className="font-semibold text-slate-700">Wire Design Ampacity</span><br/>
-                                                        Highest value between Computed Load ({result.mainAmps.toFixed(2)}A)<br/>
-                                                        and Main Breaker Rating ({result?.designAnalysis?.mainBreakerAT}A)
+                                        <div className="relative z-10 flex-grow">
+                                            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-200">
+                                                <div className={`bg-emerald-500 p-2 rounded-full text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]`}><ShieldCheck size={20} /></div>
+                                                <h5 className="font-black text-xl text-slate-800 tracking-wide">Main Feeder Engine</h5>
+                                            </div>
+
+                                            <p className="text-sm font-medium text-slate-500 mb-1 uppercase tracking-widest">Final Computed Net Load</p>
+                                            <div className="text-4xl font-black text-emerald-600 tracking-tight drop-shadow-sm mb-1">
+                                                {result.netTotalVA.toLocaleString()} VA
+                                            </div>
+                                            <p className="text-xs text-slate-500 mb-8 font-mono">Total VA ÷ 230 Volts = <span className="text-slate-800 font-bold">{result.mainAmps.toFixed(2)} Base Ampacity</span></p>
+
+
+                                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner">
+                                                <h6 className="font-bold text-xs text-slate-500 uppercase tracking-widest mb-3 border-b border-slate-200 pb-2">Service Entrance PEC Specs</h6>
+                                                
+                                                <div className="space-y-3 text-sm">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-600">Design Ampacity Rating:</span>
+                                                        <span className="font-bold text-slate-800 bg-white border border-slate-200 shadow-sm px-2 py-0.5 rounded text-xs">{result?.designAnalysis?.wireMainDesignAmps?.toFixed(2)} A</span>
                                                     </div>
-                                                    <span className="font-bold text-slate-800 text-sm mt-1">{result?.designAnalysis?.wireMainDesignAmps?.toFixed(2)} A</span>
-                                                </div>
-                                                <div className="flex justify-between items-start pt-2">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-slate-600">Line Conductors (THHN):</span>
+
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-slate-600">Main Circuit Breaker:</span>
+                                                        <span className="font-black text-emerald-600 text-base">{result?.designAnalysis?.mainBreakerAT}AT, 2P</span>
                                                     </div>
-                                                    <span className="font-bold text-blue-700">2 - {result?.designAnalysis?.wireMain}</span>
+                                                    
+                                                    <div className="flex flex-col pt-2 border-t border-slate-200">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-slate-600">Line Conductors:</span>
+                                                            <span className="font-bold text-blue-600">2 - {result?.designAnalysis?.wireMain}</span>
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-400 italic font-mono mb-2">
+                                                            PEC Table 3.10.1.16: THHN rated up to {result?.designAnalysis?.wireMainMaxAmpacity}A @ 75°C
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                                                        <span className="text-slate-600">Ground Conductor:</span>
+                                                        <span className="font-bold text-emerald-600">1 - {result?.designAnalysis?.groundWire}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="bg-slate-50 p-2 rounded text-xs border border-slate-100 flex flex-col text-slate-500">
-                                                    <span className="font-semibold text-slate-700 mb-1">Conductor Sizing [PEC Table 3.10.1.16]</span>
-                                                    <span>
-                                                        Selected {result?.designAnalysis?.wireMain} THHN is rated for up to <span className="font-bold text-slate-700">{result?.designAnalysis?.wireMainMaxAmpacity}A </span> 
-                                                        at 75°C, safely exceeding the {result?.designAnalysis?.wireMainDesignAmps?.toFixed(2)}A requirement.
-                                                    </span>
+                                            </div>
+                                            
+                                            <div className="mt-6 bg-gradient-to-br from-emerald-500 to-emerald-700 p-6 rounded-xl shadow-lg border border-emerald-400 relative overflow-hidden">
+                                                <div className="absolute top-0 right-0 -mr-4 -mt-4 text-emerald-400 opacity-30">
+                                                    <ShieldCheck size={100} />
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-slate-600">Grounding Conductor [PEC 2.50.6.13]:</span>
-                                                    <span className="font-bold text-emerald-700">1 - {result?.designAnalysis?.groundWire}</span>
+                                                <div className="relative z-10">
+                                                    <p className="flex items-center gap-2 text-[10px] text-emerald-100 font-bold uppercase tracking-widest mb-3">
+                                                        <CheckCircle2 size={14} /> Final Assessed Output
+                                                    </p>
+                                                    <p className={`font-black text-3xl text-white tracking-tight drop-shadow-sm`}>{result.mainBreaker}</p>
+                                                    <div className="mt-3 inline-block bg-emerald-900/40 px-3 py-1.5 rounded text-sm font-mono text-white border border-emerald-400/30">
+                                                        {result.mainWire}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
