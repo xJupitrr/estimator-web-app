@@ -40,7 +40,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             description: "Foundations & Frame",
             color: "blue",
             icon: LayoutGrid,
-            tools: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'retaining-wall', 'lintel-beam', 'steel-truss', 'roofing']
+            tools: ['footing', 'column', 'beam', 'slab', 'suspended-slab', 'retaining-wall', 'lintel-beam', 'steel-truss', 'roofing', 'rebar-schedule', 'rebar-cutting-schedule']
         },
         {
             title: "Finishes",
@@ -49,7 +49,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             description: "Interior & Exterior",
             color: "emerald",
             icon: Brush,
-            tools: ['masonry', 'doors-windows', 'ceiling', 'tiles', 'painting']
+            tools: ['masonry', 'doors-windows', 'drywall', 'ceiling', 'tiles', 'painting']
         },
         {
             title: "Auxiliary",
@@ -67,7 +67,7 @@ export default function LandingPage({ tabs, onNavigate, onLoadSession }) {
             description: "Mechanical & Electrical",
             color: "amber",
             icon: Cpu,
-            tools: ['electrical', 'plumbing']
+            tools: ['electrical', 'electrical-load', 'plumbing']
         },
         {
             title: "Help & Docs",

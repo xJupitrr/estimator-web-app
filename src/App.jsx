@@ -19,6 +19,7 @@ import Formworks from './components/calculators/Formworks';
 import SuspendedSlab from './components/calculators/SuspendedSlab';
 import DoorsWindows from './components/calculators/DoorsWindows';
 import Electrical from './components/calculators/Electrical';
+import ElectricalLoadAnalysis from './components/calculators/ElectricalLoadAnalysis';
 import Plumbing from './components/calculators/Plumbing';
 import LintelBeam from './components/calculators/LintelBeam';
 import ConcreteWall from './components/calculators/ConcreteWall';
@@ -49,6 +50,7 @@ const TABS = [
     { id: 'ceiling', label: 'Ceiling Works', component: Ceiling, icon: Cloud },
     { id: 'drywall', label: 'Drywall Works', component: Drywall, icon: Columns },
     { id: 'electrical', label: 'Electrical Works', component: Electrical, icon: Zap },
+    { id: 'electrical-load', label: 'Electrical Load Analysis', component: ElectricalLoadAnalysis, icon: Zap },
     { id: 'plumbing', label: 'Plumbing Works', component: Plumbing, icon: Droplets },
     { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
     { id: 'steel-truss', label: 'Steel Truss', component: SteelTruss, icon: Construction },
@@ -86,7 +88,7 @@ const TAB_CATEGORIES = [
         id: "mep",
         code: "MEP-04",
         color: "amber",
-        tabs: ['electrical', 'plumbing']
+        tabs: ['electrical', 'electrical-load', 'plumbing']
     },
     {
         title: "Help & Docs",
