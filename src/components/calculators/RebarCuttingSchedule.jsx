@@ -430,7 +430,8 @@ export default function RebarCuttingSchedule() {
     const [columnElements] = useLocalStorage('app_columns', []);
     const [beamElements] = useLocalStorage('app_beams', []);
     const [lintelSpecs] = useLocalStorage('lintelbeam_specs', null);
-    const [doorsWindowsRows] = useLocalStorage('doorswindows_rows', []);
+    const [doorsRows] = useLocalStorage('doors_rows', []);
+    const [windowsRows] = useLocalStorage('windows_rows', []);
     const [slabRows] = useLocalStorage('slab_rows', []);
     const [suspendedRows] = useLocalStorage('suspended_slab_rows', []);
     const [concreteWalls] = useLocalStorage('concrete_walls', []);
@@ -447,11 +448,11 @@ export default function RebarCuttingSchedule() {
         app_columns: columnElements,
         app_beams: beamElements,
         lintelbeam_specs: lintelSpecs,
-        doorswindows_rows: doorsWindowsRows,
+        doorswindows_rows: [...(doorsRows || []), ...(windowsRows || [])],
         slab_rows: slabRows,
         suspended_slab_rows: suspendedRows,
         concrete_walls: concreteWalls,
-    }), [footingRows, columnElements, beamElements, lintelSpecs, doorsWindowsRows, slabRows, suspendedRows, concreteWalls, refreshKey]);
+    }), [footingRows, columnElements, beamElements, lintelSpecs, doorsRows, windowsRows, slabRows, suspendedRows, concreteWalls, refreshKey]);
 
     const schedule = useMemo(() => buildSchedule(allData), [allData]);
 

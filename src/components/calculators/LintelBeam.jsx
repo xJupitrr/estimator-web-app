@@ -82,8 +82,16 @@ const NumberInput = ({ value, onChange, placeholder, className = "" }) => (
 export default function LintelBeam() {
     // --- STATE ---
 
-    // We source the openings from the "Doors & Windows" module
-    const [doorsWindowsItems] = useLocalStorage('doorswindows_rows', []);
+    // We source the openings from the "Doors" and "Windows" modules
+    const [doorsRows] = useLocalStorage('doors_rows', []);
+    const [windowsRows] = useLocalStorage('windows_rows', []);
+
+    // Combine them safely
+    const doorsWindowsItems = useMemo(() => {
+        const doors = Array.isArray(doorsRows) ? doorsRows : [];
+        const windows = Array.isArray(windowsRows) ? windowsRows : [];
+        return [...doors, ...windows];
+    }, [doorsRows, windowsRows]);
 
     // Config: Main Bars & Ties (Persisted for Global Calc)
     const [specs, setSpecs] = useLocalStorage('lintelbeam_specs', {
@@ -279,13 +287,13 @@ export default function LintelBeam() {
                     title="Opening Detection"
                     icon={DoorOpen}
                     colorTheme={THEME}
-                    description={`${lintelBeams.length} opening${lintelBeams.length !== 1 ? 's' : ''} detected from Doors & Windows tab`}
+                    description={`${lintelBeams.length} opening${lintelBeams.length !== 1 ? 's' : ''} detected from Doors and Windows tabs`}
                 />
 
                 {lintelBeams.length === 0 ? (
                     <div className="p-8 text-center text-gray-400">
                         <DoorOpen size={48} className="mx-auto mb-4 opacity-20" />
-                        <p className="text-sm font-medium">No openings found in Doors & Windows tab.</p>
+                        <p className="text-sm font-medium">No openings found in Doors and Windows tabs.</p>
                         <p className="text-xs">Add openings there to see them here.</p>
                     </div>
                 ) : (
@@ -338,7 +346,7 @@ export default function LintelBeam() {
                     </div>
                     <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
                     <p className="max-w-md mx-auto text-sm">
-                        Configure your lintel specifications and click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>. Make sure to add openings from the Doors & Windows tab first.
+                        Configure your lintel specifications and click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>. Make sure to add openings from the Doors and Windows tabs first.
                     </p>
                 </div>
             )}

@@ -13,10 +13,31 @@
 export const formatDataForExport = (items) => {
     if (!items || items.length === 0) return [];
 
-    // Define columns based on the structure in Masonry and CostTable
-    // items usually have: name, qty, unit, price, total
-    const headers = ['Item Name', 'Quantity', 'Unit', 'Unit Price', 'Total Price'];
+    // Check if it's an electrical circuit format
+    if (items[0].circuitNo !== undefined) {
+        const headers = ['Ckt No.', 'Load Description', 'Qty', 'VA', 'Total VA', 'Amps', 'CB Rating', 'Wire Size'];
+        const rows = items.map(item => [
+            item.circuitNo,
+            item.description,
+            item.qty,
+            item.unitVA,
+            item.totalVA,
+            item.amps != null ? item.amps.toFixed(2) : '',
+            item.breaker,
+            item.wire
+        ]);
+        return [headers, ...rows];
+    }
 
+    // Check if it's Design Analysis format
+    if (items[0].isDesignAnalysis) {
+        const headers = ['Description', 'Value'];
+        const rows = items.map(item => [item.key, item.value]);
+        return [headers, ...rows];
+    }
+
+    // Default BOQ Structure
+    const headers = ['Item Name', 'Quantity', 'Unit', 'Unit Price', 'Total Price'];
     const rows = items.map(item => [
         item.name,
         item.qty,

@@ -17,7 +17,8 @@ import Ceiling from './components/calculators/Ceiling';
 import Roofing from './components/calculators/Roofing';
 import Formworks from './components/calculators/Formworks';
 import SuspendedSlab from './components/calculators/SuspendedSlab';
-import DoorsWindows from './components/calculators/DoorsWindows';
+import Doors from './components/calculators/Doors';
+import Windows from './components/calculators/Windows';
 import Electrical from './components/calculators/Electrical';
 import ElectricalLoadAnalysis from './components/calculators/ElectricalLoadAnalysis';
 import Plumbing from './components/calculators/Plumbing';
@@ -52,7 +53,8 @@ const TABS = [
     { id: 'electrical', label: 'Electrical Works', component: Electrical, icon: Zap },
     { id: 'electrical-load', label: 'Electrical Load Analysis', component: ElectricalLoadAnalysis, icon: Zap },
     { id: 'plumbing', label: 'Plumbing Works', component: Plumbing, icon: Droplets },
-    { id: 'doors-windows', label: 'Doors & Windows', component: DoorsWindows, icon: DoorOpen },
+    { id: 'doors', label: 'Doors', component: Doors, icon: DoorOpen },
+    { id: 'windows', label: 'Windows', component: Windows, icon: LayoutTemplate },
     { id: 'steel-truss', label: 'Steel Truss', component: SteelTruss, icon: Construction },
     { id: 'lintel-beam', label: 'Lintel Beams', component: LintelBeam, icon: PenTool },
     { id: 'rebar-schedule', label: 'Rebar Bending Schedule', component: RebarSchedule, icon: Scissors },
@@ -74,7 +76,7 @@ const TAB_CATEGORIES = [
         id: "finishes",
         code: "FIN-02",
         color: "emerald",
-        tabs: ['masonry', 'doors-windows', 'drywall', 'ceiling', 'tiles', 'painting']
+        tabs: ['masonry', 'doors', 'windows', 'drywall', 'ceiling', 'tiles', 'painting']
     },
     {
         title: "Auxiliary",
@@ -193,7 +195,7 @@ export default function App() {
                 'masonry_total', 'slab_total', 'suspended_slab_total', 'footing_total',
                 'column_total', 'beam_total', 'roofing_total', 'formworks_total',
                 'tiles_total', 'painting_total', 'ceiling_total', 'drywall_total', 'electrical_total',
-                'plumbing_total', 'doors_windows_total', 'lintel_beam_total', 'steel_truss_total',
+                'plumbing_total', 'doors_total', 'windows_total', 'lintel_beam_total', 'steel_truss_total',
                 'concrete_wall_total'
             ];
             let total = 0;

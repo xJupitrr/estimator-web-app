@@ -72,15 +72,7 @@ export const leafMaterials = [
     { id: 'dw_glass_clear_6mm', name: "Jalousie (Glass Blades Only)", pricePerSqm: 720, category: "Louver/Jalousie" },
     { id: 'dw_glass_clear_6mm', name: "Louver Glass Blades", pricePerSqm: 720, category: "Louver/Jalousie" },
     { id: 'dw_leaf_mah_door', name: "Wood Louver Panel", pricePerSqm: 2800, category: "Louver/Jalousie" },
-
-    // Pre-Assembled Frames/Sashes
-    { id: 'dw_leaf_alu_sliding', name: "Sliding Panel (Aluminum/Glass)", pricePerSqm: 5800, category: "Aluminum Assemblies" },
-    { id: 'dw_leaf_alu_casement', name: "Casement Panel (Aluminum/Glass)", pricePerSqm: 5000, category: "Aluminum Assemblies" },
-    { id: 'dw_leaf_alu_casement', name: "Awning Panel (Aluminum/Glass)", pricePerSqm: 5200, category: "Aluminum Assemblies" },
-    { id: 'dw_leaf_alu_casement', name: "Aluminum Louver Panel", pricePerSqm: 4200, category: "Aluminum Assemblies" },
-    { id: 'dw_leaf_alu_sliding', name: "uPVC Sliding Panel (White)", pricePerSqm: 3500, category: "uPVC Assemblies" },
-    { id: 'dw_leaf_alu_casement', name: "uPVC Casement Panel (White)", pricePerSqm: 4100, category: "uPVC Assemblies" },
-    { id: 'dw_leaf_alu_casement', name: "uPVC Awning Panel (White)", pricePerSqm: 3600, category: "uPVC Assemblies" },
+    { id: 'dw_leaf_alu_casement', name: "Aluminum Louver Panel", pricePerSqm: 4200, category: "Louver/Jalousie" },
 
     // Wood Doors
     { id: 'dw_leaf_mah_door', name: "Mahogany Door Leaf", pricePerSqm: 2600, category: "Wood Doors" },
@@ -91,21 +83,21 @@ export const leafMaterials = [
     { id: 'dw_leaf_flush_door', name: "HDF Door (Interior, High Density)", pricePerSqm: 1500, category: "Wood Doors" },
 
     // Steel & Industrial
-    { id: 'dw_leaf_flush_door', name: "Steel Casement (Awning/Swing)", pricePerSqm: 1950, category: "Steel Assemblies" },
-    { id: 'dw_leaf_flush_door', name: "Steel Door Leaf (Standard)", pricePerSqm: 1900, category: "Steel Assemblies" },
-    { id: 'dw_leaf_flush_door', name: "Fire-Rated Steel Door", pricePerSqm: 8500, category: "Steel Assemblies" },
-    { id: 'dw_leaf_flush_door', name: "Insulated Metal Panel (IMP)", pricePerSqm: 3800, category: "Steel Assemblies" },
+    { id: 'dw_leaf_flush_door', name: "Steel Door Leaf (Standard)", pricePerSqm: 1900, category: "Steel Doors" },
+    { id: 'dw_leaf_flush_door', name: "Fire-Rated Steel Door", pricePerSqm: 8500, category: "Steel Doors" },
+    { id: 'dw_leaf_flush_door', name: "Insulated Metal Panel (IMP)", pricePerSqm: 3800, category: "Steel Doors" },
 
     // Other Doors
     { id: 'dw_leaf_flush_door', name: "PVC Door (Full Panel)", pricePerSqm: 900, category: "Other Doors" },
     { id: 'dw_leaf_flush_door', name: "Fiberglass Door Leaf", pricePerSqm: 4500, category: "Other Doors" },
+    { id: 'dw_leaf_flush_door', name: "Screen Mesh (Aluminum/Vinyl)", pricePerSqm: 650, category: "Other Doors" },
     { id: 'dw_leaf_flush_door', name: "None / Open (Frame Only)", pricePerSqm: 0, category: "Other" },
 ];
 
 
 
 export const groupedLeafOptions = [
-    "Standard Glass", "Safety & Specialty Glass", "Aluminum Assemblies", "uPVC Assemblies", "Steel Assemblies", "Wood Doors", "Other Doors", "Louver/Jalousie", "Other"
+    "Standard Glass", "Safety & Specialty Glass", "Wood Doors", "Other Doors", "Louver/Jalousie", "Steel Doors", "Other"
 ].map(cat => ({
     group: cat,
     options: leafMaterials.filter(m => m.category === cat).map(m => ({
@@ -115,17 +107,17 @@ export const groupedLeafOptions = [
 }));
 
 export const defaultMaterialMap = {
-    "Sliding Window": { frame: "Aluminum (Powder Coated)", leaf: "Sliding Panel (Aluminum/Glass)" },
-    "Casement Window": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
-    "Awning Window": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
+    "Sliding Window": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
+    "Casement Window": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
+    "Awning Window": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
     "Fixed Window": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
     "Jalousie Window": { frame: "Aluminum (Powder Coated)", leaf: "Jalousie (Glass Blades Only)" },
     "Swing Door": { frame: "Wood (Mahogany)", leaf: "Mahogany Door Leaf" },
     "Flush Door": { frame: "Wood (Tanguile)", leaf: "Flush Door (Hollow Core)" },
-    "Sliding Door": { frame: "Aluminum (Powder Coated)", leaf: "Sliding Panel (Aluminum/Glass)" },
-    "Bi-Fold Door": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
+    "Sliding Door": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
+    "Bi-Fold Door": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
     "French Door": { frame: "Wood (Mahogany)", leaf: "Tempered Glass (6mm)" },
-    "Screen Door": { frame: "Aluminum (Anodized)", leaf: "Clear Glass (6mm)" },
+    "Screen Door": { frame: "Aluminum (Anodized)", leaf: "Screen Mesh (Aluminum/Vinyl)" },
 };
 
 const getFramePrice = (materialName, prices = {}) => {
@@ -225,10 +217,21 @@ export const calculateDoorsWindows = (items, prices = {}) => {
     let grandTotal = 0;
     const materializedItems = [];
 
-    const hasEmptyFields = items.some(item =>
-        item.width_m === "" || item.height_m === "" ||
-        item.itemType === "" || item.frameMaterial === "" || item.leafMaterial === ""
-    );
+    const hasEmptyFields = items.some(item => {
+        if (item.isExcluded) return false;
+        
+        // Windows have "Window" added as implicit itemType. Use 'door' inclusion to separate them reliably.
+        const isDoorObj = item.itemType && item.itemType.toLowerCase().includes('door');
+        const isWindowObj = !isDoorObj;
+        
+        const missingBasic = item.width_m === "" || item.height_m === "" || item.frameMaterial === "";
+        
+        // For doors, we expect a leafMaterial. For windows, we expect panel configs to exist and have a type and material.
+        const missingDoorLeaf = isDoorObj && !item.leafMaterial;
+        const missingPanels = isWindowObj && (!item.panel_configs || item.panel_configs.length === 0 || item.panel_configs.some(p => !p.type || !p.material));
+
+        return missingBasic || missingDoorLeaf || missingPanels;
+    });
 
     if (hasEmptyFields) {
         return null;
@@ -245,8 +248,13 @@ export const calculateDoorsWindows = (items, prices = {}) => {
         const singleAreaSqm = width * height;
         const totalItemAreaSqm = singleAreaSqm * quantity;
 
-        const isDoor = item.itemType.toLowerCase().includes('door');
-        const isWindow = item.itemType.toLowerCase().includes('window');
+        const isDoor = item.itemType && item.itemType.toLowerCase().includes('door');
+        const isWindow = !isDoor; // If not a door, it is implicitly a window since we removed the type column.
+
+        let totalPanelsSum = 1;
+        if (isWindow && item.panel_configs) {
+            totalPanelsSum = item.panel_configs.reduce((sum, c) => sum + (parseInt(c.count) || 1), 0) || 1;
+        }
 
         // --- Realistic Frame Computation (LM) ---
         // Basic Perimeter
@@ -254,12 +262,17 @@ export const calculateDoorsWindows = (items, prices = {}) => {
         // Window Frame: 2 heights + 2 widths
         let perimeterLM = isDoor ? (2 * height + width) : (2 * height + 2 * width);
 
-        // Mullions and Transoms (Standard architectural practice for estimation)
-        // For windows > 1.2m wide, add vertical mullions
-        if (isWindow && width > 1.2) {
+        // Mullions and Transoms (Architectural practice for estimation)
+        // If the user specified specific panel counts, we add exact vertical mullions dividing them.
+        if (isWindow && totalPanelsSum > 1) {
+            const numMullions = totalPanelsSum - 1;
+            perimeterLM += (numMullions * height);
+        } else if (isWindow && width > 1.2) {
+            // Fallback for simple windows
             const numMullions = Math.floor(width / 1.2);
             perimeterLM += (numMullions * height);
         }
+        
         // For windows > 1.5m high, add horizontal transoms
         if (isWindow && height > 1.5) {
             const numTransoms = Math.floor(height / 1.5);
@@ -283,40 +296,77 @@ export const calculateDoorsWindows = (items, prices = {}) => {
             ? parseFloat(item.customFramePrice)
             : getFramePrice(item.frameMaterial, prices);
 
-        const leafPrice = (item.customLeafPrice && item.customLeafPrice !== "")
-            ? parseFloat(item.customLeafPrice)
-            : getLeafPrice(item.leafMaterial, prices);
-
         // Itemize
         const frameCost = totalPerimeterLM * framePrice * wasteMultiplier;
-        const leafCost = totalItemAreaSqm * leafPrice * wasteMultiplier;
-        const hardwareCostTotal = getHardwareCost(item.itemType, width, height, quantity);
+        
+        let hardwareCostTotal = 0;
+        let totalLeafCost = 0;
 
-        // Add Leaf/Panel item
-        if (isDoor) {
-            materializedItems.push({
-                name: `${item.itemType} ${item.leafMaterial}`,
-                qty: totalItemAreaSqm.toFixed(2),
-                unit: 'sq.m',
-                price: leafPrice,
-                total: leafCost,
-                isComponent: true,
-                itemId: item.id,
-                priceKey: leafSpec?.id,
-                priceType: 'leaf'
+        if (isWindow && item.panel_configs) {
+            const configs = item.panel_configs;
+            const totalPanelsSum = configs.reduce((sum, c) => sum + (parseInt(c.count) || 1), 0) || 1;
+            configs.forEach(config => {
+                const type = config.type || 'Fixed Window';
+                const material = config.material || 'Clear Glass (6mm)';
+                const count = parseInt(config.count) || 1;
+                
+                const panelWidth = width / totalPanelsSum;
+                const panelGroupWidth = panelWidth * count;
+                
+                // Deduct 0.10m (100mm) from dimension to account for the frame profile thickness
+                // This gives a highly accurate measurement of the actual cut glass size
+                const exactGlassAreaPerPanel = Math.max(0, (panelWidth - 0.10) * (height - 0.10));
+                const exactGlassAreaGroup = exactGlassAreaPerPanel * count * quantity;
+                
+                // Hardware Cost
+                hardwareCostTotal += getHardwareCost(type, panelWidth, height, quantity * count);
+
+                // Material Cost
+                if (material !== "None / Open (Frame Only)") {
+                    const materialPrice = getLeafPrice(material, prices);
+                    const cost = exactGlassAreaGroup * materialPrice * wasteMultiplier;
+                    const spec = leafMaterials.find(m => m.name === material);
+                    
+                    if (materialPrice > 0) {
+                        totalLeafCost += cost;
+                        materializedItems.push({
+                            name: `Window Glass: ${material}`,
+                            qty: exactGlassAreaGroup.toFixed(2),
+                            unit: 'sq.m',
+                            price: materialPrice,
+                            total: cost,
+                            isComponent: true,
+                            itemId: item.id,
+                            priceKey: spec?.id,
+                            priceType: 'leaf'
+                        });
+                    }
+                }
             });
-        } else if (leafPrice > 0 || item.leafMaterial !== "None / Open (Frame Only)") {
-            materializedItems.push({
-                name: `${item.itemType} ${item.leafMaterial}`,
-                qty: totalItemAreaSqm.toFixed(2),
-                unit: 'sq.m',
-                price: leafPrice,
-                total: leafCost,
-                isComponent: true,
-                itemId: item.id,
-                priceKey: leafSpec?.id,
-                priceType: 'leaf'
-            });
+        } else {
+            hardwareCostTotal = getHardwareCost(item.itemType || 'Swing Door', width, height, quantity);
+            
+            const leafPrice = (item.customLeafPrice && item.customLeafPrice !== "")
+                ? parseFloat(item.customLeafPrice)
+                : getLeafPrice(item.leafMaterial, prices);
+
+            if (isDoor || leafPrice > 0 || item.leafMaterial !== "None / Open (Frame Only)") {
+                const leafSpec = leafMaterials.find(m => m.name === item.leafMaterial);
+                const cost = totalItemAreaSqm * leafPrice * wasteMultiplier;
+                totalLeafCost += cost;
+                
+                materializedItems.push({
+                    name: `Door Leaf: ${item.leafMaterial}`,
+                    qty: totalItemAreaSqm.toFixed(2),
+                    unit: 'sq.m',
+                    price: leafPrice,
+                    total: cost,
+                    isComponent: true,
+                    itemId: item.id,
+                    priceKey: leafSpec?.id,
+                    priceType: 'leaf'
+                });
+            }
         }
 
         // Add Frame/Jamb item (Linear Meters)
@@ -361,7 +411,7 @@ export const calculateDoorsWindows = (items, prices = {}) => {
             itemId: item.id
         });
 
-        grandTotal += frameCost + leafCost + hardwarePrice + (Math.max(1, Math.ceil(sealantQty)) * sealantPrice);
+        grandTotal += frameCost + totalLeafCost + hardwarePrice + (Math.max(1, Math.ceil(sealantQty)) * sealantPrice);
     });
 
     // Consolidate duplicate items

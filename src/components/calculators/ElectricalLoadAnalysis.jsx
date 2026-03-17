@@ -144,6 +144,40 @@ export default function ElectricalLoadAnalysis() {
         setResult(calcResult);
     };
 
+    const generateDesignAnalysisExport = (res) => {
+        if (!res || !res.designAnalysis) return [];
+        const da = res.designAnalysis;
+        return [
+            { isDesignAnalysis: true, key: "STEP 1: GENERAL DEMAND FACTORS", value: "" },
+            { isDesignAnalysis: true, key: "Total Connected Gen. Load", value: `${da.lightingRecepTotal.toLocaleString()} VA` },
+            { isDesignAnalysis: true, key: "First 3,000 VA @ 100% Demand", value: `${Math.min(da.lightingRecepTotal, 3000).toLocaleString()} VA` },
+            ...(da.lightingRecepTotal > 3000 ? [
+                { isDesignAnalysis: true, key: `Next 117,000 VA @ 35% Demand`, value: `${(Math.min(117000, da.lightingRecepTotal - 3000) * 0.35).toLocaleString()} VA` }
+            ] : []),
+            ...(da.lightingRecepTotal > 120000 ? [
+                { isDesignAnalysis: true, key: `Remainder > 120,000 VA @ 25% Demand`, value: `${((da.lightingRecepTotal - 120000) * 0.25).toLocaleString()} VA` }
+            ] : []),
+            { isDesignAnalysis: true, key: `Net General Load`, value: `${da.lightingRecepNet.toLocaleString()} VA` },
+            { isDesignAnalysis: true, key: "", value: "" },
+            { isDesignAnalysis: true, key: "STEP 2: SPECIFIC APPLIANCE & MOTOR LOADS", value: "" },
+            { isDesignAnalysis: true, key: "Continuous Duty (125% Safe Factor)", value: `${da.continuousNet.toLocaleString()} VA` },
+            { isDesignAnalysis: true, key: "Non-Continuous Standard Loads (100%)", value: `${(da.nonContinuousNet || da.nonContinuousTotal || 0).toLocaleString()} VA` },
+            { isDesignAnalysis: true, key: "", value: "" },
+            { isDesignAnalysis: true, key: "MAIN FEEDER ENGINE", value: "" },
+            { isDesignAnalysis: true, key: "Total VA Capacity", value: `${res.totalVA.toLocaleString()} VA` },
+            { isDesignAnalysis: true, key: "Final Computed Net Load", value: `${res.netTotalVA.toLocaleString()} VA` },
+            { isDesignAnalysis: true, key: "Base Ampacity (Net VA / 230V)", value: `${res.mainAmps.toFixed(2)} A` },
+            { isDesignAnalysis: true, key: "", value: "" },
+            { isDesignAnalysis: true, key: "SERVICE ENTRANCE PEC SPECS", value: "" },
+            { isDesignAnalysis: true, key: "Design Ampacity Rating", value: `${da.wireMainDesignAmps.toFixed(2)} A` },
+            { isDesignAnalysis: true, key: "Main Circuit Breaker", value: `${da.mainBreakerAT}AT, 2P` },
+            { isDesignAnalysis: true, key: "Line Conductors", value: `2 - ${da.wireMain}` },
+            { isDesignAnalysis: true, key: "PEC Table 3.10.1.16", value: `THHN rated up to ${da.wireMainMaxAmpacity}A @ 75°C` },
+            { isDesignAnalysis: true, key: "Ground Conductor", value: `1 - ${da.groundWire}` },
+            { isDesignAnalysis: true, key: "Final Assessed Output", value: `${res.mainBreaker} | ${res.mainWire}` },
+        ];
+    };
+
     return (
         <div className="space-y-6">
             {/* CONTEXT MENU */}
@@ -293,17 +327,6 @@ export default function ElectricalLoadAnalysis() {
                         <div className="flex flex-col md:flex-row justify-between md:items-start mb-8 gap-6">
                             <div>
                                 <h3 className="font-bold text-2xl text-gray-800 uppercase tracking-tight">Schedule of Loads</h3>
-                                <div className="flex flex-wrap gap-4 mt-3">
-                                    <div className="bg-slate-100 px-3 py-1.5 rounded-md text-xs font-mono text-slate-600">
-                                        Total Connected Load: <span className="font-bold text-slate-800">{result.totalVA.toLocaleString()} VA</span>
-                                    </div>
-                                    <div className="bg-slate-100 px-3 py-1.5 rounded-md text-xs font-mono text-slate-600">
-                                        Net Computed Load: <span className="font-bold text-slate-800">{result.netTotalVA.toLocaleString()} VA</span>
-                                    </div>
-                                    <div className="bg-slate-100 px-3 py-1.5 rounded-md text-xs font-mono text-slate-600">
-                                        Main Feeder Ampacity: <span className="font-bold text-slate-800">{result.mainAmps.toFixed(2)} A</span>
-                                    </div>
-                                </div>
                             </div>
                             <div className="flex flex-col items-end gap-3">
                                 <div className="flex gap-2">
@@ -349,12 +372,17 @@ export default function ElectricalLoadAnalysis() {
 
                         {/* ======================= DESIGN ANALYSIS SECTION ======================= */}
                         <div className="mt-8 border-t border-slate-200 pt-8">
-                            <h4 className="font-black text-xl text-slate-800 mb-6 tracking-tight flex items-center gap-2">
-                                <div className={`p-2 bg-${THEME}-100 text-${THEME}-600 rounded-lg`}>
-                                    <Calculator size={20} />
+                            <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                                <h4 className="font-black text-xl text-slate-800 tracking-tight flex items-center gap-2">
+                                    <div className={`p-2 bg-${THEME}-100 text-${THEME}-600 rounded-lg`}>
+                                        <Calculator size={20} />
+                                    </div>
+                                    Design Analysis & Computation Proof
+                                </h4>
+                                <div className="flex gap-2">
+                                    <ExportButtons items={generateDesignAnalysisExport(result)} filename="electrical_computation_proof.csv" />
                                 </div>
-                                Design Analysis & Computation Proof
-                            </h4>
+                            </div>
                             
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {/* Left Column: Load Breakdown Steps */}

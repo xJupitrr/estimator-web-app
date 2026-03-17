@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, Eye, EyeOff, ArrowUp, Copy, DoorOpen } from 'lucide-react';
+import { Settings, Calculator, PlusCircle, Trash2, AlertCircle, Eye, EyeOff, ArrowUp, Copy, LayoutTemplate, Edit2, X } from 'lucide-react';
 import useLocalStorage, { setSessionData } from '../../hooks/useLocalStorage';
 import { getDefaultPrices } from '../../constants/materials';
 import SelectInput from '../common/SelectInput';
@@ -18,13 +18,12 @@ const THEME = THEME_COLORS.doors;
 // itemTypes, frameMaterials, leafMaterials are now imported.
 
 const getInitialItem = () => ({
-    id: Date.now() + Math.random(),
     quantity: "",
-    itemType: "",
+    itemType: "Window",
     width_m: "",
     height_m: "",
     frameMaterial: "",
-    leafMaterial: "",
+    panel_configs: [{ type: "Fixed Window", material: "Clear Glass (6mm)", count: 1 }],
     customFramePrice: "",
     customLeafPrice: "",
     customHardwarePrice: "",
@@ -32,38 +31,52 @@ const getInitialItem = () => ({
     isExcluded: false,
 });
 
-export default function DoorsWindows() {
-    const [items, setItems] = useLocalStorage('doorswindows_rows', [getInitialItem()]);
+export default function Windows() {
+    const [items, setItems] = useLocalStorage('windows_rows', [getInitialItem()]);
     const [prices, setPrices] = useLocalStorage('app_material_prices', getDefaultPrices(), { mergeDefaults: true });
-    const [result, setResult] = useLocalStorage('doorswindows_result', null);
+    const [result, setResult] = useLocalStorage('windows_result', null);
     const [error, setError] = useState(null);
+    const [editingPanelsId, setEditingPanelsId] = useState(null);
 
-    const defaultMaterialMap = {
-        "Sliding Window": { frame: "Aluminum (Powder Coated)", leaf: "Sliding Panel (Aluminum/Glass)" },
-        "Casement Window": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
-        "Awning Window": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
-        "Fixed Window": { frame: "Aluminum (Powder Coated)", leaf: "Clear Glass (6mm)" },
-        "Jalousie Window": { frame: "Aluminum (Powder Coated)", leaf: "Jalousie (Glass Blades Only)" },
-        "Swing Door": { frame: "Wood (Mahogany)", leaf: "Mahogany Door Leaf" },
-        "Flush Door": { frame: "Wood (Tanguile)", leaf: "Flush Door (Hollow Core)" },
-        "Sliding Door": { frame: "Aluminum (Powder Coated)", leaf: "Sliding Panel (Aluminum/Glass)" },
-        "Bi-Fold Door": { frame: "Aluminum (Powder Coated)", leaf: "Casement Panel (Aluminum/Glass)" },
-        "French Door": { frame: "Wood (Mahogany)", leaf: "Tempered Glass (6mm)" },
-        "Screen Door": { frame: "Aluminum (Anodized)", leaf: "Clear Glass (6mm)" },
-    };
+    // Migration hook
+    useEffect(() => {
+        if (!items || !Array.isArray(items)) return;
+        const needsMigration = items.some(i => i && (!Array.isArray(i.panel_configs) || i.panel_configs.some(p => !p.type || !p.material)));
+        if (needsMigration) {
+            setItems(prev => {
+                if (!Array.isArray(prev)) return [getInitialItem()];
+                return prev.map(item => {
+                    if (item && !Array.isArray(item.panel_configs)) {
+                         const panels = [];
+                         const totalPanels = item.totalPanels ? parseInt(item.totalPanels) : 1;
+                         const mainPanelsCount = (item.mainPanelsCount !== undefined) ? parseInt(item.mainPanelsCount) : totalPanels;
+                        
+                         panels.push({ type: item.itemType || "Fixed Window", material: item.leafMaterial || "Clear Glass (6mm)", count: mainPanelsCount });
+                        
+                         if (totalPanels > mainPanelsCount) {
+                             panels.push({ type: "Fixed Window", material: item.secondaryLeafMaterial || "Clear Glass (6mm)", count: totalPanels - mainPanelsCount });
+                         }
+                        
+                         return { ...item, panel_configs: panels, itemType: "Window" };
+                    } else if (item && Array.isArray(item.panel_configs)) {
+                         const fixedPanels = item.panel_configs.map(p => ({
+                              type: p.type || p.material || item.itemType || "Fixed Window",
+                              material: p.material && !p.type ? p.material : (item.leafMaterial || "Clear Glass (6mm)"),
+                              count: p.count || 1
+                         }));
+                         return { ...item, panel_configs: fixedPanels, itemType: "Window" };
+                    }
+                    return item;
+                });
+            });
+        }
+    }, [items, setItems]);
 
     const handleItemChange = (id, field, value) => {
         setItems(prev => prev.map(item => {
             if (item.id !== id) return item;
 
             const updatedItem = { ...item, [field]: value };
-
-            // Auto-update materials if Type changes and user hasn't set custom prices
-            if (field === 'itemType' && defaultMaterialMap[value]) {
-                updatedItem.frameMaterial = defaultMaterialMap[value].frame;
-                updatedItem.leafMaterial = defaultMaterialMap[value].leaf;
-            }
-
             return updatedItem;
         }));
         setResult(null);
@@ -132,11 +145,12 @@ export default function DoorsWindows() {
         const hasEmptyFields = items.some(item =>
             !item.isExcluded && (
                 item.width_m === "" || item.height_m === "" ||
-                item.itemType === "" || item.frameMaterial === "" || item.leafMaterial === ""
+                item.frameMaterial === "" ||
+                (item.panel_configs || []).some(p => !p.type || !p.material || !p.count)
             )
         );
         if (hasEmptyFields) {
-            setError("Please fill in all required fields (Type, Dimensions, and Materials) before calculating.");
+            setError("Please ensure Width, Height, Frame Material, and all Paneling inside the 'Panel Configuration' modal are filled out.");
             setResult(null);
             return;
         }
@@ -167,9 +181,9 @@ export default function DoorsWindows() {
     // Global Cost Sync
     useEffect(() => {
         if (result) {
-            setSessionData('doors_windows_total', result.grandTotal);
+            setSessionData('windows_total', result.grandTotal);
         } else {
-            setSessionData('doors_windows_total', null);
+            setSessionData('windows_total', null);
         }
         window.dispatchEvent(new CustomEvent('project-total-update'));
     }, [result]);
@@ -210,8 +224,8 @@ export default function DoorsWindows() {
 
             <Card className="border-t-4 shadow-md bg-white rounded-xl" style={{ borderTop: `4px solid ${THEME}` }}>
                 <SectionHeader
-                    title="Doors & Windows Specification"
-                    icon={DoorOpen}
+                    title="Windows Specification"
+                    icon={LayoutTemplate}
                     colorTheme={THEME}
                     actions={
                         <ActionButton
@@ -228,14 +242,13 @@ export default function DoorsWindows() {
                         <thead className="bg-slate-100">
                             <tr>
                                 <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}>#</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[80px]`}>Qty</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Item Type</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Width (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Height (m)</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Frame Material</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[180px]`}>Leaf / Panel</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[200px]`}>Description</th>
-                                <th className={`${TABLE_UI.INPUT_HEADER} w-[50px]`}></th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[100px]`}>Qty</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[250px]`}>Width(m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[250px]`}>Height(m)</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[300px]`}>Frame Material</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[400px]`}>Panel Config</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} min-w-[200px]`}>Description</th>
+                                <th className={`${TABLE_UI.INPUT_HEADER} w-[40px]`}></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -261,16 +274,6 @@ export default function DoorsWindows() {
                                             onChange={(value) => handleItemChange(item.id, 'quantity', value)}
                                             placeholder="Qty"
                                             className={`${INPUT_UI.TABLE_INPUT} font-bold`}
-                                        />
-                                    </td>
-                                    <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={item.itemType}
-                                            onChange={(val) => handleItemChange(item.id, 'itemType', val)}
-                                            options={itemTypes}
-                                            placeholder="Select Type..."
-                                            focusColor={THEME}
-                                            className="text-xs"
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
@@ -300,14 +303,21 @@ export default function DoorsWindows() {
                                         />
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
-                                        <SelectInput
-                                            value={item.leafMaterial}
-                                            onChange={(val) => handleItemChange(item.id, 'leafMaterial', val)}
-                                            options={groupedLeafOptions}
-                                            placeholder="Select Leaf..."
-                                            focusColor={THEME}
-                                            className="text-xs"
-                                        />
+                                        <button
+                                            onClick={() => setEditingPanelsId(item.id)}
+                                            className={`px-3 py-1.5 bg-white hover:bg-${THEME}-100 text-${THEME}-600 hover:text-${THEME}-700 rounded border border-${THEME}-200 hover:border-${THEME}-300 text-[10px] font-bold transition-colors flex items-center justify-center gap-1.5 w-full min-h-[40px]`}
+                                        >
+                                            <Edit2 size={12} className="opacity-70 flex-shrink-0" />
+                                            <span className="truncate">
+                                                {(item.panel_configs || []).filter(p => p.type && p.material && p.count).length > 0
+                                                    ? (item.panel_configs || [])
+                                                        .filter(p => p.type && p.material && p.count)
+                                                        .map(p => `${p.count}x ${p.type.replace(' Window', '')}`)
+                                                        .join(', ')
+                                                    : "Set Panels"
+                                                }
+                                            </span>
+                                        </button>
                                     </td>
                                     <td className={TABLE_UI.INPUT_CELL}>
                                         <input
@@ -352,11 +362,11 @@ export default function DoorsWindows() {
             {!result && !error && (
                 <div className="border-2 border-dashed border-slate-300 rounded-xl p-16 flex flex-col items-center justify-center text-center text-slate-400 bg-slate-50/50">
                     <div className="bg-white p-4 rounded-full shadow-sm mb-4">
-                        <DoorOpen size={40} className={`text-${THEME}-400`} />
+                        <LayoutTemplate size={40} className={`text-${THEME}-400`} />
                     </div>
                     <h3 className="text-lg font-bold text-slate-600 mb-1">Ready to Estimate</h3>
                     <p className="max-w-md mx-auto text-sm">
-                        Enter your door and window specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
+                        Enter your window specifications above, then click <span className={`font-bold text-${THEME}-600`}>'CALCULATE'</span>.
                     </p>
                 </div>
             )}
@@ -384,7 +394,7 @@ export default function DoorsWindows() {
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
-                                    <ExportButtons items={result.items} filename="doors_windows_estimate.csv" />
+                                    <ExportButtons items={result.items} filename="windows_estimate.csv" />
                                 </div>
                             </div>
                         </div>
@@ -440,6 +450,100 @@ export default function DoorsWindows() {
                     </div>
                 </Card>
             )}
+
+            {/* Set Panel Config Modal */}
+            {
+                editingPanelsId && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
+                        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setEditingPanelsId(null)}></div>
+                        <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+                            <div className={`px-6 py-4 bg-${THEME}-50 border-b border-${THEME}-200 flex justify-between items-center`}>
+                                <div>
+                                    <h3 className={`font-bold text-${THEME}-800 flex items-center gap-2 uppercase tracking-wide text-sm leading-none`}>
+                                        <Edit2 size={16} className={`text-${THEME}-600`} /> Panel Configuration
+                                    </h3>
+                                    <p className="text-[9px] text-slate-500 font-mono mt-1 uppercase tracking-widest leading-none">Window ID: W{(items.findIndex(c => c.id === editingPanelsId) + 1)}</p>
+                                </div>
+                                <button onClick={() => setEditingPanelsId(null)} className={`p-2 hover:bg-${THEME}-100 rounded-full transition-colors text-slate-400`}><X size={20} /></button>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <table className="w-full border-collapse border border-slate-100 mb-2">
+                                    <thead>
+                                        <tr className="text-xs font-bold text-slate-500 uppercase tracking-widest text-left bg-slate-50 border-b border-slate-100">
+                                            <th className="p-3 w-40">Panel Type</th>
+                                            <th className="p-3">Glass / Material</th>
+                                            <th className="p-3 text-center w-24">Count</th>
+                                            <th className="p-3 w-10"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {(items.find(i => i.id === editingPanelsId)?.panel_configs || []).map((panel, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-50/50">
+                                                <td className="p-2">
+                                                    <SelectInput
+                                                        value={panel.type}
+                                                        onChange={(val) => {
+                                                            const activeItem = items.find(i => i.id === editingPanelsId);
+                                                            const newConfigs = [...activeItem.panel_configs];
+                                                            newConfigs[idx].type = val;
+                                                            handleItemChange(editingPanelsId, 'panel_configs', newConfigs);
+                                                        }}
+                                                        options={itemTypes.filter(g => g.group === 'Windows')}
+                                                        className="h-10 text-[11px]"
+                                                        focusColor={THEME}
+                                                    />
+                                                </td>
+                                                <td className="p-2">
+                                                    <SelectInput
+                                                        value={panel.material}
+                                                        onChange={(val) => {
+                                                            const activeItem = items.find(i => i.id === editingPanelsId);
+                                                            const newConfigs = [...activeItem.panel_configs];
+                                                            newConfigs[idx].material = val;
+                                                            handleItemChange(editingPanelsId, 'panel_configs', newConfigs);
+                                                        }}
+                                                        options={groupedLeafOptions.filter(g => g.group !== 'Wood Doors' && g.group !== 'Other Doors').map(g => ({ ...g, options: g.options.filter(opt => !opt.id.toLowerCase().includes('door')) })).filter(g => g.options.length > 0)}
+                                                        className="h-10 text-[11px]"
+                                                        focusColor={THEME}
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-center">
+                                                    <MathInput
+                                                        value={panel.count}
+                                                        onChange={(val) => {
+                                                            const activeItem = items.find(i => i.id === editingPanelsId);
+                                                            const newConfigs = [...activeItem.panel_configs];
+                                                            newConfigs[idx].count = val ? parseInt(val) : 1;
+                                                            handleItemChange(editingPanelsId, 'panel_configs', newConfigs);
+                                                        }}
+                                                        placeholder="1"
+                                                        className={`${INPUT_UI.TABLE_INPUT} h-10 font-bold text-sm text-center w-full`}
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-right">
+                                                    <button onClick={() => {
+                                                        const activeItem = items.find(i => i.id === editingPanelsId);
+                                                        const newConfigs = activeItem.panel_configs.filter((_, i) => i !== idx);
+                                                        handleItemChange(editingPanelsId, 'panel_configs', newConfigs.length > 0 ? newConfigs : [{ type: 'Fixed Window', material: 'Clear Glass (6mm)', count: 1 }]);
+                                                    }} className="p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-full"><Trash2 size={16} /></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <button onClick={() => {
+                                    const activeItem = items.find(i => i.id === editingPanelsId);
+                                    const newConfigs = [...(activeItem?.panel_configs || []), { type: 'Fixed Window', material: 'Clear Glass (6mm)', count: 1 }];
+                                    handleItemChange(editingPanelsId, 'panel_configs', newConfigs);
+                                }} className={`w-full py-2.5 bg-${THEME}-50 border border-dashed border-${THEME}-200 rounded text-[9px] font-bold text-${THEME}-600 hover:bg-${THEME}-100 uppercase tracking-widest transition-all shadow-sm`}>+ Add Panel Configuration</button>
+                            </div>
+                            <div className={`p-4 bg-${THEME}-50 border-t border-${THEME}-100 flex justify-end`}>
+                                <button onClick={() => setEditingPanelsId(null)} className={`px-10 py-2.5 bg-${THEME}-600 text-white rounded font-bold text-xs uppercase tracking-widest hover:bg-${THEME}-700 transition-all shadow-lg shadow-${THEME}-100`}>Confirm Panels</button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
         </div>
     );
 }

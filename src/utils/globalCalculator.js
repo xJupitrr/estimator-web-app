@@ -83,8 +83,8 @@ const MODULES = [
     },
     {
         name: 'Lintel Beam',
-        // Special: Source data comes from DoorsWindows rows, but specs are local
-        dataKey: 'doorswindows_rows',
+        // Special: Source data comes from Doors and Windows rows, but specs are local
+        dataKey: 'lintel_beams',
         priceKey: 'lintelbeam_prices',
         resultKey: 'lintelbeam_result',
         totalKey: 'lintel_beam_total', // Matches App.jsx key
@@ -141,11 +141,17 @@ const MODULES = [
         calculator: calculatePlumbing
     },
     {
-
-        name: 'Doors & Windows',
-        dataKey: 'doorswindows_rows',
-        resultKey: 'doorswindows_result',
-        totalKey: 'doors_windows_total',
+        name: 'Doors',
+        dataKey: 'doors_rows',
+        resultKey: 'doors_result',
+        totalKey: 'doors_total',
+        calculator: calculateDoorsWindows
+    },
+    {
+        name: 'Windows',
+        dataKey: 'windows_rows',
+        resultKey: 'windows_result',
+        totalKey: 'windows_total',
         calculator: calculateDoorsWindows
     },
     {
@@ -180,7 +186,15 @@ export const runGlobalRecalculation = () => {
 
     MODULES.forEach(mod => {
         try {
-            const data = getSessionData(mod.dataKey);
+            let data;
+            if (mod.name === 'Lintel Beam') {
+                const doors = getSessionData('doors_rows') || [];
+                const windows = getSessionData('windows_rows') || [];
+                data = [...doors, ...windows];
+            } else {
+                data = getSessionData(mod.dataKey);
+            }
+            
             // If main data missing, skip
             if (!data) return;
 
@@ -197,13 +211,13 @@ export const runGlobalRecalculation = () => {
             else if (mod.name === 'Lintel Beam') {
                 // Needs specs
                 const specs = getSessionData(mod.specsKey);
-                // Also requires transformation of doorswindows_rows to items compatible with Lintel logic?
+                // Also requires transformation of doors_rows and windows_rows to items compatible with Lintel logic?
                 // The utility expecting: `(items, specs, prices)`.
                 // `items` passed to utility should be the RAW rows or processed? 
                 // `LintelBeam.jsx` processes `doorsWindowsItems` into `lintelItems` before passing to logic.
                 // The UTILITY `calculateLintelBeam` logic should handle the transformation if possible, or I need to replicate it here.
                 // Looking at `lintelBeamCalculator.js` (I didn't view it, but assumed logic).
-                // If the calculator expects PRE-PROCESSED items, then I need to process `data` (doorswindows_rows) here.
+                // If the calculator expects PRE-PROCESSED items, then I need to process `data` here.
                 if (specs) {
                     // Logic from LintelBeam.jsx:
                     // transform items
