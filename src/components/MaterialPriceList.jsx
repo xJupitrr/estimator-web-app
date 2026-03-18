@@ -38,8 +38,8 @@ const MaterialPriceList = () => {
         // Formworks / Sheet Goods
         if (key === 'phenolic_1_2' || key === 'phenolic_3_4') return 'Formworks';
         if (key === 'plywood_1_4' || key === 'plywood_1_2' || key === 'plywood_3_4') return 'Drywall';
-        if (key.includes('plywood_phenolic') || key.includes('plywood_marine')) return 'Sheet Goods';
-        if (key === 'cocoLumber' || key === 'gi_pipe_1_1_2' || key.startsWith('form_release_oil')) return 'Formworks';
+        if (key.includes('plywood_phenolic') || key.includes('plywood_marine') || key.includes('marine_plywood')) return 'Sheet Goods';
+        if (key === 'cocoLumber' || key === 'gi_pipe_1_1_2' || key.startsWith('form_release_oil') || key === 'snap_tie' || key === 'form_kicker_set') return 'Formworks';
         if (key.includes('lumber') || key.includes('coco_lumber') || key === 'bamboo_pole') return 'Timber';
         if (key.includes('nails') || key.includes('common_nails') || key === 'concrete_nail_kg' || key === 'finish_nail_kg' || key === 'anchor_bolt_1_2') return 'Hardware';
         // Structural Steel
@@ -50,9 +50,9 @@ const MaterialPriceList = () => {
         if (key === 'soil_fill_cum' || key === 'topsoil_cum' || key === 'gravel_fill_compacted' || key === 'geotextile_fabric' || key.startsWith('culvert_pipe') || key === 'riprap_boulders' || key === 'gabion_basket') return 'Site Works';
         // Tiles & Finishes — waterproofing too
         if (key.startsWith('waterproofing_elasto') || key === 'waterproofing_membrane') return 'Tiles & Finishes';
-        if (key.includes('tile') || key.includes('grout') || key.includes('tile_adhesive') || key === 'vinyl_plank_spc' || key === 'epoxy_grout_1kg' || key === 'tile_spacer_2mm' || key === 'tile_edge_trim') return 'Tiles & Finishes';
+        if (key.includes('tile') || key.includes('grout') || key.includes('tile_adhesive') || key === 'vinyl_plank_spc' || key === 'epoxy_grout_1kg' || key === 'tile_spacer_2mm' || key === 'tile_edge_trim' || key.includes('flooring') || key.includes('vinyl')) return 'Tiles & Finishes';
         if (key.includes('roof') || key.includes('tekscrew') || (key.includes('sealant') && !key.includes('dw_'))) return 'Roofing';
-        if (key.includes('deck') || key.includes('h_frame') || key.includes('cross_brace') || key.includes('u_head') || key.includes('shackle')) return 'Scaffolding';
+        if (key.includes('deck') || key.includes('h_frame') || key.includes('cross_brace') || key.includes('u_head') || key.includes('shackle') || key.includes('scaffold') || key.includes('shoring_prop')) return 'Scaffolding';
         // Ceiling — ceiling_fan excluded (goes to Electrical)
         if ((key.includes('ceiling') && !key.startsWith('ceiling_fan')) || key.includes('metal_furring') || key.includes('carrying_channel') || key.includes('blind_rivets') || key.includes('gypsum_board') || key.includes('w_clip') || key.includes('mesh_tape') || key.includes('joint_compound') || key.includes('wall_angle') || key === 'spandrel' || key === 'pvc' || key === 'spandrel_molding' || key === 'pvc_u_molding' || key === 'pvc_h_clip' || key === 'clips' || key.includes('screw_gypsum') || key.includes('screw_hardiflex') || key.includes('screw_metal') || key === 'rivets') return 'Ceiling';
         if (key.includes('paint') || key.includes('skimcoat') || key === 'silicone_caulk_300ml') return 'Painting';
@@ -60,8 +60,8 @@ const MaterialPriceList = () => {
         if (key.startsWith('gypsum_') || key.startsWith('fcb_') || key === 'wpc_fluted' || key === 'acoustic_board' || key === 'drywall_metal_stud' || key === 'drywall_metal_track' || key === 'clips_wpc') return 'Drywall';
         if (key === 'glasswool' || key === 'pe_foam' || key === 'eps_foam' || key === 'rockwool' || key === 'acoustic_fiberglass') return 'Insulation';
         // Plumbing — includes GI pipes, fittings, water tanks
-        if (key.startsWith('gi_') || key.startsWith('water_tank_')) return 'Plumbing';
-        if (key.startsWith('ppr_') || key.startsWith('pvc_pipe') || key.startsWith('pvc_elbow') || key.startsWith('pvc_sanitary') || key.startsWith('pvc_wye') || key.startsWith('pvc_cleanout') || key.startsWith('pvc_p_trap') || key.startsWith('pvc_vent') || key.startsWith('pvc_reducer') || key === 'solvent_cement' || key === 'teflon_tape' || key.startsWith('pipe_clamp') || key === 'wc_set' || key === 'lav_set' || key === 'sink_set' || key === 'shower_set' || key === 'hose_bibb' || key === 'floor_drain' || key === 'roof_drain' || key === 'catch_basin' || key === 'urinal_set' || key === 'bidet_set' || key === 'bathtub_set' || key === 'grease_trap' || key === 'water_heater_single' || key === 'water_heater_multi' || key === 'kitchen_faucet' || key === 'lavatory_faucet' || key === 'angle_valve' || key === 'flex_hose' || key === 'laundry_tray') return 'Plumbing';
+        if (key.startsWith('gi_') || key.startsWith('water_tank_') || key.includes('pump')) return 'Plumbing';
+        if (key.startsWith('ppr_') || key.startsWith('pvc_pipe') || key.startsWith('pvc_elbow') || key.startsWith('pvc_sanitary') || key.startsWith('pvc_wye') || key.startsWith('pvc_cleanout') || key.startsWith('pvc_p_trap') || key.startsWith('pvc_vent') || key.startsWith('pvc_reducer') || key === 'solvent_cement' || key === 'teflon_tape' || key.startsWith('pipe_clamp') || key === 'wc_set' || key === 'lav_set' || key === 'sink_set' || key === 'shower_set' || key === 'hose_bibb' || key === 'floor_drain' || key === 'roof_drain' || key === 'catch_basin' || key === 'urinal_set' || key === 'bidet_set' || key === 'bathtub_set' || key === 'grease_trap' || (key.startsWith('water_heater_') && !key.includes('switch')) || key === 'kitchen_faucet' || key === 'lavatory_faucet' || key === 'angle_valve' || key === 'flex_hose' || key === 'laundry_tray') return 'Plumbing';
         // Electrical sub-categories
         if (key.startsWith('thhn_') || key.startsWith('bare_copper') || key === 'pv_cable_4' || key === 'coax_cable' || key === 'cat6_cable') return 'Wiring';
         if (key.startsWith('pvc_pipe_') || key.startsWith('pvc_adapter') || key.startsWith('pvc_locknut') || key.startsWith('pvc_solvent') || key.startsWith('rsc_') || key.startsWith('entrance_cap') || key.startsWith('pipe_strap') || key.startsWith('flex_hose_') || key.startsWith('flex_connector') || key.startsWith('molding_') || key === 'pvc_pipe_20mm' || key === 'pvc_pipe_25mm' || key === 'pvc_pipe_32mm') return 'Conduit & Fittings';
@@ -70,7 +70,7 @@ const MaterialPriceList = () => {
         if (key.startsWith('switch_') || key.startsWith('outlet_') || key.startsWith('dimmer') || key === 'fan_control' || key.startsWith('water_heater_switch') || key === 'data_outlet' || key === 'tel_outlet') return 'Wiring Devices';
         if (key.startsWith('panel_board') || key.startsWith('breaker_') || key === 'mts_switch' || key === 'meter_base' || key === 'sub_meter') return 'Panel & Breakers';
         if (key === 'smoke_detector' || key === 'doorbell' || key === 'ground_rod' || key === 'ground_clamp' || key === 'weatherproof_enclosure' || key === 'mc4_connector' || key === 'tox_screw' || key === 'expansion_bolt' || key === 'electrical_tape') return 'Electrical';
-        if (key.startsWith('elec_') || key.startsWith('ceiling_fan') || key.startsWith('exhaust_fan') || key.startsWith('submersible_pump')) return 'Electrical';
+        if (key.startsWith('elec_') || key.startsWith('ceiling_fan') || key.startsWith('exhaust_fan')) return 'Electrical';
         if (key.includes('drywall')) return 'Drywall';
         if (key.includes('dw_')) return 'Doors & Windows';
         if (key.includes('angle_bar') || key.includes('c_purlin') || key.includes('c_channel') || key.startsWith('tubular_square') || key.startsWith('tubular_rect') || key.includes('tubular')) return 'Steel Truss';

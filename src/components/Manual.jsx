@@ -267,6 +267,16 @@ const Manual = () => {
             ]
         },
         {
+            id: 'electrical-load',
+            title: 'Electrical Load Analysis',
+            icon: <Zap size={16} className="text-amber-600" />,
+            steps: [
+                "Load Calculation: Computes VA based on lighting, convenience outlets, and specific motor/appliance loads according to standard code requirements.",
+                "Sizing Algorithms: Determines main breaker (AT/AF) trip rating and selects recommended wire sizes (THHN) and conduit diameter per PEC specifications.",
+                "Circuit Balancing: Simulates distribution board scheduling for optimum phase balancing and precise total load estimation."
+            ]
+        },
+        {
             id: 'plumbing',
             title: 'Plumbing Works',
             icon: <Droplets size={16} className="text-amber-600" />,
