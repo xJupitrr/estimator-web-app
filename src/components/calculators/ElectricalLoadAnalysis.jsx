@@ -60,6 +60,7 @@ const getInitialRow = () => ({
 export default function ElectricalLoadAnalysis() {
     const [rows, setRows] = useLocalStorage('electrical_load_rows', [getInitialRow()]);
     const [result, setResult] = useLocalStorage('electrical_load_result', null);
+    const [premiumSizing, setPremiumSizing] = useLocalStorage('electrical_premium_sizing', false);
     const [error, setError] = useState(null);
     const [contextMenu, setContextMenu] = useState(null); // { id, x, y }
 
@@ -140,7 +141,7 @@ export default function ElectricalLoadAnalysis() {
         }
         setError(null);
 
-        const calcResult = calculateElectricalLoad(rows);
+        const calcResult = calculateElectricalLoad(rows, { premiumSizing });
         setResult(calcResult);
     };
 
@@ -292,7 +293,27 @@ export default function ElectricalLoadAnalysis() {
                     </table>
                 </div>
 
-                <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end">
+                <div className="p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className="relative">
+                            <input 
+                                type="checkbox" 
+                                className="sr-only" 
+                                checked={premiumSizing}
+                                onChange={(e) => {
+                                    setPremiumSizing(e.target.checked);
+                                    setResult(null);
+                                }}
+                            />
+                            <div className={`block w-10 h-6 rounded-full transition-colors ${premiumSizing ? `bg-${THEME}-500` : 'bg-slate-300'}`}></div>
+                            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${premiumSizing ? 'translate-x-4' : ''}`}></div>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold text-slate-700 select-none group-hover:text-amber-600 transition-colors">Premium PEE Wire Sizing</span>
+                            <span className="text-[10px] text-slate-500 max-w-[250px] leading-tight select-none">Oversizes wiring (Min 3.5mm² Light, 5.5mm² CO) for robust future-proofing. Increases base cost.</span>
+                        </div>
+                    </label>
+
                     <ActionButton
                         onClick={handleCalculate}
                         label="CALCULATE LOAD" variant="calculate"

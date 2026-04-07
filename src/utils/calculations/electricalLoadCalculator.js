@@ -1,4 +1,4 @@
-export const calculateElectricalLoad = (rows) => {
+export const calculateElectricalLoad = (rows, options = { premiumSizing: false }) => {
     let totalVA = 0;
 
     // Standard single phase voltage in PH (PEC)
@@ -122,8 +122,17 @@ export const calculateElectricalLoad = (rows) => {
         // PEC continuous load & motor sizing: +25%
         const continuousCats = ['acu', 'motor', 'water_heater', 'water_pump', 'ev_charger'];
         if (continuousCats.includes(r.category)) {
+            // PEC 430.22 / 440.32: Conductor min ampacity = 125% of FLC
             wireDesignAmps = amps * 1.25;
-            breakerDesignAmps = amps * 1.25;
+            
+            // PEC 430.52 / 440.22: Breaker short-circuit sizing for inrush current
+            if (r.category === 'acu') {
+                breakerDesignAmps = amps * 1.75; // Max 175% for ACU compressors
+            } else if (['motor', 'water_pump'].includes(r.category)) {
+                breakerDesignAmps = amps * 2.0; // Inverse-time breaker up to 250%, using 200% for standard sizing
+            } else {
+                breakerDesignAmps = amps * 1.25; // Standard continuous load
+            }
 
             if (['acu', 'motor', 'water_pump'].includes(r.category) && totalLoadVA > largestMotorVA) {
                 largestMotorVA = totalLoadVA;
@@ -140,16 +149,27 @@ export const calculateElectricalLoad = (rows) => {
         }
 
         // PEC constraint: Receptacle, Laundry, Refrigerator typically min 20AT
-        // Modern standards also highly recommend 20AT for Microwave, Induction, Dishwasher
+        // Modern standards also highly recommend 20AT for Microwave, Induction, Dishwasher, ACU
         // Motors/Pumps are also bumped to 20AT minimum to prevent nuisance tripping from startup inrush current
-        const min20AmpCats = ['receptacle', 'washing_machine', 'refrigerator', 'microwave', 'induction', 'dishwasher', 'water_pump', 'motor'];
+        const min20AmpCats = ['acu', 'receptacle', 'washing_machine', 'refrigerator', 'microwave', 'induction', 'dishwasher', 'water_pump', 'motor'];
         if (min20AmpCats.includes(r.category) && breakerAT < 20) {
             breakerAT = 20;
         }
 
         // Wire Size based on design ampacity or breaker rating
         // Wiring ampacity must be greater than or equal to the breaker rating
-        let wireSize = getWireSize(Math.max(wireDesignAmps, breakerAT));
+        let wireSizeAmpBase = Math.max(wireDesignAmps, breakerAT);
+
+        // Premium PEE Over-sizing (optional)
+        if (options.premiumSizing) {
+            if (r.category === 'lighting') {
+                wireSizeAmpBase = Math.max(wireSizeAmpBase, 20); // Forces min 3.5mm² for lighting (20A ampacity)
+            } else if (min20AmpCats.includes(r.category)) {
+                wireSizeAmpBase = Math.max(wireSizeAmpBase, 30); // Forces min 5.5mm² for CO/appliances (30A ampacity)
+            }
+        }
+
+        let wireSize = getWireSize(wireSizeAmpBase);
         let groundWireSize = getGroundWireSize(breakerAT);
 
         // Calculate PVC Pipe Sizing based on PEC 40% Fill Rule
