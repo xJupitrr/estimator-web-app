@@ -347,6 +347,7 @@ export default function ElectricalLoadAnalysis() {
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Amps</th>
                                         <th className={TABLE_UI.HEADER_CELL_CENTER}>CB Rating</th>
                                         <th className={TABLE_UI.HEADER_CELL_CENTER}>Wire Size</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Conduit</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -363,6 +364,9 @@ export default function ElectricalLoadAnalysis() {
                                             </td>
                                             <td className={TABLE_UI.CELL_CENTER}>
                                                 <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{item.wire}</span>
+                                            </td>
+                                            <td className={TABLE_UI.CELL_CENTER}>
+                                                <span className="bg-slate-50 text-slate-700 border border-slate-200 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{item.pipe}</span>
                                             </td>
                                         </tr>
                                     ))}

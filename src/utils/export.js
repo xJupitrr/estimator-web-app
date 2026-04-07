@@ -15,7 +15,7 @@ export const formatDataForExport = (items) => {
 
     // Check if it's an electrical circuit format
     if (items[0].circuitNo !== undefined) {
-        const headers = ['Ckt No.', 'Load Description', 'Qty', 'VA', 'Total VA', 'Amps', 'CB Rating', 'Wire Size'];
+        const headers = ['Ckt No.', 'Load Description', 'Qty', 'VA', 'Total VA', 'Amps', 'CB Rating', 'Wire Size', 'Conduit'];
         const rows = items.map(item => [
             item.circuitNo,
             item.description,
@@ -24,7 +24,8 @@ export const formatDataForExport = (items) => {
             item.totalVA,
             item.amps != null ? item.amps.toFixed(2) : '',
             item.breaker,
-            item.wire
+            item.wire,
+            item.pipe
         ]);
         return [headers, ...rows];
     }

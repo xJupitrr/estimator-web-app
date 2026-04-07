@@ -57,6 +57,54 @@ export const calculateElectricalLoad = (rows) => {
         return "38.0mm²";
     };
 
+    // Calculate Conduit Size based on PEC 40% fill rule for PVC Schedule 40
+    // THHN Wire Approximate Cross-Sectional Areas (mm²) based on PEC / NEC Chapter 9 Table 5
+    const getWireArea = (size) => {
+        const areas = {
+            "2.0mm²": 6.26,   // 14 AWG
+            "3.5mm²": 8.58,   // 12 AWG
+            "5.5mm²": 13.61,  // 10 AWG
+            "8.0mm²": 23.61,  // 8 AWG
+            "14.0mm²": 32.71, // 6 AWG
+            "22.0mm²": 62.77, // 4 AWG
+            "30.0mm²": 84.71, // 2 AWG
+            "38.0mm²": 100.65,// 1 AWG
+            "50.0mm²": 119.7, // 1/0 AWG
+            "60.0mm²": 142.3, // 2/0 AWG
+            "80.0mm²": 172.5, // 3/0 AWG
+            "100.0mm²": 208.8,// 4/0 AWG
+            "125.0mm²": 256.1,// 250 kcmil
+            "150.0mm²": 296.8 // 300 kcmil
+        };
+        return areas[size] || 0;
+    };
+
+    // Computes required PVC Trade Size based on 40% fill
+    const getConduitSize = (lineWireSize, groundWireSize) => {
+        // 2 line conductors + 1 ground conductor
+        const totalArea = (2 * getWireArea(lineWireSize)) + getWireArea(groundWireSize);
+
+        // PVC Schedule 40 40% Fill Areas (mm²)
+        const pvc40Fill = {
+            "20mm (1/2\") PVC": 78,
+            "25mm (3/4\") PVC": 137,
+            "32mm (1\") PVC": 222,
+            "40mm (1 1/4\") PVC": 384,
+            "50mm (1 1/2\") PVC": 523,
+            "63mm (2\") PVC": 862,
+            "75mm (2 1/2\") PVC": 1225,
+            "90mm (3\") PVC": 1890,
+            "110mm (4\") PVC": 3232
+        };
+
+        for (const [pipe, maxArea] of Object.entries(pvc40Fill)) {
+            if (totalArea <= maxArea) {
+                return pipe;
+            }
+        }
+        return "110mm (4\") PVC"; // fallback
+    };
+
     let largestMotorVA = 0;
 
     let circuits = rows.filter(r => r.quantity > 0 && !r.isExcluded).map((r, i) => {
@@ -102,12 +150,10 @@ export const calculateElectricalLoad = (rows) => {
         // Wire Size based on design ampacity or breaker rating
         // Wiring ampacity must be greater than or equal to the breaker rating
         let wireSize = getWireSize(Math.max(wireDesignAmps, breakerAT));
+        let groundWireSize = getGroundWireSize(breakerAT);
 
-        // Simple PVC Pipe Sizing based on wire size
-        let pipeSize = "20mm (1/2\") PVC";
-        if (["14.0mm²", "22.0mm²"].includes(wireSize)) pipeSize = "25mm (3/4\") PVC";
-        else if (["30.0mm²", "38.0mm²"].includes(wireSize)) pipeSize = "32mm (1\") PVC";
-        else if (!["2.0mm²", "3.5mm²", "5.5mm²", "8.0mm²"].includes(wireSize)) pipeSize = "50mm (2\") PVC";
+        // Calculate PVC Pipe Sizing based on PEC 40% Fill Rule
+        let pipeSize = getConduitSize(wireSize, groundWireSize);
 
         return {
             circuitNo: i + 1,
@@ -118,7 +164,7 @@ export const calculateElectricalLoad = (rows) => {
             totalVA: totalLoadVA,
             amps: amps,
             breaker: `${breakerAT}AT, 2P`,
-            wire: `2 - ${wireSize} + 1 - ${getGroundWireSize(breakerAT)} (G) THHN`,
+            wire: `2 - ${wireSize} + 1 - ${groundWireSize} (G) THHN`,
             pipe: pipeSize
         };
     });
