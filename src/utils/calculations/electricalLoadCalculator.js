@@ -184,8 +184,10 @@ export const calculateElectricalLoad = (rows, options = { premiumSizing: false }
             totalVA: totalLoadVA,
             amps: amps,
             breaker: `${breakerAT}AT, 2P`,
-            wire: `2 - ${wireSize} + 1 - ${groundWireSize} (G) THHN`,
-            pipe: pipeSize
+            wire: `2 - ${wireSize} THHN`,
+            groundWire: `1 - ${groundWireSize} THHN`,
+            pipe: pipeSize,
+            volts: VOLTAGE
         };
     });
 
@@ -246,6 +248,8 @@ export const calculateElectricalLoad = (rows, options = { premiumSizing: false }
     // Also must be protected by the breaker.
     let wireMainDesignAmps = Math.max(mainAmps, mainBreakerAT);
     let wireMain = getWireSize(wireMainDesignAmps);
+    let mainGroundWire = getGroundWireSize(mainBreakerAT);
+    let mainPipe = getConduitSize(wireMain, mainGroundWire);
 
     return {
         circuits,
@@ -253,7 +257,8 @@ export const calculateElectricalLoad = (rows, options = { premiumSizing: false }
         netTotalVA,
         mainAmps,
         mainBreaker: `${mainBreakerAT}AT, 2P`,
-        mainWire: `2 - ${wireMain} + 1 - ${getGroundWireSize(mainBreakerAT)} (G) THHN`,
+        mainWire: `2 - ${wireMain} + 1 - ${mainGroundWire} (G) THHN`,
+        mainPipe: mainPipe,
         designAnalysis: {
             lightingRecepTotal: lightingRecepVA,
             lightingRecepNet: netLightingVA,
@@ -264,8 +269,9 @@ export const calculateElectricalLoad = (rows, options = { premiumSizing: false }
             wireMainDesignAmps: wireMainDesignAmps,
             wireMain: wireMain,
             wireMainMaxAmpacity: getWireMaxAmpacity(wireMain),
-            groundWire: getGroundWireSize(mainBreakerAT),
-            mainBreakerAT: mainBreakerAT
+            groundWire: mainGroundWire,
+            mainBreakerAT: mainBreakerAT,
+            mainPipe: mainPipe
         }
     };
 };
