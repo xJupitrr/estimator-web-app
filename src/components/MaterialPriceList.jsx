@@ -62,13 +62,13 @@ const MaterialPriceList = () => {
         // Plumbing — includes GI pipes, fittings, water tanks
         if (key.startsWith('gi_') || key.startsWith('water_tank_') || key.includes('pump')) return 'Plumbing';
         if (key.startsWith('ppr_') || key.startsWith('pvc_pipe') || key.startsWith('pvc_elbow') || key.startsWith('pvc_sanitary') || key.startsWith('pvc_wye') || key.startsWith('pvc_cleanout') || key.startsWith('pvc_p_trap') || key.startsWith('pvc_vent') || key.startsWith('pvc_reducer') || key === 'solvent_cement' || key === 'teflon_tape' || key.startsWith('pipe_clamp') || key === 'wc_set' || key === 'lav_set' || key === 'sink_set' || key === 'shower_set' || key === 'hose_bibb' || key === 'floor_drain' || key === 'roof_drain' || key === 'catch_basin' || key === 'urinal_set' || key === 'bidet_set' || key === 'bathtub_set' || key === 'grease_trap' || (key.startsWith('water_heater_') && !key.includes('switch')) || key === 'kitchen_faucet' || key === 'lavatory_faucet' || key === 'angle_valve' || key === 'flex_hose' || key === 'laundry_tray') return 'Plumbing';
-        // Electrical sub-categories
-        if (key.startsWith('thhn_') || key.startsWith('bare_copper') || key === 'pv_cable_4' || key === 'coax_cable' || key === 'cat6_cable') return 'Wiring';
-        if (key.startsWith('pvc_pipe_') || key.startsWith('pvc_adapter') || key.startsWith('pvc_locknut') || key.startsWith('pvc_solvent') || key.startsWith('rsc_') || key.startsWith('entrance_cap') || key.startsWith('pipe_strap') || key.startsWith('flex_hose_') || key.startsWith('flex_connector') || key.startsWith('molding_') || key === 'pvc_pipe_20mm' || key === 'pvc_pipe_25mm' || key === 'pvc_pipe_32mm') return 'Conduit & Fittings';
-        if (key.startsWith('utility_box') || key.startsWith('junction_box') || key.startsWith('square_box') || key.startsWith('octagonal_box') || key.startsWith('box_cover')) return 'Conduit & Fittings';
-        if (key.startsWith('led_') || key.startsWith('integrated_led') || key.startsWith('flood_light') || key.startsWith('downlight') || key.startsWith('track_') || key.startsWith('surface_downlight') || key.startsWith('panel_light') || key === 'gu10_socket' || key === 'ceiling_receptacle' || key === 'emergency_light' || key === 'exit_sign' || key.startsWith('post_lamp') || key === 'garden_spike_light' || key === 'solar_street_light' || key === 'high_bay_light' || key === 't5_led_batten' || key === 'rope_light' || key === 'pendant_light' || key === 'wall_sconce' || key === 'step_light') return 'Lighting';
-        if (key.startsWith('switch_') || key.startsWith('outlet_') || key.startsWith('dimmer') || key === 'fan_control' || key.startsWith('water_heater_switch') || key === 'data_outlet' || key === 'tel_outlet') return 'Wiring Devices';
-        if (key.startsWith('panel_board') || key.startsWith('breaker_') || key === 'mts_switch' || key === 'meter_base' || key === 'sub_meter') return 'Panel & Breakers';
+        // Electrical
+        if (key.startsWith('thhn_') || key.startsWith('bare_copper') || key === 'pv_cable_4' || key === 'coax_cable' || key === 'cat6_cable') return 'Electrical';
+        if (key.startsWith('pvc_pipe_') || key.startsWith('pvc_adapter') || key.startsWith('pvc_locknut') || key.startsWith('pvc_solvent') || key.startsWith('rsc_') || key.startsWith('entrance_cap') || key.startsWith('pipe_strap') || key.startsWith('flex_hose_') || key.startsWith('flex_connector') || key.startsWith('molding_') || key === 'pvc_pipe_20mm' || key === 'pvc_pipe_25mm' || key === 'pvc_pipe_32mm') return 'Electrical';
+        if (key.startsWith('utility_box') || key.startsWith('junction_box') || key.startsWith('square_box') || key.startsWith('octagonal_box') || key.startsWith('box_cover')) return 'Electrical';
+        if (key.startsWith('led_') || key.startsWith('integrated_led') || key.startsWith('flood_light') || key.startsWith('downlight') || key.startsWith('track_') || key.startsWith('surface_downlight') || key.startsWith('panel_light') || key === 'gu10_socket' || key === 'ceiling_receptacle' || key === 'emergency_light' || key === 'exit_sign' || key.startsWith('post_lamp') || key === 'garden_spike_light' || key === 'solar_street_light' || key === 'high_bay_light' || key === 't5_led_batten' || key === 'rope_light' || key === 'pendant_light' || key === 'wall_sconce' || key === 'step_light') return 'Electrical';
+        if (key.startsWith('switch_') || key.startsWith('outlet_') || key.startsWith('dimmer') || key === 'fan_control' || key.startsWith('water_heater_switch') || key === 'data_outlet' || key === 'tel_outlet') return 'Electrical';
+        if (key.startsWith('panel_board') || key.startsWith('breaker_') || key === 'mts_switch' || key === 'meter_base' || key === 'sub_meter') return 'Electrical';
         if (key === 'smoke_detector' || key === 'doorbell' || key === 'ground_rod' || key === 'ground_clamp' || key === 'weatherproof_enclosure' || key === 'mc4_connector' || key === 'tox_screw' || key === 'expansion_bolt' || key === 'electrical_tape') return 'Electrical';
         if (key.startsWith('elec_') || key.startsWith('ceiling_fan') || key.startsWith('exhaust_fan')) return 'Electrical';
         if (key.includes('drywall')) return 'Drywall';
@@ -90,8 +90,7 @@ const MaterialPriceList = () => {
         // Site
         'Site Works',
         // MEP
-        'Plumbing',
-        'Wiring', 'Conduit & Fittings', 'Wiring Devices', 'Lighting', 'Panel & Breakers', 'Electrical',
+        'Plumbing', 'Electrical',
         // Envelope
         'Roofing', 'Doors & Windows', 'Steel Truss',
     ];

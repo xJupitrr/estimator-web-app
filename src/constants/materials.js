@@ -73,9 +73,7 @@ export const MATERIAL_DEFAULTS = {
 
     // ─── Tiles & Finishes — Consumables ───────────────────────────────────────
     tile_adhesive: { name: "Tile Adhesive (25kg)", price: 320, unit: "bags" },
-    tile_adhesive_25kg: { name: "Tile Adhesive (25kg)", price: 320, unit: "bags" },
     tile_grout: { name: "Tile Grout (kg)", price: 75, unit: "kg" },
-    tile_grout_2kg: { name: "Tile Grout (2kg)", price: 150, unit: "bags" },
     epoxy_grout_1kg: { name: "Epoxy Grout (1kg)", price: 385, unit: "bags" },
     tile_spacer_2mm: { name: "Tile Spacers 2mm (500pcs/bag)", price: 58, unit: "bags" },
     tile_edge_trim: { name: "Tile Edge Trim / Nosing (2.4m)", price: 180, unit: "pcs" },
@@ -153,11 +151,6 @@ export const MATERIAL_DEFAULTS = {
     checkered_plate_4x8: { name: "Checkered Plate 3mm (4'x8')", price: 4200, unit: "sheets" },
     welding_rod_e6013_5kg: { name: "Welding Rod E6013 3.2mm (5kg box)", price: 390, unit: "boxes" },
     cutting_disc_4in: { name: "Cutting Disc 4\" (Metal, 25pcs/pack)", price: 120, unit: "packs" },
-
-    // Auxiliary
-    pvc_pipe_blue_1_2: { name: "PVC Pipe (1/2\" Blue)", price: 145, unit: "pcs" },
-    pvc_pipe_orange_2: { name: "PVC Pipe (2\" Orange)", price: 320, unit: "pcs" },
-    thhn_wire_2_0: { name: "THHN Wire (2.0mm²)", price: 3800, unit: "rolls" },
 
     // ─── Door Hardware — Hinges ────────────────────────────────────────────────
     door_hinge_3: { name: "Door Hinge Stainless 3\" (pair)", price: 85, unit: "pairs" },
@@ -292,21 +285,12 @@ export const MATERIAL_DEFAULTS = {
     sink_set: { name: "Kitchen Sink Set (Complete)", price: 2100, unit: "sets" },
 
     // Electrical
-    thhn_wire_3_5: { name: "THHN Wire (3.5mm²)", price: 5400, unit: "rolls" },
-    thhn_wire_5_5: { name: "THHN Wire (5.5mm²)", price: 8200, unit: "rolls" },
-    elec_pvc_pipe_20mm: { name: "PVC Electric Pipe (20mm)", price: 110, unit: "pcs" },
-    elec_utility_box: { name: "Utility Box (PVC)", price: 25, unit: "pcs" },
-    elec_junction_box: { name: "Junction Box (PVC)", price: 35, unit: "pcs" },
-    elec_switch_1g: { name: "1-Gang Switch (Set)", price: 150, unit: "sets" },
-    elec_outlet_duplex: { name: "Duplex Convenience Outlet", price: 210, unit: "sets" },
     ceiling_fan_48: { name: "Ceiling Fan 48\" (Standard)", price: 3500, unit: "units" },
     exhaust_fan_8: { name: "Exhaust Fan 8\" Wall-Mounted", price: 1500, unit: "units" },
 
     // Drywall
     drywall_metal_stud: { name: "Metal Stud (3m)", price: 165, unit: "pcs" },
     drywall_metal_track: { name: "Metal Track (3m)", price: 180, unit: "pcs" },
-    drywall_gypsum_12mm: { name: "Gypsum Board (12mm x 4'x8')", price: 550, unit: "pcs" },
-    drywall_fcb_6mm: { name: "Fiber Cement Board (6mm)", price: 650, unit: "pcs" },
     ceiling_mesh_tape: { name: "Fiberglass Mesh Tape (75m)", price: 250, unit: "rolls" },
     ceiling_joint_compound: { name: "Jointing Compound (20kg)", price: 850, unit: "pails" },
 
@@ -478,8 +462,8 @@ export const MATERIAL_DEFAULTS = {
     // ─── Formworks - Phenolic / Sheet (Suspended Slab) ────────────────────────
     phenolic_1_2: { name: '1/2" Phenolic Board (4\'x8\')', price: 1400, unit: "sheets" },
     phenolic_3_4: { name: '3/4" Phenolic Board (4\'x8\')', price: 1800, unit: "sheets" },
-    plywood_1_2: { name: '1/2" Ordinary Plywood (4\'x8\')', price: 680, unit: "sheets" },
-    plywood_3_4: { name: '3/4" Ordinary Plywood (4\'x8\')', price: 920, unit: "sheets" },
+    ordinary_plywood_1_2: { name: '1/2" Ordinary Plywood (4\'x8\')', price: 680, unit: "sheets" },
+    ordinary_plywood_3_4: { name: '3/4" Ordinary Plywood (4\'x8\')', price: 920, unit: "sheets" },
     marine_plywood_1_2: { name: '1/2" Marine Plywood (4\'x8\')', price: 1250, unit: "sheets" },
     marine_plywood_3_4: { name: '3/4" Marine Plywood (4\'x8\')', price: 1650, unit: "sheets" },
     cocoLumber: { name: "Coco Lumber (Shoring/Posts/Joists)", price: 45, unit: "BF" },

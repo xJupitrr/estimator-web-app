@@ -16,8 +16,8 @@ export const DECKING_OPTIONS = [
             { id: 'conv_phenolic_3_4', display: '3/4" (18mm) Phenolic Board', priceKey: 'phenolic_3_4' },
             { id: 'conv_marine_1_2', display: '1/2" (12mm) Marine Plywood', priceKey: 'marine_plywood_1_2' },
             { id: 'conv_marine_3_4', display: '3/4" (18mm) Marine Plywood', priceKey: 'marine_plywood_3_4' },
-            { id: 'conv_plywood_1_2', display: '1/2" (12mm) Ordinary Plywood', priceKey: 'plywood_1_2' },
-            { id: 'conv_plywood_3_4', display: '3/4" (18mm) Ordinary Plywood', priceKey: 'plywood_3_4' },
+            { id: 'conv_plywood_1_2', display: '1/2" (12mm) Ordinary Plywood', priceKey: 'ordinary_plywood_1_2' },
+            { id: 'conv_plywood_3_4', display: '3/4" (18mm) Ordinary Plywood', priceKey: 'ordinary_plywood_3_4' },
         ]
     },
     // Non-Composite Steel Deck
@@ -62,8 +62,8 @@ export const FORMWORK_OPTIONS = [
     { id: 'phenolic_1_2', display: '1/2" (12mm) Phenolic Board', priceKey: 'phenolic_1_2' },
     { id: 'phenolic_3_4', display: '3/4" (18mm) Phenolic Board', priceKey: 'phenolic_3_4' },
     { id: 'marine_1_2', display: '1/2" (12mm) Marine Plywood', priceKey: 'marine_plywood_1_2' },
-    { id: 'plywood_1_2', display: '1/2" (12mm) Ordinary Plywood', priceKey: 'plywood_1_2' },
-    { id: 'plywood_3_4', display: '3/4" (18mm) Ordinary Plywood', priceKey: 'plywood_3_4' },
+    { id: 'plywood_1_2', display: '1/2" (12mm) Ordinary Plywood', priceKey: 'ordinary_plywood_1_2' },
+    { id: 'plywood_3_4', display: '3/4" (18mm) Ordinary Plywood', priceKey: 'ordinary_plywood_3_4' },
 ];
 
 export const FORM_FRAMING_OPTIONS = [
@@ -108,7 +108,9 @@ export const DEFAULT_PRICES = {
     tieWire: 85,
     phenolic_1_2: 1400,
     phenolic_3_4: 1800,
-    plywood_1_2: 950,
+    ordinary_plywood_1_2: 680,
+    ordinary_plywood_3_4: 920,
+    marine_plywood_1_2: 1250,
     cocoLumber: 45,
     deck_08: 450,
     deck_10: 550,
