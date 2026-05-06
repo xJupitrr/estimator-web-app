@@ -175,6 +175,7 @@ export default function ElectricalLoadAnalysis() {
             { isDesignAnalysis: true, key: "Line Conductors", value: `2 - ${da.wireMain}` },
             { isDesignAnalysis: true, key: "PEC Table 3.10.1.16", value: `THHN rated up to ${da.wireMainMaxAmpacity}A @ 75°C` },
             { isDesignAnalysis: true, key: "Ground Conductor", value: `1 - ${da.groundWire}` },
+            { isDesignAnalysis: true, key: "Service Conduit Size", value: da.mainPipe || "" },
             { isDesignAnalysis: true, key: "Final Assessed Output", value: `${res.mainBreaker} | ${res.mainWire}` },
         ];
     };
@@ -362,13 +363,15 @@ export default function ElectricalLoadAnalysis() {
                                     <tr>
                                         <th className={TABLE_UI.HEADER_CELL_LEFT}>Ckt No.</th>
                                         <th className={TABLE_UI.HEADER_CELL_LEFT}>Load Description</th>
-                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Qty</th>
-                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>VA</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>No. of Outlets</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Unit VA</th>
                                         <th className={TABLE_UI.HEADER_CELL_RIGHT}>Total VA</th>
-                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Amps</th>
-                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>CB Rating</th>
-                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Wire Size</th>
-                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Conduit</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Volts (V)</th>
+                                        <th className={TABLE_UI.HEADER_CELL_RIGHT}>Amperes (A)</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Protection (AT, Poles)</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Conductor Size</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Ground Wire (EGC)</th>
+                                        <th className={TABLE_UI.HEADER_CELL_CENTER}>Conduit Size / Type</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -379,12 +382,16 @@ export default function ElectricalLoadAnalysis() {
                                             <td className={TABLE_UI.CELL_CENTER}>{item.qty}</td>
                                             <td className={TABLE_UI.CELL_RIGHT}>{item.unitVA.toLocaleString()}</td>
                                             <td className={TABLE_UI.CELL_RIGHT}>{item.totalVA.toLocaleString()}</td>
+                                            <td className={`${TABLE_UI.CELL_CENTER} font-mono text-slate-500`}>{item.volts}</td>
                                             <td className={TABLE_UI.CELL_RIGHT}>{item.amps.toFixed(2)}</td>
                                             <td className={TABLE_UI.CELL_CENTER}>
                                                 <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{item.breaker}</span>
                                             </td>
                                             <td className={TABLE_UI.CELL_CENTER}>
                                                 <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{item.wire}</span>
+                                            </td>
+                                            <td className={TABLE_UI.CELL_CENTER}>
+                                                <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">{item.groundWire || "Re-Calculate"}</span>
                                             </td>
                                             <td className={TABLE_UI.CELL_CENTER}>
                                                 <span className="bg-slate-50 text-slate-700 border border-slate-200 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{item.pipe}</span>
@@ -539,6 +546,11 @@ export default function ElectricalLoadAnalysis() {
                                                     <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                                                         <span className="text-slate-600">Ground Conductor:</span>
                                                         <span className="font-bold text-emerald-600">1 - {result?.designAnalysis?.groundWire}</span>
+                                                    </div>
+
+                                                    <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                                                        <span className="text-slate-600">Service Conduit:</span>
+                                                        <span className="font-bold text-slate-800 bg-white border border-slate-200 shadow-sm px-2 py-0.5 rounded text-xs">{result?.designAnalysis?.mainPipe || "Re-Calculate"}</span>
                                                     </div>
                                                 </div>
                                             </div>
