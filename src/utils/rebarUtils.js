@@ -2,7 +2,7 @@
  * Shared Rebar Utilities
  */
 
-export const rebarDiameters = ["10mm", "12mm", "16mm", "20mm", "25mm"];
+export const rebarDiameters = ["10mm", "12mm", "16mm", "20mm", "25mm", "28mm", "32mm", "36mm"];
 export const commonLengths = [6.0, 7.5, 9.0, 10.5, 12.0];
 
 export const extractLength = (spec) => {
@@ -26,38 +26,44 @@ export const extractDiameterMeters = (spec) => {
 /**
  * Calculates the standard hook length allowance based on ACI/NSCP standards.
  * Includes both the bend arc and the required straight extension.
- * @param {number} diameterMm - Bar diameter in mm (e.g., 10, 12, 16)
+ * @param {number} diameterMm - Bar diameter in mm (e.g., 10, 12, 16, 28)
  * @param {string} type - Use case ('main_90', 'main_180', 'stirrup_135', 'stirrup_90')
  * @returns {number} Hook length in meters
  */
 export const getHookLength = (diameterMm, type = 'main_90') => {
     const db = diameterMm / 1000;
+    const isStirrup = type.startsWith('stirrup');
+    
+    // Determine the radius to the center of the bar (R_center)
+    // ACI minimum inside bend diameters:
+    // Stirrups/Ties: <= 16mm uses 4db (R_center = 2.5db), > 16mm uses 6db (R_center = 3.5db)
+    // Main Bars: <= 25mm uses 6db (R_center = 3.5db), > 25mm uses 8db (R_center = 4.5db)
+    const radiusFactor = isStirrup 
+        ? (diameterMm <= 16 ? 2.5 : 3.5)
+        : (diameterMm <= 25 ? 3.5 : 4.5);
 
     switch (type) {
-        case 'main_90':
-            // R_inside = 3db (for db <= 25mm), R_center = 3.5db
-            // Arc = 90 deg = (PI/2) * 3.5db approx 5.5db
-            // Extension = 12db
-            // Total approx 17.5db
-            return 17.5 * db;
-
-        case 'main_180':
-            // R_inside = 3db, R_center = 3.5db
-            // Arc = 180 deg = PI * 3.5db approx 11db
-            // Extension = max(4db, 65mm)
-            return (11 * db) + Math.max(4 * db, 0.065);
-
-        case 'stirrup_135':
-            // R_inside = 2db (for stirrups), R_center = 2.5db
-            // Arc = 135 deg = (3PI/4) * 2.5db approx 5.89db
-            // Extension = max(6db, 75mm)
-            return (5.89 * db) + Math.max(6 * db, 0.075);
-
-        case 'stirrup_90':
-            // Extension = 6db for stirrups
-            // Arc = (PI/2) * 2.5db approx 3.93db
-            return (3.93 * db) + (6 * db);
-
+        case 'main_90': {
+            const arcLength = (Math.PI / 2) * radiusFactor * db;
+            const extension = 12 * db;
+            return arcLength + extension;
+        }
+        case 'main_180': {
+            const arcLength = Math.PI * radiusFactor * db;
+            const extension = Math.max(4 * db, 0.065);
+            return arcLength + extension;
+        }
+        case 'stirrup_135': {
+            const arcLength = (3 * Math.PI / 4) * radiusFactor * db;
+            const extension = Math.max(6 * db, 0.075);
+            return arcLength + extension;
+        }
+        case 'stirrup_90': {
+            const arcLength = (Math.PI / 2) * radiusFactor * db;
+            // Extension for 90-degree stirrup hook: 6db for <= 16mm, 12db for > 16mm
+            const extension = diameterMm <= 16 ? (6 * db) : (12 * db);
+            return arcLength + extension;
+        }
         default:
             return 12 * db; // Safe fallback
     }
@@ -70,7 +76,9 @@ export const getHookLength = (diameterMm, type = 'main_90') => {
  */
 export const getBendAllowance = (diameterMm, angleDeg, isStirrup = false) => {
     const db = diameterMm / 1000;
-    const radiusFactor = isStirrup ? 2.5 : 3.5; // Radius to center of bar
+    const radiusFactor = isStirrup 
+        ? (diameterMm <= 16 ? 2.5 : 3.5)
+        : (diameterMm <= 25 ? 3.5 : 4.5);
     const arcLength = (angleDeg * Math.PI / 180) * (radiusFactor * db);
     return arcLength;
 };

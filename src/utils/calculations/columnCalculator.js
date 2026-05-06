@@ -92,7 +92,14 @@ export const calculateColumn = (columns, prices) => {
                         const mainDiameter_m = diameter / 1000;
                         const L_dowel_splice = L_ANCHOR_DEV_FACTOR * mainDiameter_m;
                         const L_footing_hook = getHookLength(diameter, 'main_90');
-                        cutLen = H + L_dowel_splice + L_footing_hook;
+                        
+                        if (cutSet.connection === 'footing') {
+                            cutLen = H + L_footing_hook;
+                        } else if (cutSet.connection === 'splice') {
+                            cutLen = H + L_dowel_splice;
+                        } else {
+                            cutLen = H + L_dowel_splice + L_footing_hook;
+                        }
                     }
                     addRebarReq(skuId, cutLen, count * qty, `${colLabel} Main`);
                 }

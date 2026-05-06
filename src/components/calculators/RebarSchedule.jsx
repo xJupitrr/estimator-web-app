@@ -5,6 +5,7 @@ import { TABLE_UI, CARD_UI, THEME_COLORS } from '../../constants/designSystem';
 import Card from '../common/Card';
 import SectionHeader from '../common/SectionHeader';
 import ExportButtons from '../common/ExportButtons';
+import { getHookLength } from '../../utils/rebarUtils';
 
 const THEME = THEME_COLORS.rebar_schedule;
 
@@ -91,7 +92,7 @@ const buildSchedule = (data) => {
         const spec = parseSpec(f.rebarSpec || '12mm x 6.0m');
         if (!spec) return;
         const { diameter, stockLength } = spec;
-        const hookLen = 0.1; // 100mm std hook
+        const hookLen = getHookLength(diameter, 'main_180');
         const label = f.description || `FTG-${i + 1}`;
         const cntX = parseInt(f.rebar_x_count) || 0;
         const cntY = parseInt(f.rebar_y_count) || 0;
@@ -118,9 +119,32 @@ const buildSchedule = (data) => {
             const count = parseInt(cut.quantity) || 0;
             const customLen = parseFloat(cut.length) || 0;
             const anchorLen = (L_ANCHOR * sku.diameter) / 1000;
-            const hookLen = Math.max(12 * (sku.diameter / 1000), 0.25);
-            const cutLen = customLen > 0 ? customLen : H + anchorLen + hookLen;
-            push('RC Column', 'indigo', `${label}M`, sku.diameter, sku.stockLength, cutLen, count * qty, 'Offset Lap + 90° Hook', hookLen);
+            const hookLen = getHookLength(sku.diameter, 'main_90');
+            const connection = cut.connection || 'default';
+            let cutLen = customLen;
+            let bendType = 'Offset Lap + 90° Hook';
+            let appliedHookLen = hookLen;
+
+            if (customLen <= 0) {
+                if (connection === 'footing') {
+                    cutLen = H + hookLen;
+                    bendType = '90° Hook';
+                } else if (connection === 'splice') {
+                    cutLen = H + anchorLen;
+                    bendType = 'Straight (Lap Splice)';
+                    appliedHookLen = 0;
+                } else {
+                    cutLen = H + anchorLen + hookLen;
+                }
+            } else {
+                if (connection === 'splice') {
+                    bendType = 'Straight (Lap Splice)';
+                    appliedHookLen = 0;
+                } else if (connection === 'footing') {
+                    bendType = '90° Hook';
+                }
+            }
+            push('RC Column', 'indigo', `${label}M`, sku.diameter, sku.stockLength, cutLen, count * qty, bendType, appliedHookLen);
         });
 
         // Ties
@@ -132,7 +156,7 @@ const buildSchedule = (data) => {
                 const tieDia_m = sku.diameter / 1000;
                 const L_tie = L - (2 * COVER);
                 const W_tie = W - (2 * COVER);
-                const hookLen = Math.max(12 * tieDia_m, 0.075);
+                const hookLen = getHookLength(sku.diameter, 'stirrup_135');
                 const tieCutLen = 2 * (L_tie + W_tie) + 2 * hookLen;
                 push('RC Column', 'indigo', `${label}T`, sku.diameter, sku.stockLength, tieCutLen, numTies * qty, '135° Stirrup', hookLen);
             }
@@ -189,7 +213,7 @@ const buildSchedule = (data) => {
                 const tieDia_m = sku.diameter / 1000;
                 const H_tie = H - 2 * COVER;
                 const B_tie = B - 2 * COVER;
-                const hookLen = Math.max(12 * tieDia_m, 0.075);
+                const hookLen = getHookLength(sku.diameter, 'stirrup_135');
                 const tieCutLen = 2 * (H_tie + B_tie) + 2 * hookLen;
                 push('RC Beam', 'violet', `${label}T`, sku.diameter, sku.stockLength, tieCutLen, numTies * qty, '135° Stirrup', hookLen);
             }
@@ -223,7 +247,7 @@ const buildSchedule = (data) => {
                 const tieDia_m = tieSku.diameter / 1000;
                 const H_tie = height - 2 * 0.025;
                 const D_tie = depth - 2 * 0.025;
-                const hookLen = Math.max(12 * tieDia_m, 0.075);
+                const hookLen = getHookLength(tieSku.diameter, 'stirrup_135');
                 const tieCutLen = 2 * (H_tie + D_tie) + 2 * hookLen;
                 push('Lintel Beam', 'teal', `${label}T`, tieSku.diameter, tieSku.stockLength, tieCutLen, numTies * qty, '135° Stirrup', hookLen);
             }

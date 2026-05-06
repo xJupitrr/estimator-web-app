@@ -474,8 +474,9 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                     <thead>
                                         <tr className="text-xs font-bold text-slate-500 uppercase tracking-widest text-left bg-slate-50 border-b border-slate-100">
                                             <th className="p-3">Specification</th>
-                                            <th className="p-3 text-center w-32">Length (m)</th>
-                                            <th className="p-3 text-center w-24">Count</th>
+                                            <th className="p-3 text-center w-36">Connection</th>
+                                            <th className="p-3 text-center w-28">Length (m)</th>
+                                            <th className="p-3 text-center w-20">Count</th>
                                             <th className="p-3 w-10"></th>
                                         </tr>
                                     </thead>
@@ -496,6 +497,23 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                     />
                                                 </td>
                                                 <td className="p-2">
+                                                    <SelectInput
+                                                        value={cut.connection || 'default'}
+                                                        onChange={(val) => {
+                                                            const newCuts = [...activeColForCuts.main_rebar_cuts];
+                                                            newCuts[idx].connection = val;
+                                                            handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
+                                                        }}
+                                                        options={[
+                                                            { value: 'default', label: 'Hook & Splice' },
+                                                            { value: 'footing', label: 'Footing (90° Hook)' },
+                                                            { value: 'splice', label: 'Column (Lap Splice)' }
+                                                        ]}
+                                                        className="h-10 text-[10px]"
+                                                        focusColor="indigo"
+                                                    />
+                                                </td>
+                                                <td className="p-2">
                                                     <div className="relative">
                                                         <TableNumberInput
                                                             value={cut.length}
@@ -504,7 +522,7 @@ const Column = React.memo(({ columns: propColumns, setColumns: propSetColumns })
                                                                 newCuts[idx].length = val;
                                                                 handleColumnChange(editingCutsId, 'main_rebar_cuts', newCuts);
                                                             }}
-                                                            placeholder={(parseFloat(activeColForCuts?.height_m) + (40 * (parseInt(cut.sku?.split('_')[0]) || 12) / 1000) || 0).toFixed(2)}
+                                                            placeholder={(parseFloat(activeColForCuts?.height_m) + (((cut.connection === 'splice' ? 0 : 17.5) + (cut.connection === 'footing' ? 0 : 40)) * (parseInt(cut.sku?.split('_')[0]) || 12) / 1000) || 0).toFixed(2)}
                                                             className="h-10 font-mono text-sm pl-3 pr-8 w-full"
                                                         />
                                                         <span className="absolute right-3 top-3 text-[10px] text-slate-400 font-mono pointer-events-none">m</span>
