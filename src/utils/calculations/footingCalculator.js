@@ -93,6 +93,7 @@ export const calculateFooting = (footings, prices) => {
         const label = f.description || `Footing ${f.id.toString().slice(-4)}`;
         const hookLen = getHookLength(diameter, 'main_90');
         const bendAllow = getBendAllowance(diameter, 90, false);
+        const COVER = 0.075; // 75mm clear cover for footings cast against earth
 
         if (layers === 2) {
             // ---- 2-LAYER: CONTINUOUS ELEVATION LOOPS (HAIRPIN BARS) ----
@@ -104,11 +105,12 @@ export const calculateFooting = (footings, prices) => {
             //   where matSep = Z − 2*cover (75mm standard clear cover each face)
             //
             // Bar COUNT = countX + countY (one loop replaces the bottom+top bar pair per direction)
-            const COVER = 0.075; // 75mm clear cover for footings cast against earth
             const matSep = Math.max(0.05, Z - 2 * COVER);
+            const spanX = Math.max(0.1, X - 2 * COVER);
+            const spanY = Math.max(0.1, Y - 2 * COVER);
 
-            const cutX_loop = 2 * X + 2 * matSep + 4 * bendAllow + 2 * hookLen;
-            const cutY_loop = 2 * Y + 2 * matSep + 4 * bendAllow + 2 * hookLen;
+            const cutX_loop = 2 * spanX + 2 * matSep + 4 * bendAllow + 2 * hookLen;
+            const cutY_loop = 2 * spanY + 2 * matSep + 4 * bendAllow + 2 * hookLen;
 
             if (countX > 0) {
                 rebarGroups[spec].cuts.push({
@@ -132,8 +134,10 @@ export const calculateFooting = (footings, prices) => {
 
         } else {
             // ---- 1-LAYER: STRAIGHT BARS WITH 90° HOOKS ----
-            const cutX = X + (2 * hookLen);
-            const cutY = Y + (2 * hookLen);
+            const spanX = Math.max(0.1, X - 2 * COVER);
+            const spanY = Math.max(0.1, Y - 2 * COVER);
+            const cutX = spanX + (2 * hookLen);
+            const cutY = spanY + (2 * hookLen);
 
             if (countX > 0) {
                 rebarGroups[spec].cuts.push({

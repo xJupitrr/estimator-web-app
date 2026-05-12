@@ -4,7 +4,7 @@ import { Settings, Calculator, PlusCircle, Trash2, Box, AlertCircle, Tent, Eye, 
 import ExportButtons from '../common/ExportButtons';
 import MathInput from '../common/MathInput';
 import SelectInput from '../common/SelectInput';
-import { calculateRoofing as calculateRoofingUtil } from '../../utils/calculations/roofingCalculator';
+import { calculateRoofing as calculateRoofingUtil, ROOFING_TYPES } from '../../utils/calculations/roofingCalculator';
 import { getDefaultPrices } from '../../constants/materials';
 
 import Card from '../common/Card';
@@ -14,13 +14,6 @@ import TablePriceInput from '../common/TablePriceInput';
 import { THEME_COLORS, TABLE_UI, INPUT_UI, CARD_UI } from '../../constants/designSystem';
 
 const THEME = THEME_COLORS.roofing;
-
-const ROOFING_TYPES = [
-    { id: 'rib_type', label: 'Rib-Type (Long Span)', eff_width: 1.0, default_price: 480 },
-    { id: 'corrugated', label: 'Corrugated (Standard)', eff_width: 0.75, default_price: 350 },
-    { id: 'tile_span', label: 'Tile Span (Red/Green)', eff_width: 1.0, default_price: 550 },
-    { id: 'gi_sheet', label: 'G.I. Sheet (Plain)', eff_width: 0.8, default_price: 320 },
-];
 
 const DEFAULT_DEFAULTS = {
     wasteFactor: 5, // percent

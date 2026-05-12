@@ -742,6 +742,22 @@ export const MATERIAL_DEFAULTS = {
     tox_screw: { name: "Tox & Screws (100pcs/box)", price: 150, unit: "box" },
     expansion_bolt: { name: "Expansion Bolt 1/4\" x 2\"", price: 25, unit: "pcs" },
     electrical_tape: { name: "Electrical Tape (Big)", price: 45, unit: "rolls" },
+
+    // ─── Roofing - Pre-painted Sheets & Accessories ────────────────────────────
+    roof_rib_type_04mm: { name: "Rib-Type Roof (0.40mm)", price: 280, unit: "LM" },
+    roof_rib_type_05mm: { name: "Rib-Type Roof (0.50mm)", price: 360, unit: "LM" },
+    roof_rib_type_06mm: { name: "Rib-Type Roof (0.60mm)", price: 440, unit: "LM" },
+    roof_corrugated_04mm: { name: "Corrugated Roof (0.40mm)", price: 240, unit: "LM" },
+    roof_corrugated_05mm: { name: "Corrugated Roof (0.50mm)", price: 320, unit: "LM" },
+    roof_corrugated_06mm: { name: "Corrugated Roof (0.60mm)", price: 380, unit: "LM" },
+    roof_tile_span_04mm: { name: "Tile Span Roof (0.40mm)", price: 300, unit: "LM" },
+    roof_tile_span_05mm: { name: "Tile Span Roof (0.50mm)", price: 380, unit: "LM" },
+    roof_tile_span_06mm: { name: "Tile Span Roof (0.60mm)", price: 460, unit: "LM" },
+    roof_gi_sheet_04mm: { name: "Plain G.I. Sheet (0.40mm)", price: 180, unit: "LM" },
+    roof_gi_sheet_05mm: { name: "Plain G.I. Sheet (0.50mm)", price: 240, unit: "LM" },
+    roof_tekscrew: { name: "Tekscrew (Metal/Wood)", price: 1.50, unit: "pcs" },
+    roof_sealant: { name: "Roof Sealant (Vulcaseal / Tube)", price: 280, unit: "tubes" },
+    roof_ridge_roll: { name: "Ridge Roll (0.40mm x 2.4m)", price: 350, unit: "pcs" },
 };
 
 /**

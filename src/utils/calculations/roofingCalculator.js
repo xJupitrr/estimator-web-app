@@ -1,9 +1,16 @@
 
-const ROOFING_TYPES = [
-    { id: 'rib_type', label: 'Rib-Type (Long Span)', eff_width: 1.0, default_price: 480 },
-    { id: 'corrugated', label: 'Corrugated (Standard)', eff_width: 0.76, default_price: 380 },
-    { id: 'tile_span', label: 'Tile Span (Premium)', eff_width: 1.0, default_price: 550 },
-    { id: 'gi_sheet', label: 'G.I. Sheet (Plain)', eff_width: 0.80, default_price: 450 },
+export const ROOFING_TYPES = [
+    { id: 'rib_type_04mm', label: 'Rib-Type (0.40mm THK)', eff_width: 1.0, default_price: 280 },
+    { id: 'rib_type_05mm', label: 'Rib-Type (0.50mm THK)', eff_width: 1.0, default_price: 360 },
+    { id: 'rib_type_06mm', label: 'Rib-Type (0.60mm THK)', eff_width: 1.0, default_price: 440 },
+    { id: 'corrugated_04mm', label: 'Corrugated (0.40mm THK)', eff_width: 0.76, default_price: 240 },
+    { id: 'corrugated_05mm', label: 'Corrugated (0.50mm THK)', eff_width: 0.76, default_price: 320 },
+    { id: 'corrugated_06mm', label: 'Corrugated (0.60mm THK)', eff_width: 0.76, default_price: 380 },
+    { id: 'tile_span_04mm', label: 'Tile Span (0.40mm THK)', eff_width: 1.0, default_price: 300 },
+    { id: 'tile_span_05mm', label: 'Tile Span (0.50mm THK)', eff_width: 1.0, default_price: 380 },
+    { id: 'tile_span_06mm', label: 'Tile Span (0.60mm THK)', eff_width: 1.0, default_price: 460 },
+    { id: 'gi_sheet_04mm', label: 'Plain G.I. Sheet (0.40mm THK)', eff_width: 0.80, default_price: 180 },
+    { id: 'gi_sheet_05mm', label: 'Plain G.I. Sheet (0.50mm THK)', eff_width: 0.80, default_price: 240 },
 ];
 
 export const calculateRoofing = (rows, prices, settings) => {
@@ -55,7 +62,7 @@ export const calculateRoofing = (rows, prices, settings) => {
     Object.keys(typeGroups).forEach(typeId => {
         const group = typeGroups[typeId];
         const finalLM = Math.ceil(group.linearMeters * wasteMultiplier);
-        const priceKey = typeId === 'gi_sheet' ? 'roof_corrugated' : `roof_${typeId}`;
+        const priceKey = `roof_${typeId}`;
         const price = prices[priceKey] || group.spec.default_price;
         const total = finalLM * price;
 
